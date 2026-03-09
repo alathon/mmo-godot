@@ -1,0 +1,9 @@
+{
+  "context_servers": {
+    "godot-mcp": {
+      "command": "node",
+      "args": ["/Users/alathon/Workspace/experiments/godot-mcp/build/index.js"],
+      "env": {},
+    },
+  },
+}

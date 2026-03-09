@@ -1,0 +1,19 @@
+[
+  {
+    "label": "type-check",
+    "command": "/Applications/Godot.app/Contents/MacOS/Godot",
+    "args": [
+      "--check-types",
+      "--headless",
+      "--build-solutions",
+      "--check-only",
+      "--quit",
+      ".",
+    ],
+  },
+  {
+    "label": "build",
+    "command": "dotnet",
+    "args": ["build"],
+  },
+]
