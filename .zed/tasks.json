@@ -1,7 +1,7 @@
 [
   {
     "label": "type-check",
-    "command": "/Applications/Godot.app/Contents/MacOS/Godot",
+    "command": "godot-mono",
     "args": [
       "--check-types",
       "--headless",

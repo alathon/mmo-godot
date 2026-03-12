@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://cq33yabmqxr4u"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_3twus"]
+
+[node name="CameraRoot" type="Node3D" unique_id=2088795917]
+transform = Transform3D(1, 0, 0, 0, 0.9659258, 0.25881904, 0, -0.25881904, 0.9659258, 0, 0, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="." unique_id=1755880907]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.3841858e-07)
+shape = SubResource("SphereShape3D_3twus")
+spring_length = 10.0
+
+[node name="Camera" type="Camera3D" parent="SpringArm3D" unique_id=214871409]
+far = 400.0
