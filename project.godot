@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="MMO-Godot"
-run/main_scene="uid://bxeoxsb8u26yf"
+run/main_scene="uid://0vmb6lxij1pv"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 
 [display]
@@ -33,7 +33,7 @@ enabled=PackedStringArray("res://addons/sky_3d/plugin.cfg", "res://addons/terrai
 
 folder_colors={
 "res://src/client/": "green",
-"res://src/game_server/": "blue",
+"res://src/game-server/": "blue",
 "res://src/shared/": "orange"
 }
 

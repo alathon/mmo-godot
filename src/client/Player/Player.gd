@@ -2,15 +2,15 @@ extends CharacterBody3D
 
 @onready var _camera := %Camera as Camera3D
 
-@export_range(2.0, 20.0) var SPEED = 5.0
-@export_range(4.5, 10.0) var JUMP_VELOCITY = 4.5
+@export_range(2.0, 20.0) var Speed = 5.0
+@export_range(4.5, 10.0) var JumpVelocity = 4.5
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
 	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
+		velocity.y = JumpVelocity
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 
@@ -20,10 +20,10 @@ func _physics_process(delta: float) -> void:
 	direction = direction.normalized()
 
 	if direction:
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
+		velocity.x = direction.x * Speed
+		velocity.z = direction.z * Speed
 	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
+		velocity.x = move_toward(velocity.x, 0, Speed)
+		velocity.z = move_toward(velocity.z, 0, Speed)
 
 	move_and_slide()
