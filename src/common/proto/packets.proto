@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+message PlayerInput {
+  float input_x = 1;
+  float input_z = 2;
+  bool jump_pressed = 3;
+  uint32 tick = 4;
+}
+
+message EntityState {
+  uint32 entity_id = 1;
+  float pos_x = 2;
+  float pos_y = 3;
+  float pos_z = 4;
+  float vel_x = 5;
+  float vel_z = 6;
+}
+
+message WorldDiff {
+  uint32 tick = 1;
+  repeated EntityState entities = 2;
+}
+
+message Packet {
+  oneof payload {
+    PlayerInput player_input = 1;
+    WorldDiff world_diff = 2;
+  }
+}

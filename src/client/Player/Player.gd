@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 @onready var _camera := %Camera as Camera3D
+@onready var _network := get_node("../Network")
 
 @export_range(2.0, 20.0) var Speed = 5.0
 @export_range(4.5, 10.0) var JumpVelocity = 4.5
@@ -9,12 +10,12 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
-	if Input.is_action_just_pressed("jump") and is_on_floor():
+	var jump_pressed := Input.is_action_just_pressed("jump") and is_on_floor()
+	if jump_pressed:
 		velocity.y = JumpVelocity
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 
-	# Translate direction based on camera forward/basis
 	var direction := (_camera.global_basis * Vector3(input_dir.x, 0, input_dir.y))
 	direction.y = 0
 	direction = direction.normalized()
@@ -27,3 +28,5 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, Speed)
 
 	move_and_slide()
+
+	_network.send_input(direction.x, direction.z, jump_pressed)

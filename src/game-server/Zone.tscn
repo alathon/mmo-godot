@@ -1,13 +1,7 @@
 [gd_scene format=3 uid="uid://btit4ocb6jg8x"]
 
 [ext_resource type="Script" uid="uid://bd4gjdm2vh75" path="res://src/game-server/Zone.gd" id="1_nbfo2"]
-[ext_resource type="Script" uid="uid://e3djerxn063m" path="res://src/game-server/Rpc.gd" id="2_bbqrq"]
-
 [node name="Root" type="Node" unique_id=588403582]
 script = ExtResource("1_nbfo2")
 
 [node name="Network" type="Node" parent="." unique_id=1006523342]
-
-[node name="RPC" type="Node" parent="Network" unique_id=146794465]
-unique_name_in_owner = true
-script = ExtResource("2_bbqrq")
