@@ -11,8 +11,6 @@ const MOVE_SPEED = 5.0
 const MOVE_TOLERANCE = 2.0
 
 var players: Dictionary = {}
-var current_tick: int = 0
-var tick_accumulator: float = 0.0
 
 func _ready() -> void:
 	var peer = ENetMultiplayerPeer.new()
@@ -24,17 +22,11 @@ func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.peer_packet.connect(_on_packet)
+	NetworkTime.start_server()
+	NetworkTime.on_tick.connect(_tick)
 	print("[SERVER] Zone listening on port %d" % PORT)
 
-func _process(delta: float) -> void:
-	tick_accumulator += delta
-	while tick_accumulator >= Globals.TICK_INTERVAL:
-		tick_accumulator -= Globals.TICK_INTERVAL
-		_tick()
-
-func _tick() -> void:
-	current_tick += 1
-
+func _tick(_delta: float, current_tick: int) -> void:
 	if current_tick % 100 == 0:
 		print("[SERVER] tick=%d players=%d" % [current_tick, players.size()])
 
@@ -68,7 +60,7 @@ func _handle_clock_ping(peer_id: int, ping: Proto.ClockPing) -> void:
 	pong.set_ping_id(ping.get_ping_id())
 	pong.set_client_time(ping.get_client_time())
 	pong.set_server_time(Time.get_unix_time_from_system())
-	pong.set_server_tick(current_tick)
+	pong.set_server_tick(NetworkTime.tick)
 	multiplayer.send_bytes(pkt.to_bytes(), peer_id, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
 
 func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:

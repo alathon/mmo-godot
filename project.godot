@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 [autoload]
 
 Globals="*uid://dakvb6qylqqbh"
+NetworkTime="*res://src/common/NetworkTime.gd"
 
 [display]
 

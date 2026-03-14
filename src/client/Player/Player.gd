@@ -22,6 +22,7 @@ var face_angle: float:
 func _ready() -> void:
 	if input_source != null:
 		_network = get_node_or_null("%Network")
+		NetworkTime.on_tick.connect(_on_network_tick)
 
 func _physics_process(delta: float) -> void:
 	if input_source == null:
@@ -40,6 +41,8 @@ func _physics_process(delta: float) -> void:
 	if input_source.movement != Vector3.ZERO:
 		var target_y := atan2(-input_source.movement.x, -input_source.movement.z)
 		rotation.y = lerp_angle(rotation.y, target_y, delta * TurnSpeed)
+
+func _on_network_tick(_delta: float, _tick: int) -> void:
 	if _network:
 		_network.send_input(input_source.movement.x, input_source.movement.z, input_source.jump_pressed, global_position, rotation.y)
 

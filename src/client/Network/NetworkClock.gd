@@ -2,32 +2,32 @@ class_name NetworkClock
 extends Node
 
 # NTP-inspired clock synchronization.
-# Sends a burst of pings on connect, picks the best sample (lowest RTT),
-# and re-syncs periodically. Corrections within DRIFT_THRESHOLD ticks are
-# applied gradually; larger corrections snap immediately.
+# Sends a burst of pings on connect and re-syncs periodically.
+#
+# get_server_tick() is a real-time-based estimate of the server's current tick,
+# independent of NetworkTime's stretched counter. NetworkTime uses this as its
+# reference to compute clock stretch.
 
 const PING_COUNT := 8
-const PING_INTERVAL := 0.1         # seconds between pings in a burst
-const RESYNC_INTERVAL := 5.0       # seconds between re-sync bursts
-const DRIFT_THRESHOLD := 2.0       # ticks; corrections larger than this snap
-const DRIFT_SPEED := 2.0           # ticks/second rate of gradual correction
+const PING_INTERVAL := 0.1      # seconds between pings in a burst
+const RESYNC_INTERVAL := 5.0    # seconds between re-sync bursts
 
 signal synchronized
 
-var client_tick: int = 0
-var tick_offset: float = 0.0       # add to client_tick to get estimated server tick
 var is_synced: bool = false
 
-var _tick_accumulator: float = 0.0
 var _handshaking: bool = false
 var _pings_sent: int = 0
 var _ping_timer: float = 0.0
-var _samples: Array = []           # Array of {rtt: float, offset: float}
-var _pending: Dictionary = {}      # ping_id -> client_time (float)
+var _samples: Array = []        # Array of {rtt: float, server_tick: int, t4: float}
+var _pending: Dictionary = {}   # ping_id -> t1 (unix time float)
 var _next_ping_id: int = 0
 var _resync_timer: float = 0.0
-var _target_offset: float = 0.0
-var _has_target: bool = false
+
+# Reference point set from best NTP sample.
+# get_server_tick() = _ref_tick + (now - _ref_time) * TICK_RATE
+var _ref_tick: int = 0
+var _ref_time: float = 0.0
 
 func _ready() -> void:
 	get_parent().connected_to_server.connect(_on_connected)
@@ -40,12 +40,6 @@ func _on_connected() -> void:
 	_handshaking = true
 
 func _process(delta: float) -> void:
-	# Advance client tick counter.
-	_tick_accumulator += delta
-	while _tick_accumulator >= Globals.TICK_INTERVAL:
-		_tick_accumulator -= Globals.TICK_INTERVAL
-		client_tick += 1
-
 	# Send ping burst.
 	if _handshaking and _pings_sent < PING_COUNT:
 		_ping_timer -= delta
@@ -67,14 +61,6 @@ func _process(delta: float) -> void:
 			_handshaking = true
 			_resync_timer = RESYNC_INTERVAL
 
-	# Drift tick_offset toward _target_offset.
-	if _has_target:
-		var delta_offset := _target_offset - tick_offset
-		if abs(delta_offset) > DRIFT_THRESHOLD:
-			tick_offset = _target_offset
-		else:
-			tick_offset = move_toward(tick_offset, _target_offset, DRIFT_SPEED * delta)
-
 func _send_ping() -> void:
 	var id := _next_ping_id
 	_next_ping_id += 1
@@ -91,35 +77,34 @@ func on_clock_pong(pong) -> void:
 	_pending.erase(id)
 
 	var rtt: float = t4 - t1
-	# Estimate what server tick was current when the pong arrived at the client.
-	# server_tick was recorded at t3 ≈ server_time; transit time from server to
-	# client is rtt/2, so server has advanced rtt/2 * TICK_RATE ticks since then.
+	# At t4 the server was approximately at server_tick + rtt/2 ticks of travel.
 	var server_tick: int = pong.get_server_tick()
-	var estimated_server_tick: float = server_tick + (rtt / 2.0) * Globals.TICK_RATE
-	var new_offset: float = estimated_server_tick - client_tick
-
-	_samples.append({"rtt": rtt, "offset": new_offset})
+	_samples.append({"rtt": rtt, "server_tick": server_tick, "t4": t4})
 
 	if _samples.size() >= PING_COUNT:
 		_finalize_sync()
 
 func _finalize_sync() -> void:
-	# Sort by RTT ascending; the lowest-RTT sample has the most accurate offset.
+	# Best sample = lowest RTT (least queuing jitter).
 	_samples.sort_custom(func(a, b): return a.rtt < b.rtt)
+	var best: Dictionary = _samples[0]
 
-	# Use best sample (lowest RTT = least queuing delay = most accurate offset).
-	_target_offset = _samples[0].offset
-	_has_target = true
+	# Anchor: at real-time best.t4, server was at roughly server_tick + rtt/2 ticks.
+	_ref_time = best.t4
+	_ref_tick = best.server_tick + roundi((best.rtt / 2.0) * Globals.TICK_RATE)
 
 	if not is_synced:
-		tick_offset = _target_offset  # snap on first sync
 		is_synced = true
 		_resync_timer = RESYNC_INTERVAL
+		NetworkTime.start_client(get_server_tick(), self)
 		synchronized.emit()
 
-	print("[CLIENT] Clock synced: server_tick≈%d, offset=%.1f, rtt=%.1fms" % [
-		get_server_tick(), tick_offset, _samples[0].rtt * 1000.0
+	print("[CLIENT] Clock synced: server_tick≈%d, rtt=%.1fms" % [
+		get_server_tick(), best.rtt * 1000.0
 	])
 
+## Returns the best current estimate of the server's tick, based on real time.
+## This advances continuously and is used by NetworkTime as its stretch reference.
 func get_server_tick() -> int:
-	return client_tick + roundi(tick_offset)
+	var elapsed: float = Time.get_unix_time_from_system() - _ref_time
+	return _ref_tick + roundi(elapsed * Globals.TICK_RATE)
