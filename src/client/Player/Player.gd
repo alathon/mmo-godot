@@ -7,18 +7,14 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @export_range(4.5, 10.0) var JumpVelocity = 4.5
 
 # When set, this player runs physics from the input source and sends to the server.
-# When null, position is driven by on_entity_diff (remote player interpolation).
 @export var input_source: Node
+
+# When set, position (and future properties) are driven by server snapshots via interpolation.
+@export var interpolator: Interpolator
 
 var _network: Node
 
-var _interp_from: Vector3
-var _interp_to: Vector3
-var _interp_t: float = 0.0
-
 func _ready() -> void:
-	_interp_from = global_position
-	_interp_to = global_position
 	if input_source != null:
 		_network = get_node_or_null("%Network")
 
@@ -39,15 +35,9 @@ func _physics_process(delta: float) -> void:
 	if _network:
 		_network.send_input(input_source.movement.x, input_source.movement.z, input_source.jump_pressed, global_position)
 
-func _process(delta: float) -> void:
-	if input_source != null:
-		return
-	_interp_t += delta
-	global_position = _interp_from.lerp(_interp_to, clamp(_interp_t / Globals.TICK_INTERVAL, 0.0, 1.0))
-
 func on_entity_diff(entity: Proto.EntityState) -> void:
-	if input_source != null:
+	if interpolator == null:
 		return
-	_interp_from = global_position
-	_interp_to = Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
-	_interp_t = 0.0
+	interpolator.push_snapshot({
+		"global_position": Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
+	})
