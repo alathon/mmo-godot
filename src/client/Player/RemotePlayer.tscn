@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://dyi1cuwqsqm5j"]
 
 [ext_resource type="Script" uid="uid://cdtehp6f6ctow" path="res://src/client/Player/RemotePlayer.gd" id="1_remote"]
-[ext_resource type="Script" uid="uid://be4udg3jk772s" path="res://src/client/Network/EntitySync.gd" id="2_keeya"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
 
@@ -9,10 +8,6 @@
 
 [node name="RemotePlayer" type="CharacterBody3D" unique_id=2027998779]
 script = ExtResource("1_remote")
-
-[node name="EntitySync" type="Node" parent="." unique_id=86662645]
-unique_name_in_owner = true
-script = ExtResource("2_keeya")
 
 [node name="Visual" type="MeshInstance3D" parent="." unique_id=1552780738]
 unique_name_in_owner = true

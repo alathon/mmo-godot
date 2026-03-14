@@ -1,6 +1,8 @@
 class_name LocalPlayer
 extends CharacterBody3D
 
+const Proto = preload("res://src/common/proto/packets.gd")
+
 @onready var _camera := %Camera as Camera3D
 @onready var _network := %Network
 
@@ -31,3 +33,7 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	_network.send_input(direction.x, direction.z, jump_pressed, global_position)
+
+# TODO: For now do nothing.
+func on_entity_diff(entity: Proto.EntityState):
+	pass

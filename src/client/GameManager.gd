@@ -23,9 +23,8 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 		
 		seen_ids[id] = true
 		if id == local_id:
-			continue
-		
-		if not _remote_players.has(id):
+			_local_player.on_entity_diff(entity)
+		elif not _remote_players.has(id):
 			_spawn_remote_player(entity)
 		else:
 			_remote_players[id].on_entity_diff(entity)
