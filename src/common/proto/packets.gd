@@ -1059,6 +1059,168 @@ class WorldDiff:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class ClockPing:
+	func _init():
+		var service
+		
+		__ping_id = PBField.new("ping_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __ping_id
+		data[__ping_id.tag] = service
+		
+		__client_time = PBField.new("client_time", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __client_time
+		data[__client_time.tag] = service
+		
+	var data = {}
+	
+	var __ping_id: PBField
+	func has_ping_id() -> bool:
+		if __ping_id.value != null:
+			return true
+		return false
+	func get_ping_id() -> int:
+		return __ping_id.value
+	func clear_ping_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__ping_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_ping_id(value : int) -> void:
+		__ping_id.value = value
+	
+	var __client_time: PBField
+	func has_client_time() -> bool:
+		if __client_time.value != null:
+			return true
+		return false
+	func get_client_time() -> float:
+		return __client_time.value
+	func clear_client_time() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__client_time.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_client_time(value : float) -> void:
+		__client_time.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class ClockPong:
+	func _init():
+		var service
+		
+		__ping_id = PBField.new("ping_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __ping_id
+		data[__ping_id.tag] = service
+		
+		__client_time = PBField.new("client_time", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __client_time
+		data[__client_time.tag] = service
+		
+		__server_time = PBField.new("server_time", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __server_time
+		data[__server_time.tag] = service
+		
+		__server_tick = PBField.new("server_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __server_tick
+		data[__server_tick.tag] = service
+		
+	var data = {}
+	
+	var __ping_id: PBField
+	func has_ping_id() -> bool:
+		if __ping_id.value != null:
+			return true
+		return false
+	func get_ping_id() -> int:
+		return __ping_id.value
+	func clear_ping_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__ping_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_ping_id(value : int) -> void:
+		__ping_id.value = value
+	
+	var __client_time: PBField
+	func has_client_time() -> bool:
+		if __client_time.value != null:
+			return true
+		return false
+	func get_client_time() -> float:
+		return __client_time.value
+	func clear_client_time() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__client_time.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_client_time(value : float) -> void:
+		__client_time.value = value
+	
+	var __server_time: PBField
+	func has_server_time() -> bool:
+		if __server_time.value != null:
+			return true
+		return false
+	func get_server_time() -> float:
+		return __server_time.value
+	func clear_server_time() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__server_time.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_server_time(value : float) -> void:
+		__server_time.value = value
+	
+	var __server_tick: PBField
+	func has_server_tick() -> bool:
+		if __server_tick.value != null:
+			return true
+		return false
+	func get_server_tick() -> int:
+		return __server_tick.value
+	func clear_server_tick() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__server_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_server_tick(value : int) -> void:
+		__server_tick.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class Packet:
 	func _init():
 		var service
@@ -1074,6 +1236,18 @@ class Packet:
 		service.field = __world_diff
 		service.func_ref = Callable(self, "new_world_diff")
 		data[__world_diff.tag] = service
+		
+		__clock_ping = PBField.new("clock_ping", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __clock_ping
+		service.func_ref = Callable(self, "new_clock_ping")
+		data[__clock_ping.tag] = service
+		
+		__clock_pong = PBField.new("clock_pong", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __clock_pong
+		service.func_ref = Callable(self, "new_clock_pong")
+		data[__clock_pong.tag] = service
 		
 	var data = {}
 	
@@ -1091,6 +1265,10 @@ class Packet:
 		data[1].state = PB_SERVICE_STATE.FILLED
 		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__player_input.value = PlayerInput.new()
 		return __player_input.value
 	
@@ -1108,8 +1286,54 @@ class Packet:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
 		data[2].state = PB_SERVICE_STATE.FILLED
+		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__world_diff.value = WorldDiff.new()
 		return __world_diff.value
+	
+	var __clock_ping: PBField
+	func has_clock_ping() -> bool:
+		if __clock_ping.value != null:
+			return true
+		return false
+	func get_clock_ping() -> ClockPing:
+		return __clock_ping.value
+	func clear_clock_ping() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_clock_ping() -> ClockPing:
+		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.FILLED
+		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__clock_ping.value = ClockPing.new()
+		return __clock_ping.value
+	
+	var __clock_pong: PBField
+	func has_clock_pong() -> bool:
+		if __clock_pong.value != null:
+			return true
+		return false
+	func get_clock_pong() -> ClockPong:
+		return __clock_pong.value
+	func clear_clock_pong() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_clock_pong() -> ClockPong:
+		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		data[4].state = PB_SERVICE_STATE.FILLED
+		__clock_pong.value = ClockPong.new()
+		return __clock_pong.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

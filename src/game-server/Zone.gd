@@ -59,6 +59,17 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 	pkt.from_bytes(bytes)
 	if pkt.has_player_input():
 		_handle_input(peer_id, pkt.get_player_input())
+	elif pkt.has_clock_ping():
+		_handle_clock_ping(peer_id, pkt.get_clock_ping())
+
+func _handle_clock_ping(peer_id: int, ping: Proto.ClockPing) -> void:
+	var pkt = Proto.Packet.new()
+	var pong = pkt.new_clock_pong()
+	pong.set_ping_id(ping.get_ping_id())
+	pong.set_client_time(ping.get_client_time())
+	pong.set_server_time(Time.get_unix_time_from_system())
+	pong.set_server_tick(current_tick)
+	multiplayer.send_bytes(pkt.to_bytes(), peer_id, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
 
 func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 	if not players.has(peer_id):

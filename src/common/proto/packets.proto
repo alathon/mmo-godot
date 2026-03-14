@@ -26,9 +26,23 @@ message WorldDiff {
   repeated EntityState entities = 2;
 }
 
+message ClockPing {
+  uint32 ping_id = 1;
+  float client_time = 2;
+}
+
+message ClockPong {
+  uint32 ping_id = 1;
+  float client_time = 2;
+  float server_time = 3;
+  uint32 server_tick = 4;
+}
+
 message Packet {
   oneof payload {
     PlayerInput player_input = 1;
     WorldDiff world_diff = 2;
+    ClockPing clock_ping = 3;
+    ClockPong clock_pong = 4;
   }
 }

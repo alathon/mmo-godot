@@ -1,6 +1,11 @@
 [gd_scene format=3 uid="uid://douvkry2b0t65"]
 
 [ext_resource type="Script" uid="uid://vvo7ggrbjgrw" path="res://src/client/Network/Network.gd" id="1_0tptt"]
+[ext_resource type="Script" uid="uid://lyn3t2l3rqx5" path="res://src/client/Network/NetworkClock.gd" id="2_clock"]
 
 [node name="Network" type="Node" unique_id=545662185]
 script = ExtResource("1_0tptt")
+
+[node name="NetworkClock" type="Node" parent="." unique_id=1794625186]
+unique_name_in_owner = true
+script = ExtResource("2_clock")

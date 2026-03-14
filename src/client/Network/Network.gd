@@ -26,6 +26,15 @@ func _join(address: String = "") -> void:
 		return
 	multiplayer.multiplayer_peer = peer
 
+func send_clock_ping(ping_id: int, client_time: float) -> void:
+	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+		return
+	var pkt = Proto.Packet.new()
+	var ping = pkt.new_clock_ping()
+	ping.set_ping_id(ping_id)
+	ping.set_client_time(client_time)
+	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
+
 func send_input(input_x: float, input_z: float, jump_pressed: bool, position: Vector3, rot_y: float) -> void:
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
 		return
@@ -53,6 +62,8 @@ func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
 				diff.get_tick(), diff.get_entities().size(), _packets_received
 			])
 		world_diff_received.emit(diff)
+	elif pkt.has_clock_pong():
+		%NetworkClock.on_clock_pong(pkt.get_clock_pong())
 
 func _on_connected() -> void:
 	print("[CLIENT] Connected to server")
