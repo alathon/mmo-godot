@@ -5,6 +5,8 @@
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
 
+[sub_resource type="BoxMesh" id="BoxMesh_nhtww"]
+
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_qjrt4"]
 
 [node name="LocalPlayer" type="CharacterBody3D" unique_id=1596003875 node_paths=PackedStringArray("input")]
@@ -17,6 +19,10 @@ camera = NodePath("")
 
 [node name="Visual" type="MeshInstance3D" parent="." unique_id=1005671327]
 mesh = SubResource("CapsuleMesh_qjrt4")
+
+[node name="Nose" type="MeshInstance3D" parent="Visual" unique_id=1745966047]
+transform = Transform3D(0.19999999, 0, 0, 0, 0.19999999, 0, 0, 0, 0.19999999, 0, 0.45133114, -0.5521852)
+mesh = SubResource("BoxMesh_nhtww")
 
 [node name="Collider" type="CollisionShape3D" parent="." unique_id=1736948836]
 shape = SubResource("CapsuleShape3D_qjrt4")

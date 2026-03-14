@@ -4,12 +4,14 @@ extends Node
 
 @export var CLIENT_MAIN = "res://src/client/Game.tscn"
 @export var GAME_SERVER_MAIN = "res://src/game-server/Zone.tscn"
+@export var BOT_MAIN = "res://src/client/BotGame.tscn"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	var features: Dictionary[String, Callable] = {
 		"client": start_client,
-		"game-server": start_game_server
+		"game-server": start_game_server,
+		"bot": start_bot_client
 	}
 	
 	for feature in features:
@@ -24,3 +26,6 @@ func start_client() -> void:
 
 func start_game_server() -> void:
 	get_tree().change_scene_to_file.call_deferred(GAME_SERVER_MAIN)
+
+func start_bot_client() -> void:
+	get_tree().change_scene_to_file.call_deferred(BOT_MAIN)
