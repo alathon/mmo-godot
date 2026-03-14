@@ -25,24 +25,46 @@ const STRETCH_MIN := 1.0 / STRETCH_MAX
 var tick: int = 0
 
 ## 0.0–1.0 progress through the current tick. Useful for render interpolation.
-var tick_factor: float = 0.0
+## Computed from wall-clock time so it updates every render frame, even when
+## the tick loop itself runs at a lower rate (e.g. in _physics_process).
+var tick_factor: float:
+	get:
+		if not is_active:
+			return 0.0
+		return 1.0 - clampf((_next_tick_time - _process_time) / Globals.TICK_INTERVAL, 0.0, 1.0)
 
 ## Whether the tick loop is running.
 var is_active: bool = false
 
+## When true, the tick loop runs inside _physics_process instead of _process.
+## This ensures move_and_slide() uses the fixed physics delta rather than the
+## variable render frame delta, which is required for correct displacement.
+var sync_to_physics: bool = false
+
+## Velocity multiplier to compensate for move_and_slide()'s assumed physics delta.
+## move_and_slide() internally uses 1/physics_fps as its delta. When called from
+## a network tick (at a lower rate), multiply velocity by this before the call
+## and divide after, so the actual displacement matches the tick interval.
+var physics_factor: float:
+	get: return Globals.TICK_INTERVAL * Engine.physics_ticks_per_second
+
 # Reference to NetworkClock on clients; null on server.
 var _clock: Node = null
 
-var _accumulator: float = 0.0
 var _stretch: float = 1.0
-var _next_tick_time: float = 0.0
-var _last_time: float = 0.0
+var _process_time: float = 0.0    # clock time, advanced every _process (for tick_factor)
+var _tick_time: float = 0.0       # clock time used by the tick loop to decide when to fire
+var _next_tick_time: float = 0.0  # scheduled time of the next tick
+
+var _debug: bool = false
 
 ## Called by Zone (server) once its multiplayer peer is up.
 func start_server() -> void:
 	tick = 0
-	_accumulator = 0.0
 	_stretch = 1.0
+	_process_time = 0.0
+	_tick_time = 0.0
+	_next_tick_time = Globals.TICK_INTERVAL
 	is_active = true
 	after_sync.emit()
 	print("[NetworkTime] Server tick loop started")
@@ -51,13 +73,30 @@ func start_server() -> void:
 func start_client(estimated_server_tick: int, clock: Node) -> void:
 	tick = estimated_server_tick
 	_clock = clock
-	_accumulator = 0.0
 	_stretch = 1.0
+	_process_time = 0.0
+	_tick_time = 0.0
+	_next_tick_time = Globals.TICK_INTERVAL
 	is_active = true
 	after_sync.emit()
 	print("[NetworkTime] Client tick loop started at tick %d" % tick)
 
 func _process(delta: float) -> void:
+	if is_active:
+		_process_time += delta * _stretch
+		if _debug:
+			print("NT._process | tf=%.3f | pt=%.4f | ntt=%.4f | stretch=%.3f" % [
+				tick_factor, _process_time, _next_tick_time, _stretch
+			])
+
+	if not sync_to_physics:
+		_tick_loop(delta)
+
+func _physics_process(delta: float) -> void:
+	if is_active and sync_to_physics:
+		_tick_loop(delta)
+
+func _tick_loop(delta: float) -> void:
 	if not is_active:
 		return
 
@@ -69,20 +108,22 @@ func _process(delta: float) -> void:
 		var stretch_target := clampf(1.0 + drift * 0.1, STRETCH_MIN, STRETCH_MAX)
 		_stretch = lerpf(_stretch, stretch_target, 0.1)
 
-	_accumulator += delta * _stretch
+	# Advance the tick clock. This is the authoritative time for deciding when
+	# ticks fire. Separate from _process_time so that when running in
+	# _physics_process, ticks aren't delayed by one render frame.
+	_tick_time += delta * _stretch
 
 	var ticks_this_frame := 0
-	if _accumulator >= Globals.TICK_INTERVAL:
+	if _tick_time >= _next_tick_time:
 		before_tick_loop.emit()
 
-	while _accumulator >= Globals.TICK_INTERVAL and ticks_this_frame < MAX_TICKS_PER_FRAME:
-		_accumulator -= Globals.TICK_INTERVAL
+	while _tick_time >= _next_tick_time and ticks_this_frame < MAX_TICKS_PER_FRAME:
+		if _debug:
+			print("NT.TICK %d | tt=%.4f | ntt=%.4f" % [tick, _tick_time, _next_tick_time])
 		on_tick.emit(Globals.TICK_INTERVAL, tick)
 		tick += 1
 		ticks_this_frame += 1
+		_next_tick_time += Globals.TICK_INTERVAL
 
 	if ticks_this_frame > 0:
 		after_tick_loop.emit()
-
-	# tick_factor: how far we are through the *current* tick.
-	tick_factor = 1.0 - clampf(_accumulator / Globals.TICK_INTERVAL, 0.0, 1.0)

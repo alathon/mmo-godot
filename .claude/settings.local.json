@@ -3,7 +3,10 @@
     "allow": [
       "mcp__mcp-server-context7__resolve-library-id",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:foxssake.github.io)",
+      "Bash(gh api repos/foxssake/netfox/contents/addons/netfox/tick-interpolator.gd --jq '.content')",
+      "Bash(curl -s https://raw.githubusercontent.com/foxssake/netfox/main/addons/netfox/network-time.gd)"
     ]
   }
 }

@@ -1,4 +1,4 @@
-class_name Interpolator
+class_name RemoteInterpolator
 extends Node
 
 # Tick-based interpolation with a fixed render delay.

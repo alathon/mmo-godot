@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://btit4ocb6jg8x"]
 
 [ext_resource type="Script" uid="uid://bd4gjdm2vh75" path="res://src/game-server/Zone.gd" id="1_nbfo2"]
+
 [node name="Root" type="Node" unique_id=588403582]
 script = ExtResource("1_nbfo2")
 
