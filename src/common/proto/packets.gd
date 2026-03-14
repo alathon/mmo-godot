@@ -711,6 +711,11 @@ class PlayerInput:
 		service.field = __pos_z
 		data[__pos_z.tag] = service
 		
+		__rot_y = PBField.new("rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __rot_y
+		data[__rot_y.tag] = service
+		
 	var data = {}
 	
 	var __input_x: PBField
@@ -804,6 +809,19 @@ class PlayerInput:
 	func set_pos_z(value : float) -> void:
 		__pos_z.value = value
 	
+	var __rot_y: PBField
+	func has_rot_y() -> bool:
+		if __rot_y.value != null:
+			return true
+		return false
+	func get_rot_y() -> float:
+		return __rot_y.value
+	func clear_rot_y() -> void:
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		__rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_rot_y(value : float) -> void:
+		__rot_y.value = value
+	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
 		
@@ -858,6 +876,11 @@ class EntityState:
 		service = PBServiceField.new()
 		service.field = __vel_z
 		data[__vel_z.tag] = service
+		
+		__rot_y = PBField.new("rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __rot_y
+		data[__rot_y.tag] = service
 		
 	var data = {}
 	
@@ -938,6 +961,19 @@ class EntityState:
 		__vel_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_vel_z(value : float) -> void:
 		__vel_z.value = value
+	
+	var __rot_y: PBField
+	func has_rot_y() -> bool:
+		if __rot_y.value != null:
+			return true
+		return false
+	func get_rot_y() -> float:
+		return __rot_y.value
+	func clear_rot_y() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_rot_y(value : float) -> void:
+		__rot_y.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

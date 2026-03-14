@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dyi1cuwqsqm5j"]
 
 [ext_resource type="Script" uid="uid://naetria54hrc" path="res://src/client/Player/Player.gd" id="1_mo6br"]
-[ext_resource type="Script" path="res://src/client/Player/Interpolator.gd" id="2_interp"]
+[ext_resource type="Script" uid="uid://cocfhahrnkgmx" path="res://src/client/Player/Interpolator.gd" id="2_interp"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
 

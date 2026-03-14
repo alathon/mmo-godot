@@ -48,6 +48,7 @@ func _tick() -> void:
 		state.set_pos_x(p.position.x)
 		state.set_pos_y(p.position.y)
 		state.set_pos_z(p.position.z)
+		state.set_rot_y(p.rot_y)
 
 	var bytes = pkt.to_bytes()
 	for peer_id in players:
@@ -68,6 +69,8 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 	var dt = Time.get_ticks_msec() / 1000.0 - p.last_input_time
 	var max_dist = 9999 # MOVE_SPEED * MOVE_TOLERANCE * dt
 
+	p.rot_y = input.get_rot_y()
+
 	if p.position == Vector3.ZERO:
 		# First input: accept spawn position unconditionally
 		p.position = claimed
@@ -85,6 +88,7 @@ func _on_peer_connected(id: int) -> void:
 	print("[SERVER] peer connected: %d" % id)
 	players[id] = {
 		"position": Vector3.ZERO,
+		"rot_y": 0.0,
 		"last_input_time": Time.get_ticks_msec() / 1000.0,
 	}
 

@@ -47,4 +47,6 @@ func _process(delta: float) -> void:
 static func _lerp(a: Variant, b: Variant, t: float) -> Variant:
 	if a is Quaternion:
 		return (a as Quaternion).slerp(b, t)
+	if a is float:
+		return lerp_angle(a, b, t)
 	return a.lerp(b, t)

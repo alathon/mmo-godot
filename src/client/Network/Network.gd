@@ -26,7 +26,7 @@ func _join(address: String = "") -> void:
 		return
 	multiplayer.multiplayer_peer = peer
 
-func send_input(input_x: float, input_z: float, jump_pressed: bool, position: Vector3) -> void:
+func send_input(input_x: float, input_z: float, jump_pressed: bool, position: Vector3, rot_y: float) -> void:
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
 		return
 	var pkt = Proto.Packet.new()
@@ -37,6 +37,7 @@ func send_input(input_x: float, input_z: float, jump_pressed: bool, position: Ve
 	input.set_pos_x(position.x)
 	input.set_pos_y(position.y)
 	input.set_pos_z(position.z)
+	input.set_rot_y(rot_y)
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
 var _packets_received: int = 0

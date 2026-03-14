@@ -8,6 +8,7 @@ message PlayerInput {
   float pos_x = 5;
   float pos_y = 6;
   float pos_z = 7;
+  float rot_y = 8;
 }
 
 message EntityState {
@@ -17,6 +18,7 @@ message EntityState {
   float pos_z = 4;
   float vel_x = 5;
   float vel_z = 6;
+  float rot_y = 7;
 }
 
 message WorldDiff {
