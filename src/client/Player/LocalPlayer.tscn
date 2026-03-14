@@ -1,14 +1,20 @@
 [gd_scene format=3 uid="uid://drypncuar6hv"]
 
 [ext_resource type="Script" uid="uid://bjwcqtpd3ut86" path="res://src/client/Player/LocalPlayer.gd" id="1_fflss"]
+[ext_resource type="Script" uid="uid://bpd6m32l31yfn" path="res://src/client/Player/LocalInput.gd" id="2_bgt1u"]
 [ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="2_nhtww"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_qjrt4"]
 
-[node name="LocalPlayer" type="CharacterBody3D" unique_id=1596003875]
+[node name="LocalPlayer" type="CharacterBody3D" unique_id=1596003875 node_paths=PackedStringArray("input")]
 script = ExtResource("1_fflss")
+input = NodePath("LocalInput")
+
+[node name="LocalInput" type="Node" parent="." unique_id=1369258227 node_paths=PackedStringArray("camera")]
+script = ExtResource("2_bgt1u")
+camera = NodePath("../CameraPivot/SpringArm3D/Camera")
 
 [node name="Visual" type="MeshInstance3D" parent="." unique_id=1005671327]
 mesh = SubResource("CapsuleMesh_qjrt4")
