@@ -1,17 +1,23 @@
 [gd_scene format=3 uid="uid://dyi1cuwqsqm5j"]
 
-[ext_resource type="Script" uid="uid://cdtehp6f6ctow" path="res://src/client/Player/RemotePlayer.gd" id="1_remote"]
+[ext_resource type="Script" uid="uid://naetria54hrc" path="res://src/client/Player/Player.gd" id="1_mo6br"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_nhtww"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_qjrt4"]
 
 [node name="RemotePlayer" type="CharacterBody3D" unique_id=2027998779]
-script = ExtResource("1_remote")
+script = ExtResource("1_mo6br")
 
 [node name="Visual" type="MeshInstance3D" parent="." unique_id=1552780738]
 unique_name_in_owner = true
 mesh = SubResource("CapsuleMesh_qjrt4")
+
+[node name="Nose" type="MeshInstance3D" parent="Visual" unique_id=1745966048]
+transform = Transform3D(0.19999999, 0, 0, 0, 0.19999999, 0, 0, 0, 0.19999999, 0, 0.45133114, -0.5521852)
+mesh = SubResource("BoxMesh_nhtww")
 
 [node name="Collider" type="CollisionShape3D" parent="." unique_id=795466528]
 unique_name_in_owner = true

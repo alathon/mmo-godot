@@ -6,10 +6,10 @@ const RemotePlayerScene = preload("res://src/client/Player/RemotePlayer.tscn")
 const CORRECTION_THRESHOLD = 1.0
 
 @onready var _network: Node = %Network
-@onready var _local_player: LocalPlayer = %LocalPlayer
+@onready var _local_player: Player = %LocalPlayer
 @onready var _entities: Node = %Entities
 
-var _remote_players: Dictionary[int, RemotePlayer] = {}
+var _remote_players: Dictionary[int, Player] = {}
 
 func _ready() -> void:
 	_network.world_diff_received.connect(_on_world_diff)
@@ -20,7 +20,7 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 
 	for entity in diff.get_entities():
 		var id := entity.get_entity_id()
-		
+
 		seen_ids[id] = true
 		if id == local_id:
 			_local_player.on_entity_diff(entity)
