@@ -56,7 +56,7 @@ var _process_time: float = 0.0    # clock time, advanced every _process (for tic
 var _tick_time: float = 0.0       # clock time used by the tick loop to decide when to fire
 var _next_tick_time: float = 0.0  # scheduled time of the next tick
 
-var _debug: bool = true
+var _debug: bool = false
 var _role: String = ""
 
 ## Called by Zone (server) once its multiplayer peer is up.
