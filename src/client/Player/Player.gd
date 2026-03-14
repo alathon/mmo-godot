@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
 @onready var _camera := %Camera as Camera3D
-@onready var _network := get_node("../Network")
+@onready var _network := %Network
 
 @export_range(2.0, 20.0) var Speed = 5.0
 @export_range(4.5, 10.0) var JumpVelocity = 4.5
@@ -29,4 +29,4 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	_network.send_input(direction.x, direction.z, jump_pressed)
+	_network.send_input(direction.x, direction.z, jump_pressed, global_position)

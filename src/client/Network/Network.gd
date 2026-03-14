@@ -1,6 +1,6 @@
 extends Node
 
-const Proto = preload("res://src/common/proto/proto.gd")
+const Proto = preload("res://src/common/proto/packets.gd")
 
 @export var PORT = 7000
 @export var DEFAULT_SERVER_IP = "127.0.0.1"
@@ -26,15 +26,17 @@ func _join(address: String = "") -> void:
 		return
 	multiplayer.multiplayer_peer = peer
 
-func send_input(input_x: float, input_z: float, jump_pressed: bool) -> void:
-	if not multiplayer.has_multiplayer_peer() or not multiplayer.is_server():
-		if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
-			return
+func send_input(input_x: float, input_z: float, jump_pressed: bool, position: Vector3) -> void:
+	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+		return
 	var pkt = Proto.Packet.new()
 	var input = pkt.new_player_input()
 	input.set_input_x(input_x)
 	input.set_input_z(input_z)
 	input.set_jump_pressed(jump_pressed)
+	input.set_pos_x(position.x)
+	input.set_pos_y(position.y)
+	input.set_pos_z(position.z)
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
 var _packets_received: int = 0

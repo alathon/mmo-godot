@@ -1,6 +1,6 @@
 extends Node
 
-const Proto = preload("res://src/common/proto/proto.gd")
+const Proto = preload("res://src/common/proto/packets.gd")
 
 @export var PORT = 7000
 @export var MAX_CLIENTS = 32
@@ -8,6 +8,9 @@ const Proto = preload("res://src/common/proto/proto.gd")
 const TICK_RATE = 20
 const TICK_INTERVAL = 1.0 / TICK_RATE
 const MOVE_SPEED = 5.0
+# Allow 2x max speed to accommodate latency and frame timing variance.
+# The server will snap back anything beyond this.
+const MOVE_TOLERANCE = 2.0
 
 var players: Dictionary = {}
 var current_tick: int = 0
@@ -33,13 +36,6 @@ func _process(delta: float) -> void:
 
 func _tick() -> void:
 	current_tick += 1
-
-	for peer_id in players:
-		var p = players[peer_id]
-		var input: Proto.PlayerInput = p.last_input
-		if input != null:
-			var dir = Vector3(input.get_input_x(), 0.0, input.get_input_z())
-			p.position += dir * MOVE_SPEED * TICK_INTERVAL
 
 	if current_tick % 100 == 0:
 		print("[SERVER] tick=%d players=%d" % [current_tick, players.size()])
@@ -69,15 +65,30 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 	if not players.has(peer_id):
 		return
 	var p = players[peer_id]
-	if p.last_input == null:
-		print("[SERVER] first input from peer %d: x=%.2f z=%.2f jump=%s" % [
-			peer_id, input.get_input_x(), input.get_input_z(), input.get_jump_pressed()
+
+	var claimed = Vector3(input.get_pos_x(), input.get_pos_y(), input.get_pos_z())
+	var dt = Time.get_ticks_msec() / 1000.0 - p.last_input_time
+	var max_dist = 9999 # MOVE_SPEED * MOVE_TOLERANCE * dt
+
+	if p.position == Vector3.ZERO:
+		# First input: accept spawn position unconditionally
+		p.position = claimed
+		print("[SERVER] peer %d spawned at %s" % [peer_id, claimed])
+	elif claimed.distance_to(p.position) <= max_dist:
+		p.position = claimed
+	else:
+		print("[SERVER] rejected movement from peer %d: claimed=%s last=%s dist=%.2f max=%.2f" % [
+			peer_id, claimed, p.position, claimed.distance_to(p.position), max_dist
 		])
-	p.last_input = input
+
+	p.last_input_time = Time.get_ticks_msec() / 1000.0
 
 func _on_peer_connected(id: int) -> void:
 	print("[SERVER] peer connected: %d" % id)
-	players[id] = { "position": Vector3.ZERO, "last_input": null }
+	players[id] = {
+		"position": Vector3.ZERO,
+		"last_input_time": Time.get_ticks_msec() / 1000.0,
+	}
 
 func _on_peer_disconnected(id: int) -> void:
 	print("[SERVER] peer disconnected: %d" % id)

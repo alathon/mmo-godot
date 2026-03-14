@@ -1,30 +1,16 @@
-[gd_scene format=3 uid="uid://drypncuar6hv"]
+[gd_scene format=3 uid="uid://dyi1cuwqsqm5j"]
 
-[ext_resource type="Script" uid="uid://bjwcqtpd3ut86" path="res://src/client/Player/Player.gd" id="1_fflss"]
+[ext_resource type="Script" path="res://src/client/Player/RemotePlayer.gd" id="1_remote"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_qjrt4"]
 
-[node name="Player" type="CharacterBody3D" unique_id=1596003875]
-script = ExtResource("1_fflss")
+[node name="Player" type="CharacterBody3D" unique_id=2027998779]
+script = ExtResource("1_remote")
 
-[node name="Visual" type="MeshInstance3D" parent="." unique_id=1005671327]
-unique_name_in_owner = true
+[node name="Visual" type="MeshInstance3D" parent="." unique_id=1552780738]
 mesh = SubResource("CapsuleMesh_qjrt4")
 
-[node name="Collider" type="CollisionShape3D" parent="." unique_id=1736948836]
-unique_name_in_owner = true
+[node name="Collider" type="CollisionShape3D" parent="." unique_id=795466528]
 shape = SubResource("CapsuleShape3D_qjrt4")
-
-[node name="CameraPivot" type="Node3D" parent="." unique_id=1504845940]
-unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 0.9659258, 0.25881904, 0, -0.25881904, 0.9659258, 0, 2, 0)
-
-[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=1691634015]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.3841858e-07)
-spring_length = 4.0
-
-[node name="Camera" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=517612702]
-unique_name_in_owner = true
-far = 400.0

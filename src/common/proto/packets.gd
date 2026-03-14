@@ -696,6 +696,21 @@ class PlayerInput:
 		service.field = __tick
 		data[__tick.tag] = service
 		
+		__pos_x = PBField.new("pos_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __pos_x
+		data[__pos_x.tag] = service
+		
+		__pos_y = PBField.new("pos_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __pos_y
+		data[__pos_y.tag] = service
+		
+		__pos_z = PBField.new("pos_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __pos_z
+		data[__pos_z.tag] = service
+		
 	var data = {}
 	
 	var __input_x: PBField
@@ -749,6 +764,45 @@ class PlayerInput:
 		__tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_tick(value : int) -> void:
 		__tick.value = value
+	
+	var __pos_x: PBField
+	func has_pos_x() -> bool:
+		if __pos_x.value != null:
+			return true
+		return false
+	func get_pos_x() -> float:
+		return __pos_x.value
+	func clear_pos_x() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__pos_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_pos_x(value : float) -> void:
+		__pos_x.value = value
+	
+	var __pos_y: PBField
+	func has_pos_y() -> bool:
+		if __pos_y.value != null:
+			return true
+		return false
+	func get_pos_y() -> float:
+		return __pos_y.value
+	func clear_pos_y() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__pos_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_pos_y(value : float) -> void:
+		__pos_y.value = value
+	
+	var __pos_z: PBField
+	func has_pos_z() -> bool:
+		if __pos_z.value != null:
+			return true
+		return false
+	func get_pos_z() -> float:
+		return __pos_z.value
+	func clear_pos_z() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__pos_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_pos_z(value : float) -> void:
+		__pos_z.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
