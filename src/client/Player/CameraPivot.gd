@@ -1,9 +1,9 @@
 extends Node3D
 
-@onready var _camera := %Camera as Camera3D
-
 @export_range(0.0, 1.0) var mouse_sensitivity = 0.01
 @export var tilt_limit = deg_to_rad(75)
+@export var target: Node3D
+@export var offset: Vector3 = Vector3(0, 2.0, 0)
 
 var _mouse_position_when_hidden = Vector2.ZERO
 
@@ -22,6 +22,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotation.x = clampf(rotation.x, -tilt_limit, tilt_limit)
 		rotation.y += -event.screen_relative.x * mouse_sensitivity
 
+func _process(delta: float):
+	if target != null:
+		global_position.x = target.global_position.x + offset.x
+		global_position.y = target.global_position.y + offset.y
+		global_position.z = target.global_position.z + offset.z
+
 func _request_mouse_restore():
-	Input.warp_mouse(_mouse_position_when_hidden)
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	get_viewport().warp_mouse(_mouse_position_when_hidden)
