@@ -1,3 +1,4 @@
+class_name LocalPlayer
 extends CharacterBody3D
 
 @onready var _camera := %Camera as Camera3D

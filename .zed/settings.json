@@ -9,7 +9,6 @@
     "**/.classpath",
     "**/.settings",
     "**/*.gd.uid",
-    "**/*.tscn",
   ],
   "context_servers": {
     "godot-mcp": {

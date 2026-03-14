@@ -1,7 +1,9 @@
+class_name RemotePlayer
 extends CharacterBody3D
 
-# Match the server tick rate so interpolation completes just as the next update arrives.
-const TICK_INTERVAL = 1.0 / 20.0
+const Proto = preload("res://src/common/proto/packets.gd")
+
+@onready var entitySync = %EntitySync
 
 var _from_position: Vector3
 var _to_position: Vector3
@@ -18,5 +20,8 @@ func set_target_position(pos: Vector3) -> void:
 
 func _process(delta: float) -> void:
 	_interp_time += delta
-	var t = clamp(_interp_time / TICK_INTERVAL, 0.0, 1.0)
+	var t = clamp(_interp_time / Globals.TICK_INTERVAL, 0.0, 1.0)
 	global_position = _from_position.lerp(_to_position, t)
+
+func on_entity_diff(entity: Proto.EntityState) -> void:
+	entitySync.on_entity_diff(entity)

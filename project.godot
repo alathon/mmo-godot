@@ -14,6 +14,10 @@ config/name="MMO-Godot"
 run/main_scene="uid://0vmb6lxij1pv"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 
+[autoload]
+
+Globals="*uid://dakvb6qylqqbh"
+
 [display]
 
 window/size/viewport_width=1920

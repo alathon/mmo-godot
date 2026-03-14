@@ -5,8 +5,6 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @export var PORT = 7000
 @export var MAX_CLIENTS = 32
 
-const TICK_RATE = 20
-const TICK_INTERVAL = 1.0 / TICK_RATE
 const MOVE_SPEED = 5.0
 # Allow 2x max speed to accommodate latency and frame timing variance.
 # The server will snap back anything beyond this.
@@ -30,8 +28,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	tick_accumulator += delta
-	while tick_accumulator >= TICK_INTERVAL:
-		tick_accumulator -= TICK_INTERVAL
+	while tick_accumulator >= Globals.TICK_INTERVAL:
+		tick_accumulator -= Globals.TICK_INTERVAL
 		_tick()
 
 func _tick() -> void:
