@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://3wgxn0ws26bn"]
+
+[ext_resource type="Terrain3DMaterial" uid="uid://du5vxkiec3kip" path="res://data/terrain/new_terrain_3d_material.tres" id="1_76pqt"]
+[ext_resource type="Terrain3DAssets" uid="uid://bny8j0h1laphg" path="res://data/terrain/new_terrain_3d_assets.tres" id="2_k5deq"]
+[ext_resource type="PackedScene" uid="uid://douvkry2b0t65" path="res://src/client/Network/Network.tscn" id="3_8o4yq"]
+[ext_resource type="Script" uid="uid://bt4wkae1gvxgb" path="res://src/client/Bot/BotInput.gd" id="4_ahsyx"]
+[ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="5_qyp1a"]
+[ext_resource type="PackedScene" uid="uid://drypncuar6hv" path="res://src/client/Player/LocalPlayer.tscn" id="6_j3ali"]
+
+[node name="BotGame" type="Node3D" unique_id=899636666]
+
+[node name="Terrain3D" type="Terrain3D" parent="." unique_id=1032614725]
+data_directory = "res://data/terrain"
+material = ExtResource("1_76pqt")
+assets = ExtResource("2_k5deq")
+top_level = true
+metadata/_edit_lock_ = true
+
+[node name="Network" parent="." unique_id=545662185 instance=ExtResource("3_8o4yq")]
+unique_name_in_owner = true
+
+[node name="BotInput" type="Node" parent="." unique_id=1180022520]
+script = ExtResource("4_ahsyx")
+
+[node name="GameManager" type="Node" parent="." unique_id=1585868974]
+unique_name_in_owner = true
+script = ExtResource("5_qyp1a")
+
+[node name="Entities" type="Node" parent="." unique_id=1297270533]
+unique_name_in_owner = true
+
+[node name="LocalPlayer" parent="Entities" unique_id=1596003875 node_paths=PackedStringArray("input_source") instance=ExtResource("6_j3ali")]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3313532, 1.2003082, -4.067647)
+input_source = NodePath("../../BotInput")
+
+[editable path="Entities/LocalPlayer"]

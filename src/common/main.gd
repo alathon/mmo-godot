@@ -4,7 +4,7 @@ extends Node
 
 @export var CLIENT_MAIN = "res://src/client/Game.tscn"
 @export var GAME_SERVER_MAIN = "res://src/game-server/Zone.tscn"
-@export var BOT_MAIN = "res://src/client/BotGame.tscn"
+@export var BOT_MAIN = "res://src/client/Bot/BotGame.tscn"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
