@@ -56,10 +56,12 @@ var _process_time: float = 0.0    # clock time, advanced every _process (for tic
 var _tick_time: float = 0.0       # clock time used by the tick loop to decide when to fire
 var _next_tick_time: float = 0.0  # scheduled time of the next tick
 
-var _debug: bool = false
+var _debug: bool = true
+var _role: String = ""
 
 ## Called by Zone (server) once its multiplayer peer is up.
 func start_server() -> void:
+	_role = "SRV"
 	tick = 0
 	_stretch = 1.0
 	_process_time = 0.0
@@ -67,10 +69,11 @@ func start_server() -> void:
 	_next_tick_time = Globals.TICK_INTERVAL
 	is_active = true
 	after_sync.emit()
-	print("[NetworkTime] Server tick loop started")
+	print("[%s] Tick loop started" % _role)
 
 ## Called by NetworkClock (client) after NTP sync completes.
 func start_client(estimated_server_tick: int, clock: Node) -> void:
+	_role = "CLI"
 	tick = estimated_server_tick
 	_clock = clock
 	_stretch = 1.0
@@ -79,14 +82,18 @@ func start_client(estimated_server_tick: int, clock: Node) -> void:
 	_next_tick_time = Globals.TICK_INTERVAL
 	is_active = true
 	after_sync.emit()
-	print("[NetworkTime] Client tick loop started at tick %d" % tick)
+	print("[%s] Tick loop started at tick %d" % [_role, tick])
 
 func _process(delta: float) -> void:
 	if is_active:
 		_process_time += delta * _stretch
-		if _debug:
-			print("NT._process | tf=%.3f | pt=%.4f | ntt=%.4f | stretch=%.3f" % [
-				tick_factor, _process_time, _next_tick_time, _stretch
+		if _debug and _role == "CLI":
+			var srv_tick_str := ""
+			if _clock != null:
+				var srv_tick: int = _clock.get_server_tick()
+				srv_tick_str = " | srv=%d | drift=%d" % [srv_tick, srv_tick - tick]
+			print("[%s] tf=%.3f | tick=%d | stretch=%.3f%s" % [
+				_role, tick_factor, tick, _stretch, srv_tick_str
 			])
 
 	if not sync_to_physics:
@@ -119,7 +126,7 @@ func _tick_loop(delta: float) -> void:
 
 	while _tick_time >= _next_tick_time and ticks_this_frame < MAX_TICKS_PER_FRAME:
 		if _debug:
-			print("NT.TICK %d | tt=%.4f | ntt=%.4f" % [tick, _tick_time, _next_tick_time])
+			print("[%s] TICK %d | tt=%.4f | ntt=%.4f" % [_role, tick, _tick_time, _next_tick_time])
 		on_tick.emit(Globals.TICK_INTERVAL, tick)
 		tick += 1
 		ticks_this_frame += 1
