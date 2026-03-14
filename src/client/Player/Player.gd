@@ -35,9 +35,9 @@ func _physics_process(delta: float) -> void:
 	if _network:
 		_network.send_input(input_source.movement.x, input_source.movement.z, input_source.jump_pressed, global_position)
 
-func on_entity_diff(entity: Proto.EntityState) -> void:
+func on_entity_diff(entity: Proto.EntityState, tick: int) -> void:
 	if interpolator == null:
 		return
-	interpolator.push_snapshot({
+	interpolator.push_snapshot(tick, {
 		"global_position": Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
 	})

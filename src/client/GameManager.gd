@@ -16,6 +16,7 @@ func _ready() -> void:
 
 func _on_world_diff(diff: Proto.WorldDiff) -> void:
 	var local_id := multiplayer.get_unique_id()
+	var tick := diff.get_tick()
 	var seen_ids := {}
 
 	for entity in diff.get_entities():
@@ -23,22 +24,22 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 
 		seen_ids[id] = true
 		if id == local_id:
-			_local_player.on_entity_diff(entity)
+			_local_player.on_entity_diff(entity, tick)
 		elif not _remote_players.has(id):
-			_spawn_remote_player(entity)
+			_spawn_remote_player(entity, tick)
 		else:
-			_remote_players[id].on_entity_diff(entity)
+			_remote_players[id].on_entity_diff(entity, tick)
 
 	for id in _remote_players.keys():
 		if not seen_ids.has(id):
 			_despawn_remote_player(id)
 
-func _spawn_remote_player(entity: Proto.EntityState) -> void:
+func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
 	print("[CLIENT] remote player appeared: %d" % entity.get_entity_id())
 	var node := RemotePlayerScene.instantiate()
 	_entities.add_child(node)
 	_remote_players[entity.get_entity_id()] = node
-	node.on_entity_diff(entity)
+	node.on_entity_diff(entity, tick)
 
 func _despawn_remote_player(id: int) -> void:
 	print("[CLIENT] remote player left: %d" % id)
