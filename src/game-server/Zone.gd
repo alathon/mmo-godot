@@ -9,6 +9,9 @@ const ServerPlayerScene = preload("res://src/game-server/ServerPlayer.tscn")
 ## Reject input tagged for ticks further than this into the future.
 const INPUT_FUTURE_LIMIT := 20
 
+## Kick a player if no input received for this many seconds.
+const INPUT_TIMEOUT := 10.0
+
 ## Where new players spawn. Must match the client's LocalPlayer transform.
 const SPAWN_POSITION := Vector3(41.17052, 1.7646443, -28.533752)
 
@@ -68,6 +71,14 @@ func _tick(_delta: float, current_tick: int) -> void:
 		for tick_key in buf.keys():
 			if tick_key < sim_tick:
 				buf.erase(tick_key)
+
+	# Kick players that haven't sent input within the timeout.
+	var timeout_ticks := int(INPUT_TIMEOUT * Globals.TICK_RATE)
+	for peer_id in players.keys():
+		var player: ServerPlayer = players[peer_id]
+		if sim_tick - player.last_input_tick > timeout_ticks:
+			print("[SERVER] Kicking peer %d: no input for %.0fs" % [peer_id, INPUT_TIMEOUT])
+			multiplayer.multiplayer_peer.disconnect_peer(peer_id)
 
 	# Broadcast world state
 	var pkt = Proto.Packet.new()
@@ -134,6 +145,8 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 		"jump_pressed": input.get_jump_pressed(),
 	}
 
+	players[peer_id].last_input_tick = input_tick
+
 func _on_peer_connected(id: int) -> void:
 	if id == 1:
 		return  # server's own peer — not a real client
@@ -143,6 +156,7 @@ func _on_peer_connected(id: int) -> void:
 	_entities.add_child(player)
 	var offset := Vector3(randf_range(-2.0, 2.0), 0.0, randf_range(-2.0, 2.0))
 	player.global_position = SPAWN_POSITION + offset
+	player.last_input_tick = NetworkTime.tick
 	players[id] = player
 	_input_buffers[id] = {}
 
