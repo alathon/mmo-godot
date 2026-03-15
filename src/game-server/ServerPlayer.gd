@@ -9,6 +9,10 @@ var face_angle: float:
 	get: return rotation.y
 	set(v): rotation.y = v
 
+## Whether this player has ever received input from the client.
+## False during clock sync; simulation is skipped until first input arrives.
+var has_received_input: bool = false
+
 ## Last applied input (re-executed when no new input arrives for a tick).
 var last_input := { "input_x": 0.0, "input_z": 0.0, "jump_pressed": false }
 

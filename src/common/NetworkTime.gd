@@ -67,7 +67,6 @@ func start_server() -> void:
 	_next_tick_time = Globals.TICK_INTERVAL
 	is_active = true
 	after_sync.emit()
-	print("[%s] Tick loop started" % _role)
 
 ## Called by NetworkClock (client) after NTP sync completes.
 func start_client(estimated_server_tick: int, clock: Node) -> void:
@@ -80,7 +79,6 @@ func start_client(estimated_server_tick: int, clock: Node) -> void:
 	_next_tick_time = Globals.TICK_INTERVAL
 	is_active = true
 	after_sync.emit()
-	print("[%s] Tick loop started at tick %d" % [_role, tick])
 
 ## Hard-reset the tick counter and accumulators. Called on clock panic
 ## when drift is too large for stretch to recover from.

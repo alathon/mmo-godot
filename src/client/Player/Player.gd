@@ -50,7 +50,6 @@ func _ready() -> void:
 func _on_tick_reset() -> void:
 	_input_history.clear()
 	_pending_server_tick = -1
-	print("[Player] Tick reset — cleared input history")
 
 ## Apply an impulse that displaces this player over time via move_and_slide().
 ## Pauses interpolation while active; resumes when velocity decays to zero.
@@ -58,7 +57,6 @@ func apply_displacement(impulse: Vector3) -> void:
 	_displacement_velocity += impulse
 	if interpolator:
 		interpolator.set_paused(true)
-	print("[Player:%s] displacement impulse applied: %s" % [name, impulse])
 
 func _on_displacement_tick(_delta: float, _tick: int) -> void:
 	if _displacement_velocity.is_zero_approx():

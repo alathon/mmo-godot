@@ -39,7 +39,6 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 			_despawn_remote_player(id)
 
 func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
-	print("[CLIENT] remote player appeared: %d" % entity.get_entity_id())
 	var node := RemotePlayerScene.instantiate()
 	node.name = "RemotePlayer_%d" % entity.get_entity_id()
 	_entities.add_child(node)
@@ -47,7 +46,6 @@ func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
 	node.on_entity_diff(entity, tick)
 
 func _despawn_remote_player(id: int) -> void:
-	print("[CLIENT] remote player left: %d" % id)
 	_remote_players[id].queue_free()
 	_remote_players.erase(id)
 
@@ -58,4 +56,3 @@ func _test_displacement() -> void:
 		var dir := (player.global_position - _local_player.global_position).normalized()
 		dir.y = 0.0
 		player.apply_displacement(dir * 15.0)
-		print("[TEST] Displacement applied to %s" % player.name)

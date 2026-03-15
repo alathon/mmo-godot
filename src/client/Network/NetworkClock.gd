@@ -130,9 +130,6 @@ func _finalize_sync() -> void:
 		_resync_timer = RESYNC_INTERVAL
 		NetworkTime.start_client(get_server_tick(), self)
 		synchronized.emit()
-		print("[CLIENT] Clock synced: tick≈%d, rtt=%.1fms, lead=%.1fms" % [
-			get_server_tick(), best.rtt * 1000.0, lead_time * 1000.0
-		])
 		return
 
 	# Panic: measurement is too far from current clock — snap immediately
@@ -145,9 +142,6 @@ func _finalize_sync() -> void:
 		return
 
 	_target_offset = new_offset
-	print("[CLIENT] Clock synced: tick≈%d, rtt=%.1fms, lead=%.1fms, offset_diff=%.3fs" % [
-		get_server_tick(), best.rtt * 1000.0, lead_time * 1000.0, _target_offset - _offset
-	])
 
 ## Returns the estimated server time in seconds.
 ## Advances smoothly every frame; corrections are gradually nudged in.

@@ -37,16 +37,10 @@ func _ready() -> void:
 	multiplayer.multiplayer_peer = peer
 	NetworkTime.start_server()
 	NetworkTime.on_tick.connect(_tick)
-	print("[SERVER] Zone listening on port %d (physics_tps=%d)" % [PORT, Engine.physics_ticks_per_second])
+	print("[SERVER] Zone listening on port %d" % PORT)
 
 func _tick(_delta: float, current_tick: int) -> void:
 	var sim_tick := current_tick - Globals.INPUT_BUFFER_SIZE
-
-	if current_tick % 100 == 0:
-		print("[SERVER] tick=%d sim_tick=%d players=%d" % [current_tick, sim_tick, players.size()])
-		for peer_id in players:
-			var p: ServerPlayer = players[peer_id]
-			print("  peer %d: pos=%s floor=%s vel=%s" % [peer_id, p.global_position, p.is_on_floor(), p.velocity])
 
 	# Simulate each player using their buffered input for sim_tick
 	for peer_id in players:
@@ -57,6 +51,10 @@ func _tick(_delta: float, current_tick: int) -> void:
 		if buf.has(sim_tick):
 			input = buf[sim_tick]
 			buf.erase(sim_tick)
+			player.has_received_input = true
+		elif not player.has_received_input:
+			# Client hasn't finished clock sync yet — skip simulation.
+			continue
 		else:
 			# No input for this tick — re-execute last known input
 			input = player.last_input
@@ -139,18 +137,17 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 func _on_peer_connected(id: int) -> void:
 	if id == 1:
 		return  # server's own peer — not a real client
-	print("[SERVER] peer connected: %d" % id)
+	print("[SERVER] Peer connected: %d" % id)
 	var player := ServerPlayerScene.instantiate() as ServerPlayer
 	player.name = "ServerPlayer_%d" % id
 	_entities.add_child(player)
 	var offset := Vector3(randf_range(-2.0, 2.0), 0.0, randf_range(-2.0, 2.0))
 	player.global_position = SPAWN_POSITION + offset
-	print("[SERVER] peer %d spawned at %s (floor=%s)" % [id, player.global_position, player.is_on_floor()])
 	players[id] = player
 	_input_buffers[id] = {}
 
 func _on_peer_disconnected(id: int) -> void:
-	print("[SERVER] peer disconnected: %d" % id)
+	print("[SERVER] Peer disconnected: %d" % id)
 	if players.has(id):
 		players[id].queue_free()
 		players.erase(id)
