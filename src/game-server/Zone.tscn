@@ -21,6 +21,8 @@ light_color = Color(0.96445924, 0.613305, 0.18748218, 1)
 data_directory = "res://data/terrain"
 material = ExtResource("2_wfuaf")
 assets = ExtResource("3_iibgt")
+collision_layer = 2
+collision_mask = 0
 top_level = true
 metadata/_edit_lock_ = true
 

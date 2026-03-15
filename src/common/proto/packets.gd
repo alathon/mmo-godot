@@ -818,12 +818,17 @@ class EntityState:
 		service.field = __vel_x
 		data[__vel_x.tag] = service
 		
-		__vel_z = PBField.new("vel_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		__vel_y = PBField.new("vel_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __vel_y
+		data[__vel_y.tag] = service
+		
+		__vel_z = PBField.new("vel_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
 		service = PBServiceField.new()
 		service.field = __vel_z
 		data[__vel_z.tag] = service
 		
-		__rot_y = PBField.new("rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		__rot_y = PBField.new("rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
 		service = PBServiceField.new()
 		service.field = __rot_y
 		data[__rot_y.tag] = service
@@ -895,6 +900,19 @@ class EntityState:
 	func set_vel_x(value : float) -> void:
 		__vel_x.value = value
 	
+	var __vel_y: PBField
+	func has_vel_y() -> bool:
+		if __vel_y.value != null:
+			return true
+		return false
+	func get_vel_y() -> float:
+		return __vel_y.value
+	func clear_vel_y() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__vel_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_vel_y(value : float) -> void:
+		__vel_y.value = value
+	
 	var __vel_z: PBField
 	func has_vel_z() -> bool:
 		if __vel_z.value != null:
@@ -903,7 +921,7 @@ class EntityState:
 	func get_vel_z() -> float:
 		return __vel_z.value
 	func clear_vel_z() -> void:
-		data[6].state = PB_SERVICE_STATE.UNFILLED
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__vel_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_vel_z(value : float) -> void:
 		__vel_z.value = value
@@ -916,7 +934,7 @@ class EntityState:
 	func get_rot_y() -> float:
 		return __rot_y.value
 	func clear_rot_y() -> void:
-		data[7].state = PB_SERVICE_STATE.UNFILLED
+		data[8].state = PB_SERVICE_STATE.UNFILLED
 		__rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_rot_y(value : float) -> void:
 		__rot_y.value = value

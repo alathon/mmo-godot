@@ -16,6 +16,7 @@ signal before_tick_loop
 signal on_tick(delta: float, tick: int)
 signal after_tick_loop
 signal after_sync   # emitted when the tick loop becomes active
+signal on_tick_reset  # emitted after a hard tick reset; listeners should clear stale state
 
 const MAX_TICKS_PER_FRAME := 8
 const STRETCH_MAX := 1.25
@@ -91,6 +92,7 @@ func reset_tick(new_tick: int) -> void:
 	_tick_time = 0.0
 	_next_tick_time = Globals.TICK_INTERVAL
 	print("[%s] Tick hard-reset: %d -> %d (drift was %d)" % [_role, old_tick, new_tick, new_tick - old_tick])
+	on_tick_reset.emit()
 
 func _process(delta: float) -> void:
 	if is_active:

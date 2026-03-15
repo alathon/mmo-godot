@@ -60,6 +60,7 @@ func _tick(_delta: float, current_tick: int) -> void:
 		else:
 			# No input for this tick — re-execute last known input
 			input = player.last_input
+			input.jump_pressed = false # Don't re-simulate jumping, ever.
 
 		player.simulate(input, Globals.TICK_INTERVAL)
 
@@ -81,6 +82,9 @@ func _tick(_delta: float, current_tick: int) -> void:
 		state.set_pos_x(player.global_position.x)
 		state.set_pos_y(player.global_position.y)
 		state.set_pos_z(player.global_position.z)
+		state.set_vel_x(player.velocity.x)
+		state.set_vel_y(player.velocity.y)
+		state.set_vel_z(player.velocity.z)
 		state.set_rot_y(player.face_angle)
 
 	var bytes = pkt.to_bytes()

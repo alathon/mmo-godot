@@ -10,6 +10,7 @@
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_qjrt4"]
 
 [node name="LocalPlayer" type="CharacterBody3D" unique_id=1596003875]
+collision_mask = 2
 script = ExtResource("1_nhtww")
 
 [node name="TickInterpolator" type="Node" parent="." unique_id=383636418 node_paths=PackedStringArray("target")]

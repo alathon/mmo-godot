@@ -30,6 +30,7 @@ var _input_history: Dictionary[int, Dictionary] = {}
 ## Pending server state for reconciliation (applied in _on_before_tick_loop).
 var _pending_server_tick: int = -1
 var _pending_server_pos: Vector3 = Vector3.ZERO
+var _pending_server_vel: Vector3 = Vector3.ZERO
 var _pending_server_rot: float = 0.0
 
 var face_angle: float:
@@ -41,9 +42,15 @@ func _ready() -> void:
 		_network = get_node_or_null("%Network")
 		NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
 		NetworkTime.on_tick.connect(_on_network_tick)
+		NetworkTime.on_tick_reset.connect(_on_tick_reset)
 	else:
 		set_physics_process(false)
 		NetworkTime.on_tick.connect(_on_displacement_tick)
+
+func _on_tick_reset() -> void:
+	_input_history.clear()
+	_pending_server_tick = -1
+	print("[Player] Tick reset — cleared input history")
 
 ## Apply an impulse that displaces this player over time via move_and_slide().
 ## Pauses interpolation while active; resumes when velocity decays to zero.
@@ -88,8 +95,9 @@ func _on_before_tick_loop() -> void:
 		if error > CORRECTION_SNAP_THRESHOLD:
 			print("[Player] SNAP correction: error=%.2f at sim_tick=%d" % [error, sim_tick])
 
-	# Snap to server position.
+	# Snap to server state (position + velocity + rotation).
 	global_position = _pending_server_pos
+	velocity = _pending_server_vel
 	face_angle = _pending_server_rot
 
 	# Drop inputs the server has already processed.
@@ -158,6 +166,7 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 
 func on_entity_diff(entity: Proto.EntityState, tick: int) -> void:
 	var server_pos := Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
+	var server_vel := Vector3(entity.get_vel_x(), entity.get_vel_y(), entity.get_vel_z())
 	var server_rot := entity.get_rot_y()
 
 	if interpolator != null:
@@ -171,4 +180,5 @@ func on_entity_diff(entity: Proto.EntityState, tick: int) -> void:
 	# (where TickInterpolator has already restored its state).
 	_pending_server_tick = tick
 	_pending_server_pos = server_pos
+	_pending_server_vel = server_vel
 	_pending_server_rot = server_rot

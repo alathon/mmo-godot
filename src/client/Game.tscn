@@ -17,7 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://douvkry2b0t65" path="res://src/client/Network/Network.tscn" id="15_y2wwv"]
 [ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="16_g0ymg"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="16_yrfyh"]
-[ext_resource type="Script" path="res://src/common/DebugOverlay.gd" id="17_debug"]
+[ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="17_debug"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_un7kd"]
 shader = ExtResource("5_shy01")
@@ -56,7 +56,7 @@ shader_parameter/starmap_flip_u = false
 shader_parameter/starmap_flip_v = false
 shader_parameter/starmap_alignment = Vector3(2.68288, -0.25891, 0.40101)
 shader_parameter/star_rotation_offset = 9.38899
-shader_parameter/star_rotation = -11.192950301434434
+shader_parameter/star_rotation = -12.448425565192325
 shader_parameter/star_tilt = -1.2915436464758039
 shader_parameter/star_field_color = Color(1, 1, 1, 1)
 shader_parameter/star_field_texture = ExtResource("10_dgu46")
@@ -72,8 +72,8 @@ shader_parameter/cirrus_absorption = 2.0
 shader_parameter/cirrus_sky_tint_fade = 0.5
 shader_parameter/cirrus_size = 1.0
 shader_parameter/cirrus_uv = Vector2(0.16, 0.11)
-shader_parameter/cirrus_position1 = Vector2(0.9634571, 0.9634571)
-shader_parameter/cirrus_position2 = Vector2(0.9634571, 0.9634571)
+shader_parameter/cirrus_position1 = Vector2(0.04167173, 0.04167173)
+shader_parameter/cirrus_position2 = Vector2(0.04167173, 0.04167173)
 shader_parameter/cirrus_texture = ExtResource("6_y2wwv")
 shader_parameter/cumulus_visible = true
 shader_parameter/cumulus_intensity = 0.6
@@ -83,7 +83,7 @@ shader_parameter/cumulus_absorption = 2.0
 shader_parameter/cumulus_noise_freq = 2.7
 shader_parameter/cumulus_sky_tint_fade = 0.0
 shader_parameter/cumulus_size = 0.5
-shader_parameter/cumulus_position = Vector2(19.864252, 19.864252)
+shader_parameter/cumulus_position = Vector2(0.2083631, 0.2083631)
 shader_parameter/cumulus_texture = ExtResource("7_yrfyh")
 shader_parameter/cumulus_partial_mie_phase = Vector3(0.957564, 1.042436, 0.412)
 shader_parameter/cumulus_mie_intensity = 1.0
@@ -93,7 +93,7 @@ shader_parameter/azimuthal_grid_rotation_offset = 0.03
 shader_parameter/show_equatorial_grid = false
 shader_parameter/equatorial_grid_color = Color(0, 0.75, 1, 1)
 shader_parameter/equatorial_grid_rotation_offset = 0.03
-shader_parameter/moon_matrix = Basis(0, -0.630583, 0.7761218, -0.73780787, 0.5238905, 0.42565018, -0.67501074, -0.57262886, -0.46524912)
+shader_parameter/moon_matrix = Basis(0, -0.15881562, 0.98730826, -0.9481473, 0.3137974, 0.050476566, -0.31783125, -0.93611366, -0.1505806)
 
 [sub_resource type="Sky" id="Sky_yrfyh"]
 sky_material = SubResource("ShaderMaterial_un7kd")
@@ -102,7 +102,7 @@ sky_material = SubResource("ShaderMaterial_un7kd")
 background_mode = 2
 sky = SubResource("Sky_yrfyh")
 ambient_light_source = 3
-ambient_light_color = Color(0.9972308, 0.9972308, 0.9972308, 1)
+ambient_light_color = Color(1, 1, 1, 1)
 reflected_light_source = 2
 tonemap_mode = 3
 tonemap_white = 6.0
@@ -115,6 +115,8 @@ tonemap_white = 6.0
 data_directory = "res://data/terrain"
 material = ExtResource("1_qjrt4")
 assets = ExtResource("2_xm4vw")
+collision_layer = 2
+collision_mask = 0
 top_level = true
 metadata/_edit_lock_ = true
 
@@ -126,32 +128,32 @@ light_color = Color(0.96445924, 0.613305, 0.18748218, 1)
 environment = SubResource("Environment_w7732")
 camera_attributes = SubResource("CameraAttributesPractical_me6wx")
 script = ExtResource("12_52x8e")
-current_time = 9.042373333314533
+current_time = 13.562719999979791
 wind_direction = 2.35619451204804
 metadata/_custom_type_script = "uid://deo0gxkmk2ahd"
 
 [node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=889543247]
-transform = Transform3D(0.51741934, -0.51106954, 0.6863564, 0, 0.8020694, 0.59723085, -0.855732, -0.3090188, 0.41500622, 0.6863564, 0.59723085, 0.41500622)
+transform = Transform3D(0.76316714, 0.5219065, -0.3810373, 0, 0.5896574, 0.8076534, 0.6462011, -0.61637455, 0.45000723, -0.3810373, 0.8076534, 0.45000723)
 shadow_enabled = true
 
 [node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=890982392]
-transform = Transform3D(0, -0.7378079, -0.6750107, -0.630583, 0.52389055, -0.57262886, 0.77612185, 0.42565024, -0.46524912, -0.6750107, -0.57262886, -0.46524912)
+transform = Transform3D(0, -0.9481473, -0.31783125, -0.15881562, 0.3137974, -0.93611366, 0.98730826, 0.050476566, -0.1505806, -0.31783125, -0.93611366, -0.1505806)
 light_color = Color(0.572549, 0.776471, 0.956863, 1)
 light_energy = 0.0
 
 [node name="SkyDome" type="Node" parent="Sky3D" unique_id=1988717709]
 script = ExtResource("13_xshh7")
-sun_azimuth = -2.1146288
-sun_altitude = -0.93075216
-moon_azimuth = -5.3158617
-moon_altitude = -2.1805053
+sun_azimuth = -3.8441887
+sun_altitude = -0.63063467
+moon_azimuth = -5.1548376
+moon_altitude = -2.7822087
 wind_direction = 2.35619451204804
 
 [node name="TimeOfDay" type="Node" parent="Sky3D" unique_id=689116871]
 script = ExtResource("14_7vyix")
 dome_path = NodePath("../SkyDome")
-current_time = 9.042373333314533
-day = 12
+current_time = 13.562719999979791
+day = 16
 month = 2
 
 [node name="Network" parent="." unique_id=545662185 instance=ExtResource("15_y2wwv")]
@@ -190,7 +192,7 @@ spring_length = 4.0
 unique_name_in_owner = true
 far = 400.0
 
-[node name="DebugOverlay" type="CanvasLayer" parent="."]
+[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=914765252]
 script = ExtResource("17_debug")
 
 [editable path="Entities/LocalPlayer"]
