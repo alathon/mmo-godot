@@ -1,14 +1,18 @@
 class_name TickInterpolator
 extends Node
 
-## Interpolates between network ticks for smooth visual motion on the local player.
+## Interpolates between network ticks for smooth visual motion.
 ##
-## Attach as a child of the node whose properties you want to smooth.
-## Set [member properties] to the property names to interpolate (e.g. "global_position").
-## The node restores the true simulation state before each tick loop, lets ticks
-## run, then snapshots the result and interpolates visually in _process.
+## Properties are expressed as strings relative to [member target].
+## For the target's own properties, use "property_name"
+## (e.g. "global_transform"). For sub-node properties, use
+## "ChildNode:property" (e.g. "Visual:visible").
 
-## Properties to interpolate (resolved on the parent node).
+## The node whose properties (and sub-tree) are resolved against.
+@export var target: Node
+
+## Property paths to interpolate, relative to target.
+## e.g. ["global_transform", "Visual:visible"]
 @export var properties: Array[String]
 
 ## Toggles interpolation on/off.
@@ -18,11 +22,17 @@ extends Node
 ## don't pop from the origin.
 @export var record_first_state: bool = true
 
-var _from: Dictionary = {}
+# Cached resolved properties: Array of { node: Node, property: StringName }
+var _resolved: Array = []
+
+var _from: Dictionary = {}  # int index -> value
 var _to: Dictionary = {}
 var _is_teleporting: bool = false
 
 func _ready() -> void:
+	if target == null:
+		target = get_parent()
+	_resolve_properties()
 	NetworkTime.before_tick_loop.connect(_before_tick_loop)
 	NetworkTime.after_tick_loop.connect(_after_tick_loop)
 	if record_first_state:
@@ -33,18 +43,10 @@ func _exit_tree() -> void:
 	NetworkTime.before_tick_loop.disconnect(_before_tick_loop)
 	NetworkTime.after_tick_loop.disconnect(_after_tick_loop)
 
-var _debug: bool = true
-
 func _process(_delta: float) -> void:
-	if not enabled or properties.is_empty() or _is_teleporting:
+	if not enabled or _resolved.is_empty() or _is_teleporting:
 		return
-	var f := NetworkTime.tick_factor
-	if _debug and _from.has("global_position") and _to.has("global_position"):
-		print("TI | f=%.3f | from=%s | to=%s | result=%s" % [
-			f, _from["global_position"], _to["global_position"],
-			_lerp(_from["global_position"], _to["global_position"], f)
-		])
-	_interpolate(f)
+	_interpolate(NetworkTime.tick_factor)
 
 ## Record current state and skip interpolation for one frame (e.g. after a respawn).
 func teleport() -> void:
@@ -53,46 +55,66 @@ func teleport() -> void:
 	_is_teleporting = true
 
 ## Manually push the current property values as the new target state.
-## Useful when [member record_first_state] is false or you update properties
-## outside the normal tick loop.
 func push_state() -> void:
 	_from = _to.duplicate()
 	_snapshot_to()
 
+## Re-resolve property paths. Call if target or properties change at runtime.
+func _resolve_properties() -> void:
+	_resolved.clear()
+	for path_str in properties:
+		var path := NodePath(path_str)
+		var node: Node
+		var prop: StringName
+		# If the path has subnames (e.g. ":global_transform" or "Child:prop"),
+		# split into node path + property name.
+		if path.get_subname_count() > 0:
+			var node_path := NodePath(path.get_concatenated_names())
+			if node_path.is_empty():
+				node = target
+			else:
+				node = target.get_node_or_null(node_path)
+			prop = StringName(path.get_concatenated_subnames())
+		else:
+			# No subnames — treat the whole string as a property on target.
+			node = target
+			prop = StringName(path_str)
+		if node == null:
+			push_warning("TickInterpolator: could not resolve node for '%s'" % path_str)
+			continue
+		_resolved.append({ "node": node, "property": prop })
+
 func _before_tick_loop() -> void:
 	_is_teleporting = false
-	# Restore the true simulation state so tick logic reads correct values.
 	_apply(_to)
 
 func _after_tick_loop() -> void:
 	if _is_teleporting:
 		return
-	# Snapshot the post-tick state as the new target.
 	_from = _to.duplicate()
 	_snapshot_to()
-	# Apply the starting state so _process can interpolate from here.
 	_apply(_from)
 
 func _snapshot_to() -> void:
-	var parent := get_parent()
-	for prop in properties:
-		_to[prop] = parent.get(prop)
+	for i in _resolved.size():
+		var r = _resolved[i]
+		_to[i] = r.node.get(r.property)
 
 func _apply(state: Dictionary) -> void:
-	var parent := get_parent()
-	for prop in state:
-		parent.set(prop, state[prop])
+	for i in state:
+		var r = _resolved[i]
+		r.node.set(r.property, state[i])
 
 func _interpolate(f: float) -> void:
-	var parent := get_parent()
-	for prop in _from:
-		if not _to.has(prop):
+	for i in _from:
+		if not _to.has(i):
 			continue
-		var a = _from[prop]
-		var b = _to[prop]
+		var a = _from[i]
+		var b = _to[i]
 		if a == null or b == null:
 			continue
-		parent.set(prop, _lerp(a, b, f))
+		var r = _resolved[i]
+		r.node.set(r.property, _lerp(a, b, f))
 
 static func _lerp(a: Variant, b: Variant, t: float) -> Variant:
 	if a is Transform3D:

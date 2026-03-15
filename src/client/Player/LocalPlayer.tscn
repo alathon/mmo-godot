@@ -12,8 +12,9 @@
 [node name="LocalPlayer" type="CharacterBody3D" unique_id=1596003875]
 script = ExtResource("1_nhtww")
 
-[node name="TickInterpolator" type="Node" parent="." unique_id=383636418]
+[node name="TickInterpolator" type="Node" parent="." unique_id=383636418 node_paths=PackedStringArray("target")]
 script = ExtResource("2_nhtww")
+target = NodePath("..")
 properties = Array[String](["global_transform"])
 
 [node name="Visual" type="MeshInstance3D" parent="." unique_id=1005671327]
