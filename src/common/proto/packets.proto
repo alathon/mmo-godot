@@ -5,10 +5,7 @@ message PlayerInput {
   float input_z = 2;
   bool jump_pressed = 3;
   uint32 tick = 4;
-  float pos_x = 5;
-  float pos_y = 6;
-  float pos_z = 7;
-  float rot_y = 8;
+  float rot_y = 5;
 }
 
 message EntityState {

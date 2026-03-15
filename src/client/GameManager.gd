@@ -14,6 +14,10 @@ var _remote_players: Dictionary[int, Player] = {}
 func _ready() -> void:
 	_network.world_diff_received.connect(_on_world_diff)
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_T:
+		_test_displacement()
+
 func _on_world_diff(diff: Proto.WorldDiff) -> void:
 	var local_id := multiplayer.get_unique_id()
 	var tick := diff.get_tick()
@@ -46,3 +50,12 @@ func _despawn_remote_player(id: int) -> void:
 	print("[CLIENT] remote player left: %d" % id)
 	_remote_players[id].queue_free()
 	_remote_players.erase(id)
+
+func _test_displacement() -> void:
+	for id in _remote_players:
+		var player := _remote_players[id]
+		# Push away from local player
+		var dir := (player.global_position - _local_player.global_position).normalized()
+		dir.y = 0.0
+		player.apply_displacement(dir * 15.0)
+		print("[TEST] Displacement applied to %s" % player.name)

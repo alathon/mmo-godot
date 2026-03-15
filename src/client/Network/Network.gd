@@ -35,7 +35,7 @@ func send_clock_ping(ping_id: int, client_time: float) -> void:
 	ping.set_client_time(client_time)
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
 
-func send_input(input_x: float, input_z: float, jump_pressed: bool, position: Vector3, rot_y: float) -> void:
+func send_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: float, tick: int) -> void:
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
 		return
 	var pkt = Proto.Packet.new()
@@ -43,9 +43,7 @@ func send_input(input_x: float, input_z: float, jump_pressed: bool, position: Ve
 	input.set_input_x(input_x)
 	input.set_input_z(input_z)
 	input.set_jump_pressed(jump_pressed)
-	input.set_pos_x(position.x)
-	input.set_pos_y(position.y)
-	input.set_pos_z(position.z)
+	input.set_tick(tick)
 	input.set_rot_y(rot_y)
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
@@ -57,10 +55,6 @@ func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
 	if pkt.has_world_diff():
 		var diff = pkt.get_world_diff()
 		_packets_received += 1
-		if _packets_received % 20 == 1:
-			print("[CLIENT] world_diff tick=%d entities=%d (packet #%d)" % [
-				diff.get_tick(), diff.get_entities().size(), _packets_received
-			])
 		world_diff_received.emit(diff)
 	elif pkt.has_clock_pong():
 		%NetworkClock.on_clock_pong(pkt.get_clock_pong())

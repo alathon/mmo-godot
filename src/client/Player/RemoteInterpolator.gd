@@ -10,12 +10,25 @@ extends Node
 
 const RENDER_DELAY := 1  # ticks to lag behind latest received
 
-var _debug: bool = true
+var _debug: bool = false
+var _paused: bool = false
 
 var _history := _HistoryBuffer.new(64)
 var _render_tick: float = -1.0  # negative = not yet initialized
 var _last_push_msec: int = -1
 var _last_snapshot_tick: int = -1
+
+## Pause/resume interpolation. While paused, snapshots are still buffered
+## but position is not applied, allowing external systems (e.g., displacement)
+## to drive the transform. On resume, render_tick jumps to latest so
+## interpolation picks up from the current server state.
+func set_paused(paused: bool) -> void:
+	if _paused == paused:
+		return
+	_paused = paused
+	if not _paused and not _history.is_empty():
+		# Jump render_tick to latest so we don't replay old positions
+		_render_tick = float(_history.get_latest_index() - RENDER_DELAY)
 
 func push_snapshot(tick: int, props: Dictionary) -> void:
 	var now := Time.get_ticks_msec()
@@ -25,7 +38,6 @@ func push_snapshot(tick: int, props: Dictionary) -> void:
 		if _last_push_msec >= 0:
 			gap_ms = now - _last_push_msec
 			tick_gap = tick - _last_snapshot_tick
-		#print("[RI:%s] snapshot tick=%d | gap=%dms | tick_gap=%d" % [get_parent().name, tick, gap_ms, tick_gap])
 	_last_push_msec = now
 	_last_snapshot_tick = tick
 
@@ -34,7 +46,7 @@ func push_snapshot(tick: int, props: Dictionary) -> void:
 		_render_tick = float(tick - RENDER_DELAY)
 
 func _process(delta: float) -> void:
-	if _history.is_empty():
+	if _history.is_empty() or _paused:
 		return
 
 	var latest := _history.get_latest_index()
@@ -57,7 +69,8 @@ func _process(delta: float) -> void:
 
 	var from_idx := _history.get_latest_index_at(from_tick)
 	if from_idx < 0:
-		print("[RI:%s] WARNING: Not enough history to interpolate yet" % get_parent().name)
+		if _debug:
+			print("[RI:%s] WARNING: Not enough history to interpolate yet" % get_parent().name)
 		return  # not enough history yet
 
 	var to_idx := _history.get_latest_index_at(to_tick)
@@ -68,7 +81,7 @@ func _process(delta: float) -> void:
 	if _debug:
 		var from_pos = from.get("global_position", null)
 		var to_pos = to.get("global_position", null)
-		if from_pos != null and to_pos != null and not from_pos.is_equal_approx(to_pos):
+		if from_pos != null and to_pos != null and not from_pos.is_equal_approx(to_pos) and _debug:
 			print("[RI:%s] tick %d->%d idx %d->%d a=%.3f | from=%s to=%s" % [
 				get_parent().name, from_tick, to_tick, from_idx, to_idx, alpha,
 				from_pos, to_pos
