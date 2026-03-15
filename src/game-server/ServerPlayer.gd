@@ -38,4 +38,5 @@ func simulate(input: Dictionary, delta: float) -> void:
 	move_and_slide()
 	velocity /= NetworkTime.physics_factor
 
-	last_input = input
+	last_input = input.duplicate()
+	last_input["jump_pressed"] = false

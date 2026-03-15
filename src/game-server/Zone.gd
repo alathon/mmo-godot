@@ -60,7 +60,6 @@ func _tick(_delta: float, current_tick: int) -> void:
 		else:
 			# No input for this tick — re-execute last known input
 			input = player.last_input
-			input.jump_pressed = false # Don't re-simulate jumping, ever.
 
 		player.simulate(input, Globals.TICK_INTERVAL)
 
