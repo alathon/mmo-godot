@@ -121,7 +121,12 @@ func get_latest_index_at(at: int) -> int:
 	if at >= _head:
 		return get_latest_index()
 
-	return _previous[at % _capacity]
+	var idx: int = _previous[at % _capacity]
+	# The previous-pointer may reference a slot that has since been evicted
+	# by the ring buffer wrapping around. Treat it as missing.
+	if idx < _tail:
+		return -1
+	return idx
 
 func get_latest_at(at: int) -> Variant:
 	return get_at(get_latest_index_at(at))

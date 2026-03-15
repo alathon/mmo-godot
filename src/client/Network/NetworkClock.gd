@@ -14,6 +14,7 @@ const PING_INTERVAL := 0.1      # seconds between pings in a burst
 const RESYNC_INTERVAL := 5.0    # seconds between re-sync bursts
 const NUDGE_RATE := 0.5         # seconds of offset correction per second
 const PANIC_THRESHOLD := 1.0    # seconds; snap if offset jumps more than this
+const JITTER_BUFFER_TICKS := 2  # extra ticks of lead beyond RTT/2
 
 signal synchronized
 
@@ -31,6 +32,12 @@ var _resync_timer: float = 0.0
 var _local_time: float = 0.0    # monotonic, advances by delta each frame
 var _offset: float = 0.0        # applied offset: get_time() = _local_time + _offset
 var _target_offset: float = 0.0 # measured offset to nudge toward
+
+## Current lead time added to run ahead of the server (seconds).
+## Equals RTT/2 + jitter buffer so input arrives before the server needs it.
+var lead_time: float = 0.0
+## Latest measured RTT from the best sample (seconds).
+var rtt: float = 0.0
 
 func _ready() -> void:
 	get_parent().connected_to_server.connect(_on_connected)
@@ -96,6 +103,7 @@ func _finalize_sync() -> void:
 	# Best sample = lowest RTT (least queuing jitter).
 	_samples.sort_custom(func(a, b): return a.rtt < b.rtt)
 	var best: Dictionary = _samples[0]
+	rtt = best.rtt
 
 	# Server time (in seconds) at the moment we received the pong.
 	var server_time_at_t4: float = float(best.server_tick) / Globals.TICK_RATE + best.rtt / 2.0
@@ -104,8 +112,13 @@ func _finalize_sync() -> void:
 	var elapsed_since_t4: float = Time.get_unix_time_from_system() - best.t4
 	var server_time_now: float = server_time_at_t4 + elapsed_since_t4
 
-	# Compute what offset makes get_time() == server_time_now.
-	var new_offset: float = server_time_now - _local_time
+	# Lead: run ahead of server time by RTT/2 (one-way delay for our input
+	# to reach the server) plus a jitter buffer for resilience.
+	lead_time = best.rtt / 2.0 + float(JITTER_BUFFER_TICKS) / Globals.TICK_RATE
+	var target_time: float = server_time_now + lead_time
+
+	# Compute what offset makes get_time() == target_time.
+	var new_offset: float = target_time - _local_time
 
 	if not is_synced:
 		# First sync: snap immediately.
@@ -115,25 +128,23 @@ func _finalize_sync() -> void:
 		_resync_timer = RESYNC_INTERVAL
 		NetworkTime.start_client(get_server_tick(), self)
 		synchronized.emit()
-		print("[CLIENT] Clock synced: server_tick≈%d, rtt=%.1fms" % [
-			get_server_tick(), best.rtt * 1000.0
+		print("[CLIENT] Clock synced: tick≈%d, rtt=%.1fms, lead=%.1fms" % [
+			get_server_tick(), best.rtt * 1000.0, lead_time * 1000.0
 		])
 		return
 
-	# Panic: measurement is too far from current clock — distrust it,
-	# discard samples, and start a fresh sync burst.
+	# Panic: measurement is too far from current clock — snap immediately
+	# and hard-reset NetworkTime's tick to match.
 	if absf(new_offset - _offset) > PANIC_THRESHOLD:
-		print("[CLIENT] Clock panic: offset jumped %.3fs, re-syncing" % [new_offset - _offset])
-		_samples.clear()
-		_pending.clear()
-		_pings_sent = 0
-		_ping_timer = 0.0
-		_handshaking = true
+		print("[CLIENT] Clock panic: offset jumped %.3fs, snapping" % [new_offset - _offset])
+		_offset = new_offset
+		_target_offset = new_offset
+		NetworkTime.reset_tick(get_server_tick())
 		return
 
 	_target_offset = new_offset
-	print("[CLIENT] Clock synced: server_tick≈%d, rtt=%.1fms, offset_diff=%.3fs" % [
-		get_server_tick(), best.rtt * 1000.0, _target_offset - _offset
+	print("[CLIENT] Clock synced: tick≈%d, rtt=%.1fms, lead=%.1fms, offset_diff=%.3fs" % [
+		get_server_tick(), best.rtt * 1000.0, lead_time * 1000.0, _target_offset - _offset
 	])
 
 ## Returns the estimated server time in seconds.

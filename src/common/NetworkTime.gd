@@ -20,6 +20,8 @@ signal after_sync   # emitted when the tick loop becomes active
 const MAX_TICKS_PER_FRAME := 8
 const STRETCH_MAX := 1.25
 const STRETCH_MIN := 1.0 / STRETCH_MAX
+## Hard-reset tick if drift exceeds this many ticks (stretch can't recover fast enough).
+const DRIFT_PANIC_TICKS := 10
 
 ## Current network tick.
 var tick: int = 0
@@ -79,6 +81,17 @@ func start_client(estimated_server_tick: int, clock: Node) -> void:
 	after_sync.emit()
 	print("[%s] Tick loop started at tick %d" % [_role, tick])
 
+## Hard-reset the tick counter and accumulators. Called on clock panic
+## when drift is too large for stretch to recover from.
+func reset_tick(new_tick: int) -> void:
+	var old_tick := tick
+	tick = new_tick
+	_stretch = 1.0
+	_process_time = 0.0
+	_tick_time = 0.0
+	_next_tick_time = Globals.TICK_INTERVAL
+	print("[%s] Tick hard-reset: %d -> %d (drift was %d)" % [_role, old_tick, new_tick, new_tick - old_tick])
+
 func _process(delta: float) -> void:
 	if is_active:
 		_process_time += delta * _stretch
@@ -103,6 +116,12 @@ func _tick_loop(delta: float) -> void:
 	if _clock != null:
 		var server_tick: int = _clock.get_server_tick()
 		var drift: float = float(server_tick - tick)
+
+		# Hard-reset if drift is beyond what stretch can reasonably fix.
+		if absf(drift) > DRIFT_PANIC_TICKS:
+			reset_tick(server_tick)
+			return
+
 		# Positive drift = we're behind; negative = we're ahead.
 		var stretch_target := clampf(1.0 + drift * 0.1, STRETCH_MIN, STRETCH_MAX)
 		_stretch = lerpf(_stretch, stretch_target, 0.1)

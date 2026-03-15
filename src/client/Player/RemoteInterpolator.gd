@@ -63,6 +63,11 @@ func _process(delta: float) -> void:
 			_render_tick, ceiling, ceiling - _render_tick, latest
 		])
 
+	# Snap render_tick forward if it's fallen behind the buffer's range.
+	var earliest := _history.get_earliest_index()
+	if _render_tick < earliest:
+		_render_tick = float(earliest)
+
 	var from_tick := floori(_render_tick)
 	var to_tick := from_tick + 1
 	var alpha: float = _render_tick - from_tick
@@ -75,8 +80,12 @@ func _process(delta: float) -> void:
 
 	var to_idx := _history.get_latest_index_at(to_tick)
 
-	var from: Dictionary = _history.get_at(from_idx)
-	var to: Dictionary = from if to_idx < 0 else _history.get_at(to_idx)
+	var from: Variant = _history.get_at(from_idx)
+	if from == null:
+		# Evicted from ring buffer — snap forward to earliest available.
+		_render_tick = float(earliest)
+		return
+	var to: Dictionary = from if to_idx < 0 else (_history.get_at(to_idx) if _history.get_at(to_idx) != null else from)
 
 	if _debug:
 		var from_pos = from.get("global_position", null)

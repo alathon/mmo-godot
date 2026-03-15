@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bd4gjdm2vh75" path="res://src/game-server/Zone.gd" id="1_nbfo2"]
 [ext_resource type="Terrain3DMaterial" uid="uid://du5vxkiec3kip" path="res://data/terrain/new_terrain_3d_material.tres" id="2_wfuaf"]
 [ext_resource type="Terrain3DAssets" uid="uid://bny8j0h1laphg" path="res://data/terrain/new_terrain_3d_assets.tres" id="3_iibgt"]
+[ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="4_debug"]
 
 [node name="Root" type="Node" unique_id=588403582]
 script = ExtResource("1_nbfo2")
@@ -25,3 +26,6 @@ metadata/_edit_lock_ = true
 
 [node name="Entities" type="Node" parent="." unique_id=993450115]
 unique_name_in_owner = true
+
+[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=1899178943]
+script = ExtResource("4_debug")

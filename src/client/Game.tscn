@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://douvkry2b0t65" path="res://src/client/Network/Network.tscn" id="15_y2wwv"]
 [ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="16_g0ymg"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="16_yrfyh"]
+[ext_resource type="Script" path="res://src/common/DebugOverlay.gd" id="17_debug"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_un7kd"]
 shader = ExtResource("5_shy01")
@@ -188,5 +189,8 @@ spring_length = 4.0
 [node name="Camera" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=728128730]
 unique_name_in_owner = true
 far = 400.0
+
+[node name="DebugOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("17_debug")
 
 [editable path="Entities/LocalPlayer"]
