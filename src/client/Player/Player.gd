@@ -24,6 +24,8 @@ func _ready() -> void:
 		_network = get_node_or_null("%Network")
 		NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
 		NetworkTime.on_tick.connect(_on_network_tick)
+	else:
+		set_physics_process(false)
 
 func _on_before_tick_loop() -> void:
 	pass

@@ -37,6 +37,7 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
 	print("[CLIENT] remote player appeared: %d" % entity.get_entity_id())
 	var node := RemotePlayerScene.instantiate()
+	node.name = "RemotePlayer_%d" % entity.get_entity_id()
 	_entities.add_child(node)
 	_remote_players[entity.get_entity_id()] = node
 	node.on_entity_diff(entity, tick)

@@ -26,7 +26,7 @@ var tick: int = 0
 
 ## 0.0–1.0 progress through the current tick. Useful for render interpolation.
 ## Computed from wall-clock time so it updates every render frame, even when
-## the tick loop itself runs at a lower rate (e.g. in _physics_process).
+## the tick loop runs at the physics rate.
 var tick_factor: float:
 	get:
 		if not is_active:
@@ -35,11 +35,6 @@ var tick_factor: float:
 
 ## Whether the tick loop is running.
 var is_active: bool = false
-
-## When true, the tick loop runs inside _physics_process instead of _process.
-## This ensures move_and_slide() uses the fixed physics delta rather than the
-## variable render frame delta, which is required for correct displacement.
-var sync_to_physics: bool = false
 
 ## Velocity multiplier to compensate for move_and_slide()'s assumed physics delta.
 ## move_and_slide() internally uses 1/physics_fps as its delta. When called from
@@ -96,11 +91,8 @@ func _process(delta: float) -> void:
 				_role, tick_factor, tick, _stretch, srv_tick_str
 			])
 
-	if not sync_to_physics:
-		_tick_loop(delta)
-
 func _physics_process(delta: float) -> void:
-	if is_active and sync_to_physics:
+	if is_active:
 		_tick_loop(delta)
 
 func _tick_loop(delta: float) -> void:
