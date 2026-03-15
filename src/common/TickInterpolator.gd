@@ -16,7 +16,7 @@ extends Node
 @export var properties: Array[String]
 
 ## Toggles interpolation on/off.
-@export var enabled: bool = true
+@export var enabled: bool = false
 
 ## If true, takes an initial snapshot on _ready so objects that move immediately
 ## don't pop from the origin.

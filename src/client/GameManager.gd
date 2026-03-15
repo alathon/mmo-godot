@@ -13,7 +13,7 @@ var _remote_players: Dictionary[int, Player] = {}
 
 func _ready() -> void:
 	_network.world_diff_received.connect(_on_world_diff)
-
+	
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_T:
 		_test_displacement()

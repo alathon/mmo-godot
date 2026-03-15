@@ -32,12 +32,10 @@ func set_paused(paused: bool) -> void:
 
 func push_snapshot(tick: int, props: Dictionary) -> void:
 	var now := Time.get_ticks_msec()
-	if _debug:
-		var gap_ms := -1
-		var tick_gap := -1
-		if _last_push_msec >= 0:
-			gap_ms = now - _last_push_msec
-			tick_gap = tick - _last_snapshot_tick
+	if _debug and _last_push_msec >= 0:
+		var gap_ms := now - _last_push_msec
+		var tick_gap := tick - _last_snapshot_tick
+		print("[RI:%s] PUSH tick=%d | gap_ms=%d | tick_gap=%d" % [get_parent().name, tick, gap_ms, tick_gap])
 	_last_push_msec = now
 	_last_snapshot_tick = tick
 

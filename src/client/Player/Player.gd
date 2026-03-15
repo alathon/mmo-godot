@@ -99,6 +99,7 @@ func _on_before_tick_loop() -> void:
 	global_position = _pending_server_pos
 	velocity = _pending_server_vel
 	face_angle = _pending_server_rot
+	reset_physics_interpolation()
 
 	# Drop inputs the server has already processed.
 	for tick_key in _input_history.keys():
