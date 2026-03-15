@@ -146,4 +146,8 @@ func _tick_loop(delta: float) -> void:
 		_next_tick_time += Globals.TICK_INTERVAL
 
 	if ticks_this_frame > 0:
+		# Re-anchor _process_time to _tick_time so they can't drift apart.
+		# This keeps tick_factor (computed in _process from _process_time)
+		# consistent with _next_tick_time (driven by _tick_time).
+		_process_time = _tick_time
 		after_tick_loop.emit()

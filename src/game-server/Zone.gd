@@ -60,6 +60,7 @@ func _tick(_delta: float, current_tick: int) -> void:
 		else:
 			# No input for this tick — re-execute last known input
 			input = player.last_input
+			print("[SERVER] REPLAY input for peer %d at sim_tick=%d" % [peer_id, sim_tick])
 
 		player.simulate(input, Globals.TICK_INTERVAL)
 

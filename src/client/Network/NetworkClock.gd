@@ -94,7 +94,8 @@ func on_clock_pong(pong) -> void:
 
 	var rtt: float = t4 - t1
 	var server_tick: int = pong.get_server_tick()
-	_samples.append({"rtt": rtt, "server_tick": server_tick, "t4": t4})
+	var server_time: float = pong.get_server_time()
+	_samples.append({"rtt": rtt, "server_tick": server_tick, "server_time": server_time, "t4": t4})
 
 	if _samples.size() >= PING_COUNT:
 		_finalize_sync()
@@ -106,6 +107,7 @@ func _finalize_sync() -> void:
 	rtt = best.rtt
 
 	# Server time (in seconds) at the moment we received the pong.
+	# Derived from integer server_tick (±1 tick quantization, mitigated by lowest-RTT selection).
 	var server_time_at_t4: float = float(best.server_tick) / Globals.TICK_RATE + best.rtt / 2.0
 
 	# Extrapolate to now (in case some time passed since the pong arrived).
