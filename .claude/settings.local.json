@@ -6,7 +6,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:foxssake.github.io)",
       "Bash(gh api repos/foxssake/netfox/contents/addons/netfox/tick-interpolator.gd --jq '.content')",
-      "Bash(curl -s https://raw.githubusercontent.com/foxssake/netfox/main/addons/netfox/network-time.gd)"
+      "Bash(curl -s https://raw.githubusercontent.com/foxssake/netfox/main/addons/netfox/network-time.gd)",
+      "Bash(godot-mono --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd)"
     ]
   }
 }
