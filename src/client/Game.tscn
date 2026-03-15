@@ -18,6 +18,7 @@
 [ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="16_g0ymg"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="16_yrfyh"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="17_debug"]
+[ext_resource type="Script" path="res://src/client/Network/InputBatcher.gd" id="18_ibatch"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_un7kd"]
 shader = ExtResource("5_shy01")
@@ -158,6 +159,10 @@ month = 2
 
 [node name="Network" parent="." unique_id=545662185 instance=ExtResource("15_y2wwv")]
 unique_name_in_owner = true
+
+[node name="InputBatcher" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("18_ibatch")
 
 [node name="GameManager" type="Node" parent="." unique_id=278296434]
 unique_name_in_owner = true

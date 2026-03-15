@@ -36,11 +36,16 @@ message ClockPong {
   uint32 server_tick = 4;
 }
 
+message InputBatch {
+  repeated PlayerInput inputs = 1;
+}
+
 message Packet {
   oneof payload {
     PlayerInput player_input = 1;
     WorldDiff world_diff = 2;
     ClockPing clock_ping = 3;
     ClockPong clock_pong = 4;
+    InputBatch input_batch = 5;
   }
 }

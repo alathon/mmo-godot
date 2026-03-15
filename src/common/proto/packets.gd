@@ -1185,6 +1185,51 @@ class ClockPong:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class InputBatch:
+	func _init():
+		var service
+		
+		var __inputs_default: Array[PlayerInput] = []
+		__inputs = PBField.new("inputs", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 1, true, __inputs_default)
+		service = PBServiceField.new()
+		service.field = __inputs
+		service.func_ref = Callable(self, "add_inputs")
+		data[__inputs.tag] = service
+		
+	var data = {}
+	
+	var __inputs: PBField
+	func get_inputs() -> Array[PlayerInput]:
+		return __inputs.value
+	func clear_inputs() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__inputs.value.clear()
+	func add_inputs() -> PlayerInput:
+		var element = PlayerInput.new()
+		__inputs.value.append(element)
+		return element
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class Packet:
 	func _init():
 		var service
@@ -1213,6 +1258,12 @@ class Packet:
 		service.func_ref = Callable(self, "new_clock_pong")
 		data[__clock_pong.tag] = service
 		
+		__input_batch = PBField.new("input_batch", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __input_batch
+		service.func_ref = Callable(self, "new_input_batch")
+		data[__input_batch.tag] = service
+		
 	var data = {}
 	
 	var __player_input: PBField
@@ -1233,6 +1284,8 @@ class Packet:
 		data[3].state = PB_SERVICE_STATE.UNFILLED
 		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
 		__player_input.value = PlayerInput.new()
 		return __player_input.value
 	
@@ -1254,6 +1307,8 @@ class Packet:
 		data[3].state = PB_SERVICE_STATE.UNFILLED
 		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
 		__world_diff.value = WorldDiff.new()
 		return __world_diff.value
 	
@@ -1275,6 +1330,8 @@ class Packet:
 		data[3].state = PB_SERVICE_STATE.FILLED
 		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = ClockPing.new()
 		return __clock_ping.value
 	
@@ -1296,8 +1353,33 @@ class Packet:
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
 		data[4].state = PB_SERVICE_STATE.FILLED
+		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
 		__clock_pong.value = ClockPong.new()
 		return __clock_pong.value
+	
+	var __input_batch: PBField
+	func has_input_batch() -> bool:
+		if __input_batch.value != null:
+			return true
+		return false
+	func get_input_batch() -> InputBatch:
+		return __input_batch.value
+	func clear_input_batch() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_input_batch() -> InputBatch:
+		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		data[5].state = PB_SERVICE_STATE.FILLED
+		__input_batch.value = InputBatch.new()
+		return __input_batch.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

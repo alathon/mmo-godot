@@ -105,6 +105,10 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 	pkt.from_bytes(bytes)
 	if pkt.has_player_input():
 		_handle_input(peer_id, pkt.get_player_input())
+	elif pkt.has_input_batch():
+		var batch = pkt.get_input_batch()
+		for input in batch.get_inputs():
+			_handle_input(peer_id, input)
 	elif pkt.has_clock_ping():
 		_handle_clock_ping(peer_id, pkt.get_clock_ping())
 

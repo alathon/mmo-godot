@@ -21,6 +21,7 @@ const INPUT_HISTORY_SIZE := 64
 @export var interpolator: RemoteInterpolator
 
 var _network: Node
+var _input_batcher: InputBatcher
 var _displacement_velocity: Vector3 = Vector3.ZERO
 
 ## Input + prediction history for CSP reconciliation.
@@ -40,6 +41,7 @@ var face_angle: float:
 func _ready() -> void:
 	if input_source != null:
 		_network = get_node_or_null("%Network")
+		_input_batcher = get_node_or_null("%InputBatcher")
 		NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
 		NetworkTime.on_tick.connect(_on_network_tick)
 		NetworkTime.on_tick_reset.connect(_on_tick_reset)
@@ -159,7 +161,9 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 		if tick_key < oldest:
 			_input_history.erase(tick_key)
 
-	if _network:
+	if _input_batcher:
+		_input_batcher.queue_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
+	elif _network:
 		_network.send_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
 
 func on_entity_diff(entity: Proto.EntityState, tick: int) -> void:
