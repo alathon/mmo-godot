@@ -672,6 +672,146 @@ class PBPacker:
 ############### USER DATA BEGIN ################
 
 
+enum DecayType {
+	DECAY_LINEAR = 0,
+	DECAY_EXPONENTIAL = 1
+}
+
+class Impulse:
+	func _init():
+		var service
+		
+		__vel_x = PBField.new("vel_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __vel_x
+		data[__vel_x.tag] = service
+		
+		__vel_y = PBField.new("vel_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __vel_y
+		data[__vel_y.tag] = service
+		
+		__vel_z = PBField.new("vel_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __vel_z
+		data[__vel_z.tag] = service
+		
+		__start_tick = PBField.new("start_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __start_tick
+		data[__start_tick.tag] = service
+		
+		__duration_ticks = PBField.new("duration_ticks", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __duration_ticks
+		data[__duration_ticks.tag] = service
+		
+		__decay_type = PBField.new("decay_type", PB_DATA_TYPE.ENUM, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM])
+		service = PBServiceField.new()
+		service.field = __decay_type
+		data[__decay_type.tag] = service
+		
+	var data = {}
+	
+	var __vel_x: PBField
+	func has_vel_x() -> bool:
+		if __vel_x.value != null:
+			return true
+		return false
+	func get_vel_x() -> float:
+		return __vel_x.value
+	func clear_vel_x() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__vel_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_vel_x(value : float) -> void:
+		__vel_x.value = value
+	
+	var __vel_y: PBField
+	func has_vel_y() -> bool:
+		if __vel_y.value != null:
+			return true
+		return false
+	func get_vel_y() -> float:
+		return __vel_y.value
+	func clear_vel_y() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__vel_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_vel_y(value : float) -> void:
+		__vel_y.value = value
+	
+	var __vel_z: PBField
+	func has_vel_z() -> bool:
+		if __vel_z.value != null:
+			return true
+		return false
+	func get_vel_z() -> float:
+		return __vel_z.value
+	func clear_vel_z() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__vel_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_vel_z(value : float) -> void:
+		__vel_z.value = value
+	
+	var __start_tick: PBField
+	func has_start_tick() -> bool:
+		if __start_tick.value != null:
+			return true
+		return false
+	func get_start_tick() -> int:
+		return __start_tick.value
+	func clear_start_tick() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__start_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_start_tick(value : int) -> void:
+		__start_tick.value = value
+	
+	var __duration_ticks: PBField
+	func has_duration_ticks() -> bool:
+		if __duration_ticks.value != null:
+			return true
+		return false
+	func get_duration_ticks() -> int:
+		return __duration_ticks.value
+	func clear_duration_ticks() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__duration_ticks.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_duration_ticks(value : int) -> void:
+		__duration_ticks.value = value
+	
+	var __decay_type: PBField
+	func has_decay_type() -> bool:
+		if __decay_type.value != null:
+			return true
+		return false
+	func get_decay_type():
+		return __decay_type.value
+	func clear_decay_type() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__decay_type.value = DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM]
+	func set_decay_type(value) -> void:
+		__decay_type.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class PlayerInput:
 	func _init():
 		var service
@@ -833,6 +973,12 @@ class EntityState:
 		service.field = __rot_y
 		data[__rot_y.tag] = service
 		
+		__active_impulse = PBField.new("active_impulse", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 9, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __active_impulse
+		service.func_ref = Callable(self, "new_active_impulse")
+		data[__active_impulse.tag] = service
+		
 	var data = {}
 	
 	var __entity_id: PBField
@@ -938,6 +1084,20 @@ class EntityState:
 		__rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_rot_y(value : float) -> void:
 		__rot_y.value = value
+	
+	var __active_impulse: PBField
+	func has_active_impulse() -> bool:
+		if __active_impulse.value != null:
+			return true
+		return false
+	func get_active_impulse() -> Impulse:
+		return __active_impulse.value
+	func clear_active_impulse() -> void:
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		__active_impulse.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_active_impulse() -> Impulse:
+		__active_impulse.value = Impulse.new()
+		return __active_impulse.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

@@ -1,5 +1,19 @@
 syntax = "proto3";
 
+enum DecayType {
+  DECAY_LINEAR = 0;
+  DECAY_EXPONENTIAL = 1;
+}
+
+message Impulse {
+  float vel_x = 1;
+  float vel_y = 2;
+  float vel_z = 3;
+  uint32 start_tick = 4;
+  uint32 duration_ticks = 5;
+  DecayType decay_type = 6;
+}
+
 message PlayerInput {
   float input_x = 1;
   float input_z = 2;
@@ -17,6 +31,7 @@ message EntityState {
   float vel_y = 6;
   float vel_z = 7;
   float rot_y = 8;
+  Impulse active_impulse = 9;
 }
 
 message WorldDiff {
