@@ -7,9 +7,6 @@ extends Node3D
 
 var _mouse_position_when_hidden = Vector2.ZERO
 
-#func _ready():
-	#set_physics_interpolation_mode(Node.PHYSICS_INTERPOLATION_MODE_OFF)
-
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT):
 		if event.pressed:
