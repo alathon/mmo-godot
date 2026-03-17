@@ -9,7 +9,7 @@ const CORRECTION_THRESHOLD = 1.0
 @onready var _local_player: Player = %LocalPlayer
 @onready var _entities: Node = %Entities
 
-var _remote_players: Dictionary[int, Player] = {}
+var _remote_players: Dictionary[int, RemotePlayerController] = {}
 
 func _ready() -> void:
 	_network.world_diff_received.connect(_on_world_diff)

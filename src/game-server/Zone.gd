@@ -16,7 +16,10 @@ const INPUT_TIMEOUT := 10.0
 const SPAWN_POSITION := Vector3(41.17052, 1.7646443, -28.533752)
 
 ## peer_id -> ServerPlayer node
-var players: Dictionary[int, ServerPlayer] = {}
+var players: Dictionary[int, CommonPlayer] = {}
+
+## peer_id -> ServerPlayerState node
+var _player_states: Dictionary[int, ServerPlayerState] = {}
 
 ## peer_id -> { tick: int -> { input_x, input_z, jump_pressed } }
 var _input_buffers: Dictionary[int, Dictionary] = {}
@@ -47,23 +50,26 @@ func _tick(_delta: float, current_tick: int) -> void:
 
 	# Simulate each player using their buffered input for sim_tick
 	for peer_id in players:
-		var player: ServerPlayer = players[peer_id]
+		var player: CommonPlayer = players[peer_id]
+		var state: ServerPlayerState = _player_states[peer_id]
 		var buf: Dictionary = _input_buffers.get(peer_id, {})
 
 		var input: Dictionary
 		if buf.has(sim_tick):
 			input = buf[sim_tick]
 			buf.erase(sim_tick)
-			player.has_received_input = true
-		elif not player.has_received_input:
+			state.has_received_input = true
+		elif not state.has_received_input:
 			# Client hasn't finished clock sync yet — skip simulation.
 			continue
 		else:
 			# No input for this tick — re-execute last known input
-			input = player.last_input
+			input = state.last_input
 			print("[SERVER] REPLAY input for peer %d at sim_tick=%d" % [peer_id, sim_tick])
 
 		player.simulate(input, Globals.TICK_INTERVAL)
+		state.last_input = input.duplicate()
+		state.last_input["jump_pressed"] = false
 
 	# Prune old buffered input (anything older than sim_tick)
 	for peer_id in _input_buffers:
@@ -75,8 +81,8 @@ func _tick(_delta: float, current_tick: int) -> void:
 	# Kick players that haven't sent input within the timeout.
 	var timeout_ticks := int(INPUT_TIMEOUT * Globals.TICK_RATE)
 	for peer_id in players.keys():
-		var player: ServerPlayer = players[peer_id]
-		if sim_tick - player.last_input_tick > timeout_ticks:
+		var state: ServerPlayerState = _player_states[peer_id]
+		if sim_tick - state.last_input_tick > timeout_ticks:
 			print("[SERVER] Kicking peer %d: no input for %.0fs" % [peer_id, INPUT_TIMEOUT])
 			multiplayer.multiplayer_peer.disconnect_peer(peer_id)
 
@@ -85,7 +91,7 @@ func _tick(_delta: float, current_tick: int) -> void:
 	var diff = pkt.new_world_diff()
 	diff.set_tick(current_tick)
 	for peer_id in players:
-		var player: ServerPlayer = players[peer_id]
+		var player: CommonPlayer = players[peer_id]
 		var state = diff.add_entities()
 		state.set_entity_id(peer_id)
 		state.set_pos_x(player.global_position.x)
@@ -149,19 +155,21 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 		"jump_pressed": input.get_jump_pressed(),
 	}
 
-	players[peer_id].last_input_tick = input_tick
+	_player_states[peer_id].last_input_tick = input_tick
 
 func _on_peer_connected(id: int) -> void:
 	if id == 1:
 		return  # server's own peer — not a real client
 	print("[SERVER] Peer connected: %d" % id)
-	var player := ServerPlayerScene.instantiate() as ServerPlayer
+	var player := ServerPlayerScene.instantiate() as CommonPlayer
 	player.name = "ServerPlayer_%d" % id
 	_entities.add_child(player)
 	var offset := Vector3(randf_range(-2.0, 2.0), 0.0, randf_range(-2.0, 2.0))
 	player.global_position = SPAWN_POSITION + offset
-	player.last_input_tick = NetworkTime.tick
 	players[id] = player
+	var state := player.get_node("ServerPlayerState") as ServerPlayerState
+	state.last_input_tick = NetworkTime.tick
+	_player_states[id] = state
 	_input_buffers[id] = {}
 
 func _on_peer_disconnected(id: int) -> void:
@@ -169,4 +177,5 @@ func _on_peer_disconnected(id: int) -> void:
 	if players.has(id):
 		players[id].queue_free()
 		players.erase(id)
+		_player_states.erase(id)
 	_input_buffers.erase(id)

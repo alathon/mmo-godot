@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dyi1cuwqsqm5j"]
 
-[ext_resource type="Script" uid="uid://naetria54hrc" path="res://src/client/Player/Player.gd" id="1_mo6br"]
+[ext_resource type="Script" uid="uid://dofw20g8w3wwh" path="res://src/client/Player/RemotePlayerController.gd" id="1_mo6br"]
 [ext_resource type="Script" uid="uid://cocfhahrnkgmx" path="res://src/client/Player/RemoteInterpolator.gd" id="2_interp"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
@@ -9,10 +9,9 @@
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_qjrt4"]
 
-[node name="RemotePlayer" type="CharacterBody3D" unique_id=2027998779 node_paths=PackedStringArray("interpolator")]
+[node name="RemotePlayer" type="CharacterBody3D" unique_id=2027998779]
 collision_mask = 2
 script = ExtResource("1_mo6br")
-interpolator = NodePath("RemoteInterpolator")
 
 [node name="Visual" type="MeshInstance3D" parent="." unique_id=1552780738]
 unique_name_in_owner = true

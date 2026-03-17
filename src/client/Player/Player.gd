@@ -17,12 +17,8 @@ const INPUT_HISTORY_SIZE := 64
 # When set, this player runs physics from the input source and sends to the server.
 @export var input_source: Node
 
-# When set, position (and future properties) are driven by server snapshots via interpolation.
-@export var interpolator: RemoteInterpolator
-
-var _network: Node
-var _input_batcher: InputBatcher
-var _displacement_velocity: Vector3 = Vector3.ZERO
+@onready var _network: Node = %Network
+@onready var _input_batcher: InputBatcher = %InputBatcher
 
 ## Input + prediction history for CSP reconciliation.
 ## tick -> { input_x, input_z, jump_pressed, predicted_pos }
@@ -39,40 +35,13 @@ var face_angle: float:
 	set(v): rotation.y = v
 
 func _ready() -> void:
-	if input_source != null:
-		_network = get_node_or_null("%Network")
-		_input_batcher = get_node_or_null("%InputBatcher")
-		NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
-		NetworkTime.on_tick.connect(_on_network_tick)
-		NetworkTime.on_tick_reset.connect(_on_tick_reset)
-	else:
-		set_physics_process(false)
-		NetworkTime.on_tick.connect(_on_displacement_tick)
+	NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
+	NetworkTime.on_tick.connect(_on_network_tick)
+	NetworkTime.on_tick_reset.connect(_on_tick_reset)
 
 func _on_tick_reset() -> void:
 	_input_history.clear()
 	_pending_server_tick = -1
-
-## Apply an impulse that displaces this player over time via move_and_slide().
-## Pauses interpolation while active; resumes when velocity decays to zero.
-func apply_displacement(impulse: Vector3) -> void:
-	_displacement_velocity += impulse
-	if interpolator:
-		interpolator.set_paused(true)
-
-func _on_displacement_tick(_delta: float, _tick: int) -> void:
-	if _displacement_velocity.is_zero_approx():
-		return
-
-	velocity = _displacement_velocity * NetworkTime.physics_factor
-	move_and_slide()
-	velocity /= NetworkTime.physics_factor
-
-	_displacement_velocity *= 0.85
-	if _displacement_velocity.length() < 0.01:
-		_displacement_velocity = Vector3.ZERO
-		if interpolator:
-			interpolator.set_paused(false)
 
 func _on_before_tick_loop() -> void:
 	if _pending_server_tick < 0:
@@ -171,13 +140,6 @@ func on_entity_diff(entity: Proto.EntityState, tick: int) -> void:
 	var server_pos := Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
 	var server_vel := Vector3(entity.get_vel_x(), entity.get_vel_y(), entity.get_vel_z())
 	var server_rot := entity.get_rot_y()
-
-	if interpolator != null:
-		interpolator.push_snapshot(tick, {
-			"global_position": server_pos,
-			"face_angle": server_rot,
-		})
-		return
 
 	# Local player: defer reconciliation to _on_before_tick_loop
 	# (where TickInterpolator has already restored its state).

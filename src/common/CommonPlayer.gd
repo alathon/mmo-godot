@@ -1,4 +1,4 @@
-class_name ServerPlayer
+class_name CommonPlayer
 extends CharacterBody3D
 
 const SPEED = 10.0
@@ -8,16 +8,6 @@ const TURN_SPEED = 10.0
 var face_angle: float:
 	get: return rotation.y
 	set(v): rotation.y = v
-
-## Whether this player has ever received input from the client.
-## False during clock sync; simulation is skipped until first input arrives.
-var has_received_input: bool = false
-
-## Tick of last received input. Used to kick idle/dead connections.
-var last_input_tick: int = -1
-
-## Last applied input (re-executed when no new input arrives for a tick).
-var last_input := { "input_x": 0.0, "input_z": 0.0, "jump_pressed": false }
 
 func simulate(input: Dictionary, delta: float) -> void:
 	var ix: float = input.get("input_x", 0.0)
@@ -44,6 +34,3 @@ func simulate(input: Dictionary, delta: float) -> void:
 	velocity *= NetworkTime.physics_factor
 	move_and_slide()
 	velocity /= NetworkTime.physics_factor
-
-	last_input = input.duplicate()
-	last_input["jump_pressed"] = false

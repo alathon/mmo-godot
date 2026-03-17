@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://bt4wkae1gvxgb" path="res://src/client/Bot/BotInput.gd" id="4_ahsyx"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="5_qyp1a"]
 [ext_resource type="PackedScene" uid="uid://drypncuar6hv" path="res://src/client/Player/LocalPlayer.tscn" id="6_j3ali"]
-[ext_resource type="Script" path="res://src/client/Network/InputBatcher.gd" id="7_ibatch"]
+[ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="7_ibatch"]
 
 [node name="BotGame" type="Node3D" unique_id=899636666]
 
@@ -22,7 +22,7 @@ metadata/_edit_lock_ = true
 [node name="Network" parent="." unique_id=545662185 instance=ExtResource("3_8o4yq")]
 unique_name_in_owner = true
 
-[node name="InputBatcher" type="Node" parent="."]
+[node name="InputBatcher" type="Node" parent="." unique_id=1177394343]
 unique_name_in_owner = true
 script = ExtResource("7_ibatch")
 
