@@ -2,6 +2,7 @@
   "file_scan_exclusions": [
     "**/.git",
     "**/.svn",
+    "**/node_modules",
     "**/.hg",
     "**/CVS",
     "**/.DS_Store",
