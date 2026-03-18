@@ -13,7 +13,9 @@
   "context_servers": {
     "godot-mcp": {
       "command": "node",
-      "args": ["/Users/alathon/Workspace/experiments/godot-mcp/build/index.js"],
+      "args": [
+        "/Users/alathon/Workspace/experiments/mmo-godot/mcp_server/dist/index.js",
+      ],
       "env": {},
     },
   },

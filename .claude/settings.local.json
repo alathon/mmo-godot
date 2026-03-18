@@ -7,7 +7,15 @@
       "WebFetch(domain:foxssake.github.io)",
       "Bash(gh api repos/foxssake/netfox/contents/addons/netfox/tick-interpolator.gd --jq '.content')",
       "Bash(curl -s https://raw.githubusercontent.com/foxssake/netfox/main/addons/netfox/network-time.gd)",
-      "Bash(godot-mono --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd)"
+      "Bash(godot-mono --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd)",
+      "Bash(wc -l /Users/alathon/Workspace/experiments/mmo-godot/addons/godot_mcp/commands/*.gd)",
+      "mcp__mcp-server-context7__query-docs",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e \"const p = require\\(''./node_modules/@modelcontextprotocol/sdk/package.json''\\); console.log\\(p.version\\)\")",
+      "mcp__godot-mcp__godot_read_script",
+      "Bash(npm run:*)",
+      "mcp__godot-mcp__godot_execute"
     ]
   }
 }
