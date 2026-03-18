@@ -46,7 +46,7 @@ To establish this location, the player enters **ground target mode** before cast
 
 Ability activation attempts happen as part of a tick (not render frame). Once an ability is attempted activated:
 
-1. **Resource check:** the client checks if the player has sufficient resources (mana, stamina). If not, the ability fails activation locally and is not sent.
+1. **Resource check:** the client checks if the player has sufficient resources (mana, stamina). If not, the ability fails activation locally and is not sent. Resources are **not** subtracted at this point — they are only consumed when the ability actually resolves on the combat stack (see §2.6).
 2. **Cast begins:** the ability enters the `casting` state.
 3. **GCD trigger:** if the ability is a GCD ability, the global cooldown (2.5s) begins.
 4. **Ability cooldown trigger:** if the ability has its own cooldown, it also begins.
@@ -82,7 +82,7 @@ A cast is canceled when:
 
 ### 2.6 Combat Stack Resolution
 
-On each server tick, all abilities that *would* resolve on that tick check again whether their resource needs are still met. If not, the ability is taken off the stack and gets canceled.
+On each server tick, all abilities that *would* resolve on that tick check again whether their resource needs are still met. If not, the ability is taken off the stack and gets canceled. Resources are consumed at this point for all abilities that successfully enter the stack.
 
 For all abilities that successfully resolve on that tick, they are placed onto the **combat stack**. The combat stack resolves all effects simultaneously, but in a defined priority order:
 
@@ -150,10 +150,7 @@ Abilities are defined in JSON. Each ability file represents one ability.
 {
   "aoe": {
     "shape": "circle",
-    "radius": 8.0,
-    "persistent": false,
-    "duration": 0.0,
-    "tick_interval": 3.0
+    "radius": 8.0
   }
 }
 ```
@@ -162,9 +159,8 @@ Abilities are defined in JSON. Each ability file represents one ability.
 |---|---|---|---|
 | `shape` | `enum` | yes | `circle` (extendable to `rectangle` later). |
 | `radius` | `float` | yes | Radius in units (for circle). |
-| `persistent` | `bool` | no | If `true`, the AOE persists on the ground after initial cast. |
-| `duration` | `float` | cond | Duration in seconds for persistent AOEs. Required if `persistent` is `true`. |
-| `tick_interval` | `float` | no | How often the persistent AOE re-applies its effects, in seconds. Default: `3.0`. |
+
+When `aoe` is present, the ability's effects are applied to every entity within the shape centered on the ground target point, rather than to a single target. Effects with a `target_type_narrower` of `"hostile"` only hit enemy entities within the area; `"friendly"` only hits allied entities. This allows a single AOE ability to both damage enemies and heal allies within the same area.
 
 ### 3.4 Effect Types
 
@@ -172,11 +168,18 @@ Each effect in the `effects` array has a `type` field and type-specific paramete
 
 #### Damage
 
+All effect types share a common optional field:
+
+| Field | Type | Description |
+|---|---|---|
+| `target_type_narrower` | `enum?` | If set, this effect only applies to targets matching the classification. `"hostile"` = enemy entities only. `"friendly"` = allied entities only. Omit to apply to all targets. Particularly useful in AOE abilities (e.g., heal allies + damage enemies in the same area). |
+
 ```json
 {
   "type": "damage",
   "base_value": 120,
-  "aggro_modifier": 1.0
+  "aggro_modifier": 1.0,
+  "target_type_narrower": "hostile"
 }
 ```
 
@@ -191,7 +194,8 @@ Each effect in the `effects` array has a `type` field and type-specific paramete
 {
   "type": "heal",
   "base_value": 80,
-  "aggro_modifier": 0.5
+  "aggro_modifier": 0.5,
+  "target_type_narrower": "friendly"
 }
 ```
 
@@ -215,6 +219,7 @@ Same schema as damage. Healing generates aggro on all mobs that have the healed 
       "aggro_modifier": 1.0
     }
   ],
+  "tags_applied": [],
   "tags_locked": []
 }
 ```
@@ -228,7 +233,8 @@ Same schema as damage. Healing generates aggro on all mobs that have the healed 
 | `tick_interval` | `float` | How often tick effects are applied, in seconds. Default: `3.0`. |
 | `dispel_category` | `string` | Category for dispel matching (e.g. `"magic"`, `"bleed"`, `"poison"`). `null` = cannot be dispelled. |
 | `tick_effects` | `Effect[]` | Effects applied each tick (for DoTs/HoTs). |
-| `tags_locked` | `string[]` | Ability tags that are locked while this debuff is active (for interrupts/silences). e.g. `["magic"]` prevents casting any ability with the `"magic"` tag. |
+| `tags_applied` | `string[]` | Semantic tags added to the entity while this effect is active (e.g. `["stunned"]`, `["rooted"]`). Movement and ability activation code checks for these. See §5.3. |
+| `tags_locked` | `string[]` | Ability tags that are blocked while this effect is active. e.g. `["magic"]` prevents casting any ability with the `"magic"` tag. Used for precise school lockouts (interrupts). See §5.3. |
 
 **Stacking rules:**
 - When a stackable effect is reapplied, the stack count increases (up to `max_stacks`) and the duration is refreshed for all stacks.
@@ -320,40 +326,77 @@ Same schema as damage. Healing generates aggro on all mobs that have the healed 
       "max_stacks": 1,
       "dispel_category": null,
       "tick_effects": [],
-      "tags_locked": ["movement", "magic", "physical", "melee", "ranged"]
+      "tags_applied": ["stunned"],
+      "tags_locked": []
     }
   ]
 }
 ```
 
-#### Ground AOE (Persistent Fire Zone)
+The `"stunned"` tag applied to the entity is checked by the movement system (blocks all movement) and by the ability activation system (blocks all ability use). See §5.4.
+
+#### Ground AOE (Damaging Blast)
 
 ```json
 {
-  "id": "flame_zone",
-  "name": "Flame Zone",
+  "id": "meteor_strike",
+  "name": "Meteor Strike",
   "tags": ["magic", "fire"],
   "target_type": "ground",
-  "cast_time": 2.0,
-  "range": 25.0,
+  "cast_time": 2.5,
+  "range": 30.0,
   "gcd": true,
-  "cooldown": 30.0,
+  "cooldown": 20.0,
   "resource_cost": {
-    "mana": 80
+    "mana": 60
   },
   "effects": [
     {
       "type": "damage",
-      "base_value": 50,
-      "aggro_modifier": 1.0
+      "base_value": 150,
+      "aggro_modifier": 1.0,
+      "target_type_narrower": "hostile"
     }
   ],
   "aoe": {
     "shape": "circle",
-    "radius": 8.0,
-    "persistent": true,
-    "duration": 15.0,
-    "tick_interval": 3.0
+    "radius": 6.0
+  }
+}
+```
+
+#### Ground AOE (Mixed — Heal Allies, Damage Enemies)
+
+```json
+{
+  "id": "holy_nova",
+  "name": "Holy Nova",
+  "tags": ["magic", "holy"],
+  "target_type": "ground",
+  "cast_time": 0.0,
+  "range": 10.0,
+  "gcd": true,
+  "cooldown": 8.0,
+  "resource_cost": {
+    "mana": 50
+  },
+  "effects": [
+    {
+      "type": "damage",
+      "base_value": 60,
+      "aggro_modifier": 1.0,
+      "target_type_narrower": "hostile"
+    },
+    {
+      "type": "heal",
+      "base_value": 80,
+      "aggro_modifier": 0.5,
+      "target_type_narrower": "friendly"
+    }
+  ],
+  "aoe": {
+    "shape": "circle",
+    "radius": 8.0
   }
 }
 ```
@@ -394,6 +437,7 @@ Same schema as damage. Healing generates aggro on all mobs that have the healed 
           "aggro_modifier": 0.5
         }
       ],
+      "tags_applied": [],
       "tags_locked": []
     }
   ]
@@ -422,6 +466,7 @@ Same schema as damage. Healing generates aggro on all mobs that have the healed 
       "max_stacks": 1,
       "dispel_category": null,
       "tick_effects": [],
+      "tags_applied": [],
       "tags_locked": ["magic"]
     }
   ]
@@ -485,17 +530,31 @@ Each active status effect on an entity tracks:
 - Tick effects resolve through the normal combat stack on the tick they fire.
 - Tick timing is tracked per-effect instance.
 
-### 5.3 Tag Lockouts
+### 5.3 Entity Tags and Ability Lockouts
 
-- A status effect with `tags_locked: ["magic"]` prevents the affected entity from using any ability with the `"magic"` tag.
-- Lockout is checked at cast start. If locked, the ability fails.
-- Multiple lockouts can coexist (e.g., silenced + disarmed = both `"magic"` and `"physical"` locked).
+Status effects can restrict an entity's actions via two complementary mechanisms:
+
+**`tags_applied`** — adds semantic tags to the entity while the effect is active. Well-known entity tags and their engine-enforced meanings:
+
+| Entity tag | Engine behavior |
+|---|---|
+| `"stunned"` | All movement blocked. All ability activation blocked. Active casts are canceled. |
+| `"rooted"` | All movement blocked. Ability activation is not affected. |
+| `"silenced"` | Ability activation blocked only if the engine detects this tag and the ability has a registered tag pairing (TBD). Currently use `tags_locked` for this. |
+
+Additional tags can be defined freely and checked by custom systems (e.g. NPC AI, boss scripts).
+
+**`tags_locked`** — directly blocks ability activation for abilities whose `tags` array contains any of the listed strings. Checked at cast start. Use this for precise school lockouts (e.g., interrupt locking `"magic"` specifically).
+
+Both can be combined. Multiple lockout effects coexist independently.
 
 ### 5.4 Stun
 
-- Stun is implemented as a status effect with `tags_locked` covering all relevant combat tags plus `"movement"`.
-- The `"movement"` tag lock prevents all movement input processing and cancels active casts.
-- Stun is not a special-case mechanic — it is a status effect that locks all action tags.
+Stun is a status effect with `tags_applied: ["stunned"]`. The engine checks for the `"stunned"` entity tag in:
+- The movement system: all movement input is ignored, active casts are canceled.
+- The ability activation system: all ability use is blocked regardless of tags.
+
+This requires no special-casing — stun is purely data-driven via the `"stunned"` entity tag.
 
 ### 5.5 Diminishing Returns (DR)
 
@@ -575,21 +634,21 @@ message TargetSelect {
   uint32 target_entity_id = 1; // 0 = clear target
 }
 
-// ─── Ability Events (server → client) ───
+// ─── Ability Accepted / Rejected (server → casting player only) ───
 
 message AbilityUseAccepted {
   string ability_id = 1;
-  uint32 requested_tick = 2; // The input frame that requested this ability use.
-  uint32 start_tick = 3;
+  uint32 requested_tick = 2;   // The input tick that requested this ability use
+  uint32 start_tick = 3;       // The tick the cast began on the server
 }
 
 message AbilityUseRejected {
-  uint32 ability_id = 1;
-  uint32 requested_tick = 2; // The input frame that originally requested this ability use.
-  uint32 cancel_reason = 3;     // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=rejected
+  string ability_id = 1;
+  uint32 requested_tick = 2;   // The input tick that originally requested this ability use
+  uint32 cancel_reason = 3;    // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
 }
 
-// ─── Combat Events (server → client) ───
+// ─── Combat Events (server → all clients in zone, per tick) ───
 
 enum HitType {
   HIT = 0;
@@ -600,25 +659,106 @@ enum HitType {
   CRIT_BLOCK = 5;
 }
 
-message CombatEffect {
-  uint32 effect_index = 1;      // Index of the effect in the ability definition
-  string effect_type = 2;       // "damage", "heal", "status_effect", "displacement", "dispel"
-  bool success = 3;             // Whether the effect was successfully applied
-  float value = 4;              // Damage/heal number (0 if not applicable)
-  HitType hit_type = 5;
-  string status_id = 6;         // For status_effect: which status was applied/removed
-  uint32 stacks = 7;            // For status_effect: new stack count
+// AbilityUseStarted: broadcast when any entity begins a cast. Used by other clients
+// to display cast bars and react to NPC casts.
+message CombatEvent_AbilityUseStarted {
+  uint32 source_entity_id = 1;
+  string ability_id = 2;
+  uint32 target_entity_id = 3; // 0 if self or ground
+  float ground_x = 4;
+  float ground_y = 5;
+  float ground_z = 6;
+  float cast_time = 7;
 }
 
-message CombatEvent {
+// AbilityUseCanceled: broadcast when any entity's cast is interrupted.
+message CombatEvent_AbilityUseCanceled {
+  uint32 source_entity_id = 1;
+  string ability_id = 2;
+  uint32 cancel_reason = 3;    // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
+}
+
+// AbilityUseCompleted: broadcast when a cast finishes and resolves on the stack.
+// HitType here describes the overall ability resolution (hit/miss/crit applies to the whole ability).
+message CombatEvent_AbilityUseCompleted {
+  uint32 source_entity_id = 1;
+  string ability_id = 2;
+  HitType hit_type = 3;
+}
+
+// DamageTaken: one per target that took damage from an ability resolution.
+message CombatEvent_DamageTaken {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
   string ability_id = 3;
-  repeated CombatEffect effects = 4;
-  uint32 tick = 5;
+  float amount = 4;
 }
 
-// ─── Status Effect Sync (server → client) ───
+// HealingReceived: one per target that received healing from an ability resolution.
+message CombatEvent_HealingReceived {
+  uint32 source_entity_id = 1;
+  uint32 target_entity_id = 2;
+  string ability_id = 3;
+  float amount = 4;
+}
+
+// BuffApplied / DebuffApplied: one per status effect application.
+message CombatEvent_BuffApplied {
+  uint32 source_entity_id = 1;
+  uint32 target_entity_id = 2;
+  string ability_id = 3;
+  string status_id = 4;
+  uint32 stacks = 5;
+  float remaining_duration = 6; // 0 = permanent
+}
+
+message CombatEvent_DebuffApplied {
+  uint32 source_entity_id = 1;
+  uint32 target_entity_id = 2;
+  string ability_id = 3;
+  string status_id = 4;
+  uint32 stacks = 5;
+  float remaining_duration = 6;
+}
+
+// StatusEffectRemoved: covers expiry, dispel, and consume_stacks removal.
+message CombatEvent_StatusEffectRemoved {
+  uint32 entity_id = 1;
+  string status_id = 2;
+  uint32 remove_reason = 3;    // 0=expired, 1=dispelled, 2=consumed
+}
+
+// CombatantDied: entity HP reached 0 after stack resolution.
+message CombatEvent_CombatantDied {
+  uint32 entity_id = 1;
+  uint32 killer_entity_id = 2; // Last ability source that dealt lethal damage
+}
+
+// CombatEvent wraps all typed events with a tick stamp.
+message CombatEvent {
+  uint32 tick = 1;
+  oneof event {
+    CombatEvent_AbilityUseStarted    ability_use_started    = 2;
+    CombatEvent_AbilityUseCanceled   ability_use_canceled   = 3;
+    CombatEvent_AbilityUseCompleted  ability_use_completed  = 4;
+    CombatEvent_DamageTaken          damage_taken           = 5;
+    CombatEvent_HealingReceived      healing_received       = 6;
+    CombatEvent_BuffApplied          buff_applied           = 7;
+    CombatEvent_DebuffApplied        debuff_applied         = 8;
+    CombatEvent_StatusEffectRemoved  status_effect_removed  = 9;
+    CombatEvent_CombatantDied        combatant_died         = 10;
+  }
+}
+
+// CombatTickEvents: all events from one tick, broadcast together.
+message CombatTickEvents {
+  uint32 tick = 1;
+  repeated CombatEvent events = 2;
+}
+
+// ─── Periodic Entity State Snapshot (server → all clients, every ~2s) ───
+// Syncs HP, resources, and status effect durations for all entities.
+// Used both in and out of combat. Not used to drive visual effects — CombatTickEvents handles that.
 
 message StatusEffectState {
   string status_id = 1;
@@ -627,30 +767,41 @@ message StatusEffectState {
   float remaining_duration = 4; // 0 = permanent
 }
 
-message EntityStatusEffects {
+// EntityStatusSnapshot: periodic re-sync of active status effect durations for all entities.
+// Used to correct client-side timer drift. Apply/remove events are driven by CombatTickEvents.
+message EntityStatusSnapshot {
+  uint32 tick = 1;
+  repeated EntityStatusState entities = 2;
+}
+
+message EntityStatusState {
   uint32 entity_id = 1;
   repeated StatusEffectState active_effects = 2;
-}
-
-// ─── Cooldown Sync (server → client) ───
-
-message CooldownState {
-  string ability_id = 1;        // Or cooldown_group key
-  float remaining = 2;          // Seconds remaining
-}
-
-// ─── Aggregate Combat Tick (server → client, per tick) ───
-
-message CombatSnapshot {
-  uint32 tick = 1;
-  repeated CombatEvent events = 2;
-  repeated EntityStatusEffects entity_statuses = 3;
 }
 ```
 
 ### 7.3 Modified Existing Messages
 
 ```protobuf
+// EntityState gains vital stats (existing position/velocity fields unchanged)
+message EntityState {
+  uint32 entity_id = 1;
+  float pos_x = 2;
+  float pos_y = 3;
+  float pos_z = 4;
+  float vel_x = 5;
+  float vel_y = 6;
+  float vel_z = 7;
+  float rot_y = 8;
+  Impulse active_impulse = 9;
+  float hp = 10;         // NEW
+  float max_hp = 11;     // NEW
+  float mana = 12;       // NEW
+  float max_mana = 13;   // NEW
+  float stamina = 14;    // NEW
+  float max_stamina = 15; // NEW
+}
+
 // PlayerInput gains an optional ability field
 message PlayerInput {
   float input_x = 1;
@@ -669,10 +820,11 @@ message Packet {
     ClockPing clock_ping = 3;
     ClockPong clock_pong = 4;
     InputBatch input_batch = 5;
-    TargetSelect target_select = 6;      // NEW
-    CastStarted cast_started = 7;        // NEW
-    CastCanceled cast_canceled = 8;      // NEW
-    CombatSnapshot combat_snapshot = 9;  // NEW
+    TargetSelect target_select = 6;            // NEW
+    AbilityUseAccepted ability_accepted = 7;   // NEW (to casting player only)
+    AbilityUseRejected ability_rejected = 8;   // NEW (to casting player only)
+    CombatTickEvents combat_tick_events = 9;   // NEW (broadcast to zone)
+    EntityStatusSnapshot entity_status_snapshot = 10; // NEW (periodic, broadcast to zone)
   }
 }
 ```
@@ -687,21 +839,28 @@ Client                              Server
   |── PlayerInput{ability_input} ────→ |  (unreliable, with movement input)
   |   [predict cast start locally]     |
   |                                    |── validate (range, resources, cooldowns, lockouts)
-  |                                    |── if invalid: send CastCanceled
-  |← ─── CastCanceled ───────────────|  (reliable)
-  |   [cancel prediction, refund]      |
+  |                                    |
+  |                                    |── if invalid:
+  |← ─── AbilityUseRejected ─────────|  (reliable, to casting player only)
+  |   [cancel prediction]              |
+  |                                    |
   |                                    |── if valid: begin cast on server
-  |← ─── CastStarted ────────────────|  (reliable, broadcast to zone)
-  |   [other clients see cast bar]     |
+  |← ─── AbilityUseAccepted ─────────|  (reliable, to casting player only)
+  |                                    |
+  |← ─── CombatTickEvents            |  (reliable, broadcast to zone)
+  |       [AbilityUseStarted]          |  → other clients show cast bar
   |                                    |
   |   ... cast time elapses ...        |
   |                                    |
-  |                                    |── cast completes → combat stack
+  |                                    |── cast completes → resource check → combat stack
   |                                    |── resolve effects
-  |← ─── CombatSnapshot ─────────────|  (reliable, broadcast to zone)
-  |   [display damage numbers,         |
-  |    floating text, apply visual     |
-  |    status effects]                 |
+  |← ─── CombatTickEvents ───────────|  (reliable, broadcast to zone)
+  |   [AbilityUseCompleted,            |
+  |    DamageTaken, HealingReceived,   |
+  |    BuffApplied, DebuffApplied,     |
+  |    CombatantDied, ...]             |
+  |   [apply damage/heals, add         |
+  |    buff icons, scrolling text]     |
 ```
 
 #### Ability Queue
@@ -710,11 +869,15 @@ Client                              Server
 Client                              Server
   |                                    |
   |── PlayerInput{ability_input=A} ──→ |  (starts casting A)
+  |← ─── AbilityUseAccepted{A} ──────|
+  |← ─── CombatTickEvents            |  → zone sees AbilityUseStarted{A}
   |   ... in queue window ...          |
   |── PlayerInput{ability_input=B} ──→ |  (B is queued)
-  |                                    |── A finishes casting
+  |← ─── AbilityUseAccepted{B} ──────|  (acknowledged as queued)
+  |                                    |── A finishes casting → resolves
+  |← ─── CombatTickEvents{A} ────────|
   |                                    |── validate B, begin casting B
-  |← ─── CastStarted{B} ────────────|
+  |← ─── CombatTickEvents            |  → zone sees AbilityUseStarted{B}
 ```
 
 The server distinguishes between "start casting" and "queue" based on whether an ability is already being cast. The client sends the same `AbilityInput` message in both cases.
@@ -733,8 +896,8 @@ Client                              Server
 | Channel | Transfer Mode | Messages |
 |---|---|---|
 | 0 | Unreliable Ordered | `PlayerInput` / `InputBatch`, `WorldDiff` (existing) |
-| 1 | Reliable | `TargetSelect`, `CastStarted`, `CastCanceled`, `CombatSnapshot` |
 | 0 | Reliable | `ClockPing`, `ClockPong` (existing) |
+| 1 | Reliable | `TargetSelect`, `AbilityUseAccepted`, `AbilityUseRejected`, `CombatTickEvents`, `EntityStatusSnapshot` |
 
 Combat messages use channel 1 (reliable) to ensure no dropped events. Movement remains on channel 0 (unreliable ordered) as before.
 
@@ -745,7 +908,7 @@ Combat messages use channel 1 (reliable) to ensure no dropped events. Movement r
 | Cast start | Yes | Begin cast bar, animation immediately. Rolled back if server rejects. |
 | Cast cancel (player moves) | Yes | Cancel immediately, don't wait for server. |
 | GCD start/cancel | Yes | Mirrors cast prediction. |
-| Resource subtraction | Yes | Subtract on cast start, refund on cancel. |
+| Resource availability check | Yes | Check locally to suppress the ability if insufficient. Resources are not subtracted until the server resolves the cast. |
 | Cooldown start | Yes | Start cooldown timer on cast start. |
 | Self-displacement (dash) | Yes | Apply impulse immediately for responsiveness. Rubberband if server disagrees. |
 | Target displacement | No | Wait for server (knockback on enemy). Rubberband if predicted incorrectly. |
@@ -765,7 +928,8 @@ A new `CombatManager` component is added to `Zone.gd` (or as a sibling node). It
 - Managing the combat stack per tick.
 - Resolving effects in priority order.
 - Tracking cooldowns, status effects, and aggro per entity.
-- Emitting `CombatSnapshot` messages to all clients each tick (only ticks with events).
+- Emitting `CombatTickEvents` to all clients each tick (only ticks with events).
+- Periodically emitting `EntityStatusSnapshot` for status effect duration correction (every ~2 seconds). HP/mana/stamina are covered by `WorldDiff` every tick.
 
 ### 8.2 Per-Tick Processing
 
@@ -775,27 +939,29 @@ Within each server tick (`_tick()`):
 1. Process input buffer (movement + ability inputs) for sim_tick
 2. For each entity with a pending cast:
    a. Advance cast timer
-   b. Check for cast-canceling conditions (movement, stun, target death)
-   c. If cast completes → add to combat stack
+   b. Check for cast-canceling conditions (movement, 'stunned' entity tag, target death)
+   c. If cast completes → check resources still available
+      - If insufficient → cancel cast (emit AbilityUseCanceled event)
+      - If sufficient → consume resources, add to combat stack
 3. Tick all active status effects:
    a. Decrement durations
-   b. Fire tick effects (DoTs/HoTs) → add to combat stack
-   c. Remove expired effects
-4. Tick persistent ground AOEs:
-   a. Check entities within area
-   b. Apply effects → add to combat stack
-5. Resolve combat stack in priority order:
-   a. Heals
-   b. Damage
-   c. Buffs
-   d. Debuffs
-   e. Displacement
-6. Generate CombatEvents from resolution
-7. Update aggro lists
-8. Handle death (HP ≤ 0 after resolution)
-9. Process queued abilities (dequeue → begin casting if valid)
-10. Broadcast CombatSnapshot if any events occurred
-11. Broadcast WorldDiff (with updated positions from displacement)
+   b. Emit StatusEffectRemoved events for expired effects, remove them
+   c. Fire tick effects (DoTs/HoTs) for effects whose tick_timer elapsed → add to combat stack
+4. Resolve combat stack in priority order:
+   a. Buffs (emit BuffApplied per application)
+   b. Debuffs (emit DebuffApplied per application)
+   c. Heals (emit HealingReceived per target)
+   d. Damage (emit DamageTaken per target)
+   e. Displacement (apply impulses; emit via WorldDiff position updates)
+   For each ability completing: emit AbilityUseCompleted with HitType
+5. Update aggro lists based on effects resolved
+6. Handle entities at HP ≤ 0: emit CombatantDied, process death state
+7. Process queued abilities (dequeue → begin casting if conditions still valid)
+   Emit AbilityUseStarted for newly started casts
+8. Broadcast CombatTickEvents if any events were generated this tick
+9. Broadcast WorldDiff (with updated positions from displacement)
+10. Every ~2 seconds: broadcast EntityStatusSnapshot with active status effect durations for all entities
+    (HP/mana/stamina corrections are handled by WorldDiff every tick)
 ```
 
 ### 8.3 Entity Combat State
@@ -834,10 +1000,10 @@ When the server receives an `AbilityInput`, it validates:
    - `other_friend` → target must exist, be alive, be friendly, and be within range.
    - `other_any` → target must exist, be alive, and be within range.
    - `ground` → target point must be within range and have line-of-sight from caster.
-7. **Tag lockout check:** entity must not have an active status effect that locks any of the ability's tags.
+7. **Tag lockout check:** entity must not (a) have the `"stunned"` entity tag, nor (b) have an active `tags_locked` effect locking any of the ability's tags.
 8. **Cast state:** if already casting, check if within queue window (last 50% of cast). If so, queue. If not, reject.
 
-If any check fails, the server sends `CastCanceled` with the appropriate reason.
+If any check fails, the server sends `AbilityUseRejected` with the appropriate reason.
 
 ### 8.5 Range Checking
 
@@ -859,17 +1025,7 @@ NPCs use the same ability system as players:
 
 ---
 
-## 10. Persistent Ground AOEs
-
-- When a persistent ground AOE ability resolves, the server creates a **ground effect entity**.
-- This entity has a position, radius, duration timer, and tick timer.
-- Every `tick_interval` seconds, the ground effect checks for entities within its area and applies its effects through the combat stack.
-- Ground effects are broadcast to clients so they can render visual indicators.
-- The ground effect is removed when its duration expires.
-
----
-
-## 11. Key Constants
+## 10. Key Constants
 
 | Constant | Value | Description |
 |---|---|---|
@@ -883,7 +1039,7 @@ NPCs use the same ability system as players:
 
 ---
 
-## 12. File Structure (Proposed)
+## 11. File Structure (Proposed)
 
 ```
 src/
@@ -905,7 +1061,7 @@ src/
 ├── game-server/
 │   ├── combat/
 │   │   ├── CombatManager.gd          # Per-tick combat processing, combat stack
-│   │   ├── EntityCombatState.gd      # Per-entity combat runtime state
+│   │   ├── EntityState.gd      # Per-entity combat runtime state
 │   │   ├── AggroList.gd              # NPC aggro tracking
 │   │   ├── CooldownTracker.gd        # Cooldown management
 │   │   └── StatusEffectTracker.gd    # Status effect lifecycle
@@ -915,7 +1071,7 @@ src/
     │   ├── AbilityController.gd       # Input → ability activation, queue, ground targeting
     │   ├── CastBarController.gd       # Cast bar UI state
     │   ├── CooldownDisplay.gd         # Cooldown UI state
-    │   ├── CombatEventHandler.gd      # Processes CombatSnapshot, triggers VFX/text
+    │   ├── CombatEventHandler.gd      # Processes CombatTickEvents, drives damage numbers/VFX/buff icons
     │   ├── StatusEffectDisplay.gd     # Buff/debuff icons
     │   └── GroundTargetController.gd  # Ground target mode (mouse → ground point)
     └── Player/
@@ -924,7 +1080,7 @@ src/
 
 ---
 
-## 13. Out of Scope (Future Work)
+## 12. Out of Scope (Future Work)
 
 The following are explicitly deferred:
 
@@ -939,5 +1095,6 @@ The following are explicitly deferred:
 - PvP combat.
 - Ability tooltips and UI polish.
 - Animation and VFX integration.
+- Persistent ground AOEs (ground effect entities with duration/tick — likely spawned as a server-side entity/mob rather than a special AOE system).
 - Spatial culling of combat events.
 - DR decay timing (exact values).
