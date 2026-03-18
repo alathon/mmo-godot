@@ -54,13 +54,26 @@ export function registerInputTools(server: McpServer, godot: GodotClient) {
 
   server.tool(
     "godot_simulate_action",
-    "Simulate an InputMap action in the running game.",
+    "Simulate an InputMap action in the running game. When duration is provided, automatically releases the action after the specified time using a sequence.",
     {
       action: z.string().describe("Name of the InputMap action to simulate (e.g. 'ui_accept', 'move_left')"),
       pressed: z.boolean().optional().describe("Whether the action is pressed (true) or released (false). Defaults to true."),
       strength: z.number().optional().describe("Action strength (0.0–1.0). Defaults to 1.0."),
+      duration: z.number().optional().describe("How long to hold the action in seconds. When provided, sends press then auto-releases after the duration. Assumes 60 fps."),
     },
-    async (params) => sendCmd(godot, "simulate_action", params),
+    async ({ action, pressed = true, strength = 1.0, duration }) => {
+      if (duration !== undefined) {
+        const frames = Math.max(1, Math.round(duration * 60));
+        return sendCmd(godot, "simulate_sequence", {
+          events: [
+            { type: "action", action, pressed: true, strength },
+            { type: "action", action, pressed: false, strength },
+          ],
+          frame_delay: frames,
+        });
+      }
+      return sendCmd(godot, "simulate_action", { action, pressed, strength });
+    },
   );
 
   server.tool(

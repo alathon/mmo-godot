@@ -27,6 +27,14 @@ var _input_buffers: Dictionary[int, Dictionary] = {}
 @onready var _entities: Node = %Entities
 
 func _ready() -> void:
+	# Disable MCP editor services when running headless — they share the same
+	# user:// data dir as the editor game and would intercept MCP commands.
+	if DisplayServer.get_name() == "headless":
+		for svc in ["MCPGameInspector", "MCPInputService", "MCPScreenshot"]:
+			var n := get_node_or_null("/root/" + svc)
+			if n:
+				n.queue_free()
+
 	# Align physics tick rate with network tick rate so physics_factor = 1.0
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
 
