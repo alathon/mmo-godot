@@ -38,11 +38,11 @@ func _ready() -> void:
 	# Align physics tick rate with network tick rate so physics_factor = 1.0
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
 
-	
+
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.peer_packet.connect(_on_packet)
-	
+
 	var peer = ENetMultiplayerPeer.new()
 	var error = peer.create_server(PORT, MAX_CLIENTS)
 	if error:
@@ -60,6 +60,11 @@ func _tick(_delta: float, current_tick: int) -> void:
 	for peer_id in players:
 		var player: CommonPlayer = players[peer_id]
 		var state: ServerPlayerState = _player_states[peer_id]
+
+		if not state.has_received_input:
+			# Client hasn't finished clock sync yet — skip simulation.
+			continue
+
 		var buf: Dictionary = _input_buffers.get(peer_id, {})
 
 		var input: Dictionary
@@ -67,9 +72,6 @@ func _tick(_delta: float, current_tick: int) -> void:
 			input = buf[sim_tick]
 			buf.erase(sim_tick)
 			state.has_received_input = true
-		elif not state.has_received_input:
-			# Client hasn't finished clock sync yet — skip simulation.
-			continue
 		else:
 			# No input for this tick — re-execute last known input
 			input = state.last_input
@@ -147,10 +149,12 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 	if input_tick < sim_tick:
 		# Input arrived too late — already simulated past this tick
 		print("[SERVER] LATE input from peer %d: input_tick=%d sim_tick=%d (dropped)" % [peer_id, input_tick, sim_tick])
+		# TODO: send back notice that the input was LATE (so client can adjust their clock/tick)
 		return
 	if input_tick > current_tick + INPUT_FUTURE_LIMIT:
 		# Input claims to be way too far in the future — suspicious or clock desync
 		print("[SERVER] FUTURE input from peer %d: input_tick=%d current=%d (dropped)" % [peer_id, input_tick, current_tick])
+		# TODO: send back notice that the input was FUTURE (so client can adjust their clock/tick)
 		return
 
 	# Buffer the input
