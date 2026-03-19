@@ -2552,6 +2552,96 @@ class Packet:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class Heartbeat:
+	func _init():
+		var service
+		
+		__ping_id = PBField.new("ping_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __ping_id
+		data[__ping_id.tag] = service
+		
+	var data = {}
+	
+	var __ping_id: PBField
+	func has_ping_id() -> bool:
+		if __ping_id.value != null:
+			return true
+		return false
+	func get_ping_id() -> int:
+		return __ping_id.value
+	func clear_ping_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__ping_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_ping_id(value : int) -> void:
+		__ping_id.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class HeartbeatAck:
+	func _init():
+		var service
+		
+		__ping_id = PBField.new("ping_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __ping_id
+		data[__ping_id.tag] = service
+		
+	var data = {}
+	
+	var __ping_id: PBField
+	func has_ping_id() -> bool:
+		if __ping_id.value != null:
+			return true
+		return false
+	func get_ping_id() -> int:
+		return __ping_id.value
+	func clear_ping_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__ping_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_ping_id(value : int) -> void:
+		__ping_id.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class OrchestratorPacket:
 	func _init():
 		var service
@@ -2586,6 +2676,18 @@ class OrchestratorPacket:
 		service.func_ref = Callable(self, "new_zone_transfer_response")
 		data[__zone_transfer_response.tag] = service
 		
+		__heartbeat = PBField.new("heartbeat", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __heartbeat
+		service.func_ref = Callable(self, "new_heartbeat")
+		data[__heartbeat.tag] = service
+		
+		__heartbeat_ack = PBField.new("heartbeat_ack", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __heartbeat_ack
+		service.func_ref = Callable(self, "new_heartbeat_ack")
+		data[__heartbeat_ack.tag] = service
+		
 	var data = {}
 	
 	var __zone_register: PBField
@@ -2608,6 +2710,10 @@ class OrchestratorPacket:
 		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__zone_register.value = ZoneRegister.new()
 		return __zone_register.value
 	
@@ -2631,6 +2737,10 @@ class OrchestratorPacket:
 		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__zone_transfer_request.value = ZoneTransferRequest.new()
 		return __zone_transfer_request.value
 	
@@ -2654,6 +2764,10 @@ class OrchestratorPacket:
 		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__prepare_player.value = PreparePlayer.new()
 		return __prepare_player.value
 	
@@ -2677,6 +2791,10 @@ class OrchestratorPacket:
 		data[4].state = PB_SERVICE_STATE.FILLED
 		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__prepare_player_ack.value = PreparePlayerAck.new()
 		return __prepare_player_ack.value
 	
@@ -2700,8 +2818,66 @@ class OrchestratorPacket:
 		__prepare_player_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
 		data[5].state = PB_SERVICE_STATE.FILLED
+		__heartbeat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__zone_transfer_response.value = ZoneTransferResponse.new()
 		return __zone_transfer_response.value
+	
+	var __heartbeat: PBField
+	func has_heartbeat() -> bool:
+		if __heartbeat.value != null:
+			return true
+		return false
+	func get_heartbeat() -> Heartbeat:
+		return __heartbeat.value
+	func clear_heartbeat() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_heartbeat() -> Heartbeat:
+		__zone_register.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		data[6].state = PB_SERVICE_STATE.FILLED
+		__heartbeat_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat.value = Heartbeat.new()
+		return __heartbeat.value
+	
+	var __heartbeat_ack: PBField
+	func has_heartbeat_ack() -> bool:
+		if __heartbeat_ack.value != null:
+			return true
+		return false
+	func get_heartbeat_ack() -> HeartbeatAck:
+		return __heartbeat_ack.value
+	func clear_heartbeat_ack() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_heartbeat_ack() -> HeartbeatAck:
+		__zone_register.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__heartbeat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		data[7].state = PB_SERVICE_STATE.FILLED
+		__heartbeat_ack.value = HeartbeatAck.new()
+		return __heartbeat_ack.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

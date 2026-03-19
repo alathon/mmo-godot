@@ -3,8 +3,10 @@ extends Node
 const Proto = preload("res://src/common/proto/packets.gd")
 const ServerPlayerScene = preload("res://src/game-server/ServerPlayer.tscn")
 
-@export var PORT = 7000
-@export var MAX_CLIENTS = 32
+@export var zone_id: String = ""
+@export var PORT: int = 7000
+@export var MAX_CLIENTS: int = 32
+@export var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9000"
 
 ## Reject input tagged for ticks further than this into the future.
 const INPUT_FUTURE_LIMIT := 20
@@ -24,7 +26,21 @@ var _player_states: Dictionary[int, ServerPlayerState] = {}
 ## peer_id -> { tick: int -> { input_x, input_z, jump_pressed } }
 var _input_buffers: Dictionary[int, Dictionary] = {}
 
+## Peers frozen during zone transfer (excluded from simulation and broadcast).
+var _frozen_peers: Dictionary[int, bool] = {}
+
+## transfer_token -> { peer_id, target_zone_id, target_address, target_port }
+var _pending_redirects: Dictionary[String, Dictionary] = {}
+
+## transfer_token -> { player_state, entry_x/y/z, entry_rot_y }
+## Players arriving via zone transfer — token validated on connect.
+var _pending_arrivals: Dictionary[String, Dictionary] = {}
+
 @onready var _entities: Node = %Entities
+
+## Raw WebSocket connection to the orchestrator.
+var _orch_ws: WebSocketPeer = null
+var _orch_connected: bool = false
 
 func _ready() -> void:
 	# Disable MCP editor services when running headless — they share the same
@@ -35,11 +51,16 @@ func _ready() -> void:
 			if n:
 				n.queue_free()
 
-
 	# Align physics tick rate with network tick rate so physics_factor = 1.0
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
 
+	if zone_id.is_empty() or not Globals.ZONE_SCENES.has(zone_id):
+		printerr("[SERVER] Invalid zone_id '%s'. Must be one of: %s" % [zone_id, Globals.ZONE_SCENES.keys()])
+		get_tree().quit(1)
+		return
+
 	_connect_zone_borders()
+	_connect_to_orchestrator()
 
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -53,18 +74,120 @@ func _ready() -> void:
 	multiplayer.multiplayer_peer = peer
 	NetworkTime.start_server()
 	NetworkTime.on_tick.connect(_tick)
-	print("[SERVER] Zone listening on port %d" % PORT)
+	print("[SERVER] Zone '%s' listening on port %d" % [zone_id, PORT])
+
+# ── Orchestrator Connection ────────────────────────────────────────────────────
+
+func _connect_to_orchestrator() -> void:
+	_orch_ws = WebSocketPeer.new()
+	var error := _orch_ws.connect_to_url(ORCHESTRATOR_URL)
+	if error != OK:
+		printerr("[SERVER] Failed to connect to orchestrator: %s" % error)
+		_orch_ws = null
+		return
+	print("[SERVER] Connecting to orchestrator at %s..." % ORCHESTRATOR_URL)
+
+func _process(_delta: float) -> void:
+	if _orch_ws == null:
+		return
+	_orch_ws.poll()
+	var state := _orch_ws.get_ready_state()
+	if state == WebSocketPeer.STATE_OPEN:
+		if not _orch_connected:
+			_orch_connected = true
+			print("[SERVER] Connected to orchestrator")
+			_register_with_orchestrator()
+		while _orch_ws.get_available_packet_count() > 0:
+			_on_orchestrator_packet(_orch_ws.get_packet())
+	elif state == WebSocketPeer.STATE_CLOSED:
+		if _orch_connected:
+			print("[SERVER] Disconnected from orchestrator")
+			_orch_connected = false
+		_orch_ws = null
+
+func _register_with_orchestrator() -> void:
+	var pkt := Proto.OrchestratorPacket.new()
+	var reg := pkt.new_zone_register()
+	reg.set_zone_id(zone_id)
+	reg.set_address("127.0.0.1")
+	reg.set_port(PORT)
+	reg.set_max_players(MAX_CLIENTS)
+	reg.set_current_players(players.size())
+	_send_to_orchestrator(pkt)
+	print("[SERVER] Registered zone '%s' with orchestrator" % zone_id)
+
+func _send_to_orchestrator(pkt: Proto.OrchestratorPacket) -> void:
+	if _orch_ws and _orch_connected:
+		_orch_ws.send(pkt.to_bytes(), WebSocketPeer.WRITE_MODE_BINARY)
+
+func _on_orchestrator_packet(bytes: PackedByteArray) -> void:
+	var pkt := Proto.OrchestratorPacket.new()
+	pkt.from_bytes(bytes)
+	if pkt.has_zone_transfer_response():
+		_handle_zone_transfer_response(pkt.get_zone_transfer_response())
+	elif pkt.has_prepare_player():
+		_handle_prepare_player(pkt.get_prepare_player())
+	elif pkt.has_heartbeat():
+		var ack_pkt := Proto.OrchestratorPacket.new()
+		var ack := ack_pkt.new_heartbeat_ack()
+		ack.set_ping_id(pkt.get_heartbeat().get_ping_id())
+		_send_to_orchestrator(ack_pkt)
+
+func _handle_zone_transfer_response(msg: Proto.ZoneTransferResponse) -> void:
+	var enet_peer_id: int = msg.get_peer_id()
+	var token: String = msg.get_transfer_token()
+	var address: String = msg.get_target_address()
+	var port: int = msg.get_target_port()
+	var target_zone: String = msg.get_zone_id()
+
+	print("[SERVER] Transfer approved for peer %d → %s (%s:%d, token=%s)" % [
+		enet_peer_id, target_zone, address, port, token])
+
+	# Send ZoneRedirect to the client via ENet.
+	var pkt := Proto.Packet.new()
+	var redirect := pkt.new_zone_redirect()
+	redirect.set_zone_id(target_zone)
+	redirect.set_address(address)
+	redirect.set_port(port)
+	redirect.set_transfer_token(token)
+	multiplayer.send_bytes(pkt.to_bytes(), enet_peer_id, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
+
+	# Remove the player after a short delay to let the packet arrive.
+	# For now, remove immediately — the client will disconnect on its own.
+	_remove_player(enet_peer_id)
+
+func _handle_prepare_player(msg: Proto.PreparePlayer) -> void:
+	var token: String = msg.get_transfer_token()
+	var state := msg.get_player_state()
+	_pending_arrivals[token] = {
+		"pos": Vector3(state.get_pos_x(), state.get_pos_y(), state.get_pos_z()),
+		"vel": Vector3(state.get_vel_x(), state.get_vel_y(), state.get_vel_z()),
+		"rot_y": state.get_rot_y(),
+		"entry_pos": Vector3(msg.get_entry_x(), msg.get_entry_y(), msg.get_entry_z()),
+		"entry_rot_y": msg.get_entry_rot_y(),
+	}
+	print("[SERVER] Prepared arrival slot (token=%s)" % token)
+
+	# Acknowledge to orchestrator.
+	var pkt := Proto.OrchestratorPacket.new()
+	var ack := pkt.new_prepare_player_ack()
+	ack.set_transfer_token(token)
+	ack.set_accepted(true)
+	_send_to_orchestrator(pkt)
+
+# ── Tick Loop ─────────────────────────────────────────────────────────────────
 
 func _tick(_delta: float, current_tick: int) -> void:
 	var sim_tick := current_tick - Globals.INPUT_BUFFER_SIZE
 
 	# Simulate each player using their buffered input for sim_tick
 	for peer_id in players:
+		if _frozen_peers.has(peer_id):
+			continue
 		var player: CommonPlayer = players[peer_id]
 		var state: ServerPlayerState = _player_states[peer_id]
 
 		if not state.has_received_input:
-			print("No input received yet for peer %d" % peer_id)
 			# Client hasn't finished clock sync yet — skip simulation.
 			continue
 
@@ -98,11 +221,13 @@ func _tick(_delta: float, current_tick: int) -> void:
 			print("[SERVER] Kicking peer %d: no input for %.0fs" % [peer_id, INPUT_TIMEOUT])
 			multiplayer.multiplayer_peer.disconnect_peer(peer_id)
 
-	# Broadcast world state
+	# Broadcast world state (skip frozen peers in both entity list and recipients)
 	var pkt = Proto.Packet.new()
 	var diff = pkt.new_world_diff()
 	diff.set_tick(current_tick)
 	for peer_id in players:
+		if _frozen_peers.has(peer_id):
+			continue
 		var player: CommonPlayer = players[peer_id]
 		var state = diff.add_entities()
 		state.set_entity_id(peer_id)
@@ -116,6 +241,8 @@ func _tick(_delta: float, current_tick: int) -> void:
 
 	var bytes = pkt.to_bytes()
 	for peer_id in players:
+		if _frozen_peers.has(peer_id):
+			continue
 		multiplayer.send_bytes(bytes, peer_id, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
 func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
@@ -129,6 +256,8 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 			_handle_input(peer_id, input)
 	elif pkt.has_clock_ping():
 		_handle_clock_ping(peer_id, pkt.get_clock_ping())
+	elif pkt.has_zone_arrival():
+		_handle_zone_arrival(peer_id, pkt.get_zone_arrival())
 
 func _handle_clock_ping(peer_id: int, ping: Proto.ClockPing) -> void:
 	var pkt = Proto.Packet.new()
@@ -177,19 +306,29 @@ func _on_peer_connected(id: int) -> void:
 	if id == 1:
 		return  # server's own peer — not a real client
 	print("[SERVER] Peer connected: %d" % id)
+	# Don't spawn yet if the client might be a zone transfer arrival.
+	# They'll send a ZoneArrival packet or regular input; we handle both.
+	# For now, spawn at default position. ZoneArrival handling will override.
+	_spawn_player(id, SPAWN_POSITION)
+
+func _on_peer_disconnected(id: int) -> void:
+	print("[SERVER] Peer disconnected: %d" % id)
+	_remove_player(id)
+
+func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
 	var player := ServerPlayerScene.instantiate() as CommonPlayer
 	player.name = "ServerPlayer_%d" % id
 	_entities.add_child(player)
-	var offset := Vector3(randf_range(-2.0, 2.0), 0.0, randf_range(-2.0, 2.0))
-	player.global_position = SPAWN_POSITION + offset
+	player.global_position = position
+	player.rotation.y = rot_y
 	players[id] = player
 	var state := player.get_node("ServerPlayerState") as ServerPlayerState
 	state.last_input_tick = NetworkTime.tick
 	_player_states[id] = state
 	_input_buffers[id] = {}
 
-func _on_peer_disconnected(id: int) -> void:
-	print("[SERVER] Peer disconnected: %d" % id)
+func _remove_player(id: int) -> void:
+	_frozen_peers.erase(id)
 	if players.has(id):
 		players[id].queue_free()
 		players.erase(id)
@@ -207,14 +346,54 @@ func _connect_zone_borders() -> void:
 			child.body_entered.connect(_on_zone_border_entered.bind(child))
 
 func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
-	# Find which peer owns this body.
 	var peer_id := _find_peer_for_body(body)
 	if peer_id < 0:
 		return
-	print("[SERVER] Peer %d entered zone border → %s (entry_pos=%s)" % [
-		peer_id, border.target_zone_id, border.target_entry_position])
-	# TODO: initiate zone transfer via orchestrator.
-	# For now, just log it.
+	if _frozen_peers.has(peer_id):
+		return  # already transferring
+
+	print("[SERVER] Peer %d entered zone border → %s" % [peer_id, border.target_zone_id])
+
+	# Freeze the player immediately.
+	_frozen_peers[peer_id] = true
+
+	# Send transfer request to orchestrator.
+	var player: CommonPlayer = players[peer_id]
+	var pkt := Proto.OrchestratorPacket.new()
+	var req := pkt.new_zone_transfer_request()
+	req.set_peer_id(peer_id)
+	req.set_from_zone_id(zone_id)
+	req.set_to_zone_id(border.target_zone_id)
+	req.set_entry_x(border.target_entry_position.x)
+	req.set_entry_y(border.target_entry_position.y)
+	req.set_entry_z(border.target_entry_position.z)
+	req.set_entry_rot_y(border.target_entry_rotation_y)
+	var state := req.new_player_state()
+	state.set_pos_x(player.global_position.x)
+	state.set_pos_y(player.global_position.y)
+	state.set_pos_z(player.global_position.z)
+	state.set_vel_x(player.velocity.x)
+	state.set_vel_y(player.velocity.y)
+	state.set_vel_z(player.velocity.z)
+	state.set_rot_y(player.face_angle)
+	_send_to_orchestrator(pkt)
+
+func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
+	var token: String = msg.get_transfer_token()
+	if not _pending_arrivals.has(token):
+		print("[SERVER] ZoneArrival with unknown token from peer %d" % peer_id)
+		return
+
+	var arrival: Dictionary = _pending_arrivals[token]
+	_pending_arrivals.erase(token)
+
+	# Reposition the player (already spawned in _on_peer_connected at default pos).
+	if players.has(peer_id):
+		var player: CommonPlayer = players[peer_id]
+		player.global_position = arrival["entry_pos"]
+		player.rotation.y = arrival["entry_rot_y"]
+		player.velocity = Vector3.ZERO
+		print("[SERVER] Peer %d arrived via zone transfer at %s" % [peer_id, arrival["entry_pos"]])
 
 func _find_peer_for_body(body: Node3D) -> int:
 	for peer_id in players:

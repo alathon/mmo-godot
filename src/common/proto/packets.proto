@@ -144,6 +144,16 @@ message Packet {
   }
 }
 
+// Orchestrator → Game-server: heartbeat ping.
+message Heartbeat {
+  uint32 ping_id = 1;
+}
+
+// Game-server → Orchestrator: heartbeat response.
+message HeartbeatAck {
+  uint32 ping_id = 1;
+}
+
 // Orchestrator ↔ game-server messages use a separate wrapper since they travel
 // over WebSocket, not ENet.
 message OrchestratorPacket {
@@ -153,5 +163,7 @@ message OrchestratorPacket {
     PreparePlayer prepare_player = 3;
     PreparePlayerAck prepare_player_ack = 4;
     ZoneTransferResponse zone_transfer_response = 5;
+    Heartbeat heartbeat = 6;
+    HeartbeatAck heartbeat_ack = 7;
   }
 }

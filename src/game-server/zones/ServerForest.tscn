@@ -6,28 +6,28 @@
 [node name="Root" unique_id=395385420 instance=ExtResource("1_y31u1")]
 
 [node name="ServerZone" parent="." index="0" unique_id=588403582 instance=ExtResource("2_gg3qb")]
+zone_id = "forest"
 
 [node name="Camera3D" parent="ServerZone" index="2" unique_id=184597766]
 transform = Transform3D(0.9488981, 0, -0.31558272, 0, 1, 0, 0.31558272, 0, 0.9488981, 14.055216, 6.7234898, 0)
 
 [node name="Sky3D" parent="." index="1" unique_id=1333401661]
-current_time = 7.558880000012761
+current_time = 5.107920000011502
 
 [node name="SunLight" parent="Sky3D" index="0" unique_id=1661133506]
-transform = Transform3D(0.49938998, -0.23507257, 0.8338768, 0, 0.96248686, 0.27132818, -0.8663773, -0.13549857, 0.48065633, 0.8338768, 0.27132818, 0.48065633)
-light_color = Color(0.99085313, 0.7818471, 0.6771154, 1)
+transform = Transform3D(0.33122087, 0.2700836, 0.90407276, 0, 0.9581576, -0.286241, -0.9435532, 0.09480899, 0.3173618, 0.90407276, -0.286241, 0.3173618)
 
 [node name="MoonLight" parent="Sky3D" index="1" unique_id=679287759]
-transform = Transform3D(0, -0.40832865, 0.912835, 0.46824285, -0.80658084, -0.3607991, 0.8835998, 0.42742845, 0.19119696, 0.912835, -0.3607991, 0.19119696)
+transform = Transform3D(0, -0.9764393, 0.21579263, -0.19980493, -0.21144132, -0.95675004, 0.9798357, -0.04311643, -0.19509737, 0.21579261, -0.95675, -0.19509736)
 
 [node name="SkyDome" parent="Sky3D" index="2" unique_id=680469966]
-sun_azimuth = -2.0936909
-sun_altitude = -1.2960236
-moon_azimuth = -1.7772655
-moon_altitude = -1.9399209
+sun_azimuth = -1.9083935
+sun_altitude = -1.8610977
+moon_azimuth = -0.83572257
+moon_altitude = -2.8464134
 
 [node name="TimeOfDay" parent="Sky3D" index="3" unique_id=1305249844]
-current_time = 7.558880000012761
-day = 3
+current_time = 5.107920000011502
+day = 5
 
 [editable path="ServerZone"]

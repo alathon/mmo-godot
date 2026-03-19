@@ -1,8 +1,8 @@
 extends Node
 
 ## Central orchestrator that manages zone server registration and player
-## zone transfers. Runs as a headless Godot instance with a WebSocket server.
-## Game servers connect on startup and send OrchestratorPacket messages.
+## zone transfers. Runs as a headless Godot instance with a raw WebSocket server.
+## Game servers connect on startup and send OrchestratorPacket protobuf messages.
 
 const Proto = preload("res://src/common/proto/packets.gd")
 
@@ -14,29 +14,70 @@ const TOKEN_TIMEOUT := 30.0
 ## Registered zone servers: zone_id -> { peer_id, address, port, max_players, current_players }
 var _zones: Dictionary[String, Dictionary] = {}
 
-## WebSocket peer_id -> zone_id (reverse lookup)
+## peer_id -> zone_id (reverse lookup)
 var _peer_zones: Dictionary[int, String] = {}
 
 ## Pending transfers: transfer_token -> { from_zone_id, to_zone_id, peer_id, player_state,
-##   entry_x, entry_y, entry_z, entry_rot_y, origin_ws_peer, dest_ws_peer, created_at }
+##   entry_x, entry_y, entry_z, entry_rot_y, origin_peer, dest_peer, created_at }
 var _pending_transfers: Dictionary[String, Dictionary] = {}
 
-var _ws_server: WebSocketMultiplayerPeer = null
+## Connected game server WebSocket peers: peer_id -> WebSocketPeer
+var _peers: Dictionary[int, WebSocketPeer] = {}
+
+## peer_id -> last time we received a HeartbeatAck (unix timestamp)
+var _last_heartbeat_ack: Dictionary[int, float] = {}
+
+var _tcp_server: TCPServer = null
+var _next_peer_id: int = 1
+var _next_ping_id: int = 0
+var _heartbeat_timer: float = 0.0
+
+## Send a heartbeat ping every this many seconds.
+const HEARTBEAT_INTERVAL := 5.0
+## Consider a peer dead if no ack received within this many seconds.
+const HEARTBEAT_TIMEOUT := 15.0
 
 func _ready() -> void:
-	_ws_server = WebSocketMultiplayerPeer.new()
-	var error := _ws_server.create_server(PORT)
+	_tcp_server = TCPServer.new()
+	var error := _tcp_server.listen(PORT)
 	if error != OK:
-		printerr("[ORCHESTRATOR] Failed to start WebSocket server on port %d: %s" % [PORT, error])
+		printerr("[ORCHESTRATOR] Failed to listen on port %d: %s" % [PORT, error])
 		return
-	multiplayer.multiplayer_peer = _ws_server
-	multiplayer.peer_connected.connect(_on_peer_connected)
-	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	multiplayer.peer_packet.connect(_on_packet)
 	print("[ORCHESTRATOR] Listening on port %d" % PORT)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_accept_new_connections()
+	_poll_peers()
 	_expire_tokens()
+	_heartbeat_timer += delta
+	if _heartbeat_timer >= HEARTBEAT_INTERVAL:
+		_heartbeat_timer = 0.0
+		_send_heartbeats()
+		_check_heartbeat_timeouts()
+
+func _accept_new_connections() -> void:
+	while _tcp_server.is_connection_available():
+		var tcp := _tcp_server.take_connection()
+		var ws := WebSocketPeer.new()
+		ws.accept_stream(tcp)
+		var peer_id := _next_peer_id
+		_next_peer_id += 1
+		_peers[peer_id] = ws
+		_last_heartbeat_ack[peer_id] = Time.get_unix_time_from_system()
+		print("[ORCHESTRATOR] Game server connecting: peer %d" % peer_id)
+
+func _poll_peers() -> void:
+	for peer_id in _peers.keys():
+		var ws: WebSocketPeer = _peers[peer_id]
+		ws.poll()
+		var state := ws.get_ready_state()
+		if state == WebSocketPeer.STATE_OPEN:
+			while ws.get_available_packet_count() > 0:
+				_on_packet(peer_id, ws.get_packet())
+		elif state == WebSocketPeer.STATE_CLOSED:
+			print("[ORCHESTRATOR] Game server disconnected: peer %d" % peer_id)
+			_on_peer_disconnected(peer_id)
+			_peers.erase(peer_id)
 
 func _expire_tokens() -> void:
 	var now := Time.get_unix_time_from_system()
@@ -46,11 +87,8 @@ func _expire_tokens() -> void:
 			print("[ORCHESTRATOR] Transfer token expired: %s" % token)
 			_pending_transfers.erase(token)
 
-func _on_peer_connected(peer_id: int) -> void:
-	print("[ORCHESTRATOR] Game server connected: peer %d" % peer_id)
-
 func _on_peer_disconnected(peer_id: int) -> void:
-	print("[ORCHESTRATOR] Game server disconnected: peer %d" % peer_id)
+	_last_heartbeat_ack.erase(peer_id)
 	if _peer_zones.has(peer_id):
 		var zone_id: String = _peer_zones[peer_id]
 		_zones.erase(zone_id)
@@ -66,6 +104,8 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 		_handle_zone_transfer_request(peer_id, pkt.get_zone_transfer_request())
 	elif pkt.has_prepare_player_ack():
 		_handle_prepare_player_ack(peer_id, pkt.get_prepare_player_ack())
+	elif pkt.has_heartbeat_ack():
+		_last_heartbeat_ack[peer_id] = Time.get_unix_time_from_system()
 
 # ── Zone Registration ─────────────────────────────────────────────────────────
 
@@ -101,13 +141,8 @@ func _handle_zone_transfer_request(origin_peer: int, msg: Proto.ZoneTransferRequ
 		"from_zone_id": from_zone,
 		"to_zone_id": to_zone,
 		"peer_id": game_peer_id,
-		"player_state": msg.get_player_state(),
-		"entry_x": msg.get_entry_x(),
-		"entry_y": msg.get_entry_y(),
-		"entry_z": msg.get_entry_z(),
-		"entry_rot_y": msg.get_entry_rot_y(),
-		"origin_ws_peer": origin_peer,
-		"dest_ws_peer": dest["peer_id"],
+		"origin_peer": origin_peer,
+		"dest_peer": dest["peer_id"],
 		"created_at": Time.get_unix_time_from_system(),
 	}
 
@@ -122,7 +157,6 @@ func _handle_zone_transfer_request(origin_peer: int, msg: Proto.ZoneTransferRequ
 	prepare.set_entry_y(msg.get_entry_y())
 	prepare.set_entry_z(msg.get_entry_z())
 	prepare.set_entry_rot_y(msg.get_entry_rot_y())
-	# Copy player state fields.
 	var src_state := msg.get_player_state()
 	var dst_state := prepare.new_player_state()
 	dst_state.set_pos_x(src_state.get_pos_x())
@@ -160,15 +194,38 @@ func _handle_prepare_player_ack(dest_peer: int, msg: Proto.PreparePlayerAck) -> 
 	resp.set_target_port(dest["port"])
 	resp.set_zone_id(transfer["to_zone_id"])
 
-	_send_to_peer(transfer["origin_ws_peer"], pkt)
+	_send_to_peer(transfer["origin_peer"], pkt)
 	print("[ORCHESTRATOR] Redirect sent to origin for peer %d (token=%s)" % [
 		transfer["peer_id"], token])
-	# Token stays in _pending_transfers until the client connects or it expires.
+
+# ── Heartbeat ─────────────────────────────────────────────────────────────────
+
+func _send_heartbeats() -> void:
+	var pkt := Proto.OrchestratorPacket.new()
+	var hb := pkt.new_heartbeat()
+	_next_ping_id += 1
+	hb.set_ping_id(_next_ping_id)
+	var bytes := pkt.to_bytes()
+	for peer_id in _peers:
+		var ws: WebSocketPeer = _peers[peer_id]
+		if ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
+			ws.send(bytes, WebSocketPeer.WRITE_MODE_BINARY)
+
+func _check_heartbeat_timeouts() -> void:
+	var now := Time.get_unix_time_from_system()
+	for peer_id in _last_heartbeat_ack.keys():
+		if now - _last_heartbeat_ack[peer_id] > HEARTBEAT_TIMEOUT:
+			print("[ORCHESTRATOR] Peer %d heartbeat timeout — disconnecting" % peer_id)
+			if _peers.has(peer_id):
+				_peers[peer_id].close()
+			_on_peer_disconnected(peer_id)
+			_peers.erase(peer_id)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _send_to_peer(peer_id: int, pkt: Proto.OrchestratorPacket) -> void:
-	multiplayer.send_bytes(pkt.to_bytes(), peer_id, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
+	if _peers.has(peer_id):
+		_peers[peer_id].send(pkt.to_bytes(), WebSocketPeer.WRITE_MODE_BINARY)
 
 func _generate_token() -> String:
 	var bytes := PackedByteArray()
