@@ -17,7 +17,8 @@
       "Bash(npm run:*)",
       "mcp__godot-mcp__godot_execute",
       "Read(//Applications/**)",
-      "Read(//usr/local/bin/**)"
+      "Read(//usr/local/bin/**)",
+      "Bash(chmod +x /Users/alathon/Workspace/experiments/mmo-godot/scripts/run_orchestrator.sh)"
     ]
   }
 }
