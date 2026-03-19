@@ -15,7 +15,9 @@
       "Bash(node -e \"const p = require\\(''./node_modules/@modelcontextprotocol/sdk/package.json''\\); console.log\\(p.version\\)\")",
       "mcp__godot-mcp__godot_read_script",
       "Bash(npm run:*)",
-      "mcp__godot-mcp__godot_execute"
+      "mcp__godot-mcp__godot_execute",
+      "Read(//Applications/**)",
+      "Read(//usr/local/bin/**)"
     ]
   }
 }

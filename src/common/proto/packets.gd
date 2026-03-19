@@ -1390,6 +1390,910 @@ class InputBatch:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class ZoneRedirect:
+	func _init():
+		var service
+		
+		__zone_id = PBField.new("zone_id", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __zone_id
+		data[__zone_id.tag] = service
+		
+		__address = PBField.new("address", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __address
+		data[__address.tag] = service
+		
+		__port = PBField.new("port", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __port
+		data[__port.tag] = service
+		
+		__transfer_token = PBField.new("transfer_token", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __transfer_token
+		data[__transfer_token.tag] = service
+		
+	var data = {}
+	
+	var __zone_id: PBField
+	func has_zone_id() -> bool:
+		if __zone_id.value != null:
+			return true
+		return false
+	func get_zone_id() -> String:
+		return __zone_id.value
+	func clear_zone_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__zone_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_zone_id(value : String) -> void:
+		__zone_id.value = value
+	
+	var __address: PBField
+	func has_address() -> bool:
+		if __address.value != null:
+			return true
+		return false
+	func get_address() -> String:
+		return __address.value
+	func clear_address() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__address.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_address(value : String) -> void:
+		__address.value = value
+	
+	var __port: PBField
+	func has_port() -> bool:
+		if __port.value != null:
+			return true
+		return false
+	func get_port() -> int:
+		return __port.value
+	func clear_port() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__port.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_port(value : int) -> void:
+		__port.value = value
+	
+	var __transfer_token: PBField
+	func has_transfer_token() -> bool:
+		if __transfer_token.value != null:
+			return true
+		return false
+	func get_transfer_token() -> String:
+		return __transfer_token.value
+	func clear_transfer_token() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__transfer_token.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_transfer_token(value : String) -> void:
+		__transfer_token.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class ZoneArrival:
+	func _init():
+		var service
+		
+		__transfer_token = PBField.new("transfer_token", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __transfer_token
+		data[__transfer_token.tag] = service
+		
+	var data = {}
+	
+	var __transfer_token: PBField
+	func has_transfer_token() -> bool:
+		if __transfer_token.value != null:
+			return true
+		return false
+	func get_transfer_token() -> String:
+		return __transfer_token.value
+	func clear_transfer_token() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__transfer_token.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_transfer_token(value : String) -> void:
+		__transfer_token.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class PlayerState:
+	func _init():
+		var service
+		
+		__pos_x = PBField.new("pos_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __pos_x
+		data[__pos_x.tag] = service
+		
+		__pos_y = PBField.new("pos_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __pos_y
+		data[__pos_y.tag] = service
+		
+		__pos_z = PBField.new("pos_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __pos_z
+		data[__pos_z.tag] = service
+		
+		__vel_x = PBField.new("vel_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __vel_x
+		data[__vel_x.tag] = service
+		
+		__vel_y = PBField.new("vel_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __vel_y
+		data[__vel_y.tag] = service
+		
+		__vel_z = PBField.new("vel_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __vel_z
+		data[__vel_z.tag] = service
+		
+		__rot_y = PBField.new("rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __rot_y
+		data[__rot_y.tag] = service
+		
+	var data = {}
+	
+	var __pos_x: PBField
+	func has_pos_x() -> bool:
+		if __pos_x.value != null:
+			return true
+		return false
+	func get_pos_x() -> float:
+		return __pos_x.value
+	func clear_pos_x() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__pos_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_pos_x(value : float) -> void:
+		__pos_x.value = value
+	
+	var __pos_y: PBField
+	func has_pos_y() -> bool:
+		if __pos_y.value != null:
+			return true
+		return false
+	func get_pos_y() -> float:
+		return __pos_y.value
+	func clear_pos_y() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__pos_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_pos_y(value : float) -> void:
+		__pos_y.value = value
+	
+	var __pos_z: PBField
+	func has_pos_z() -> bool:
+		if __pos_z.value != null:
+			return true
+		return false
+	func get_pos_z() -> float:
+		return __pos_z.value
+	func clear_pos_z() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__pos_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_pos_z(value : float) -> void:
+		__pos_z.value = value
+	
+	var __vel_x: PBField
+	func has_vel_x() -> bool:
+		if __vel_x.value != null:
+			return true
+		return false
+	func get_vel_x() -> float:
+		return __vel_x.value
+	func clear_vel_x() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__vel_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_vel_x(value : float) -> void:
+		__vel_x.value = value
+	
+	var __vel_y: PBField
+	func has_vel_y() -> bool:
+		if __vel_y.value != null:
+			return true
+		return false
+	func get_vel_y() -> float:
+		return __vel_y.value
+	func clear_vel_y() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__vel_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_vel_y(value : float) -> void:
+		__vel_y.value = value
+	
+	var __vel_z: PBField
+	func has_vel_z() -> bool:
+		if __vel_z.value != null:
+			return true
+		return false
+	func get_vel_z() -> float:
+		return __vel_z.value
+	func clear_vel_z() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__vel_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_vel_z(value : float) -> void:
+		__vel_z.value = value
+	
+	var __rot_y: PBField
+	func has_rot_y() -> bool:
+		if __rot_y.value != null:
+			return true
+		return false
+	func get_rot_y() -> float:
+		return __rot_y.value
+	func clear_rot_y() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_rot_y(value : float) -> void:
+		__rot_y.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class ZoneRegister:
+	func _init():
+		var service
+		
+		__zone_id = PBField.new("zone_id", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __zone_id
+		data[__zone_id.tag] = service
+		
+		__address = PBField.new("address", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __address
+		data[__address.tag] = service
+		
+		__port = PBField.new("port", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __port
+		data[__port.tag] = service
+		
+		__max_players = PBField.new("max_players", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __max_players
+		data[__max_players.tag] = service
+		
+		__current_players = PBField.new("current_players", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __current_players
+		data[__current_players.tag] = service
+		
+	var data = {}
+	
+	var __zone_id: PBField
+	func has_zone_id() -> bool:
+		if __zone_id.value != null:
+			return true
+		return false
+	func get_zone_id() -> String:
+		return __zone_id.value
+	func clear_zone_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__zone_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_zone_id(value : String) -> void:
+		__zone_id.value = value
+	
+	var __address: PBField
+	func has_address() -> bool:
+		if __address.value != null:
+			return true
+		return false
+	func get_address() -> String:
+		return __address.value
+	func clear_address() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__address.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_address(value : String) -> void:
+		__address.value = value
+	
+	var __port: PBField
+	func has_port() -> bool:
+		if __port.value != null:
+			return true
+		return false
+	func get_port() -> int:
+		return __port.value
+	func clear_port() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__port.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_port(value : int) -> void:
+		__port.value = value
+	
+	var __max_players: PBField
+	func has_max_players() -> bool:
+		if __max_players.value != null:
+			return true
+		return false
+	func get_max_players() -> int:
+		return __max_players.value
+	func clear_max_players() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__max_players.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_max_players(value : int) -> void:
+		__max_players.value = value
+	
+	var __current_players: PBField
+	func has_current_players() -> bool:
+		if __current_players.value != null:
+			return true
+		return false
+	func get_current_players() -> int:
+		return __current_players.value
+	func clear_current_players() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__current_players.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_current_players(value : int) -> void:
+		__current_players.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class ZoneTransferRequest:
+	func _init():
+		var service
+		
+		__peer_id = PBField.new("peer_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __peer_id
+		data[__peer_id.tag] = service
+		
+		__from_zone_id = PBField.new("from_zone_id", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __from_zone_id
+		data[__from_zone_id.tag] = service
+		
+		__to_zone_id = PBField.new("to_zone_id", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __to_zone_id
+		data[__to_zone_id.tag] = service
+		
+		__player_state = PBField.new("player_state", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __player_state
+		service.func_ref = Callable(self, "new_player_state")
+		data[__player_state.tag] = service
+		
+		__entry_x = PBField.new("entry_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __entry_x
+		data[__entry_x.tag] = service
+		
+		__entry_y = PBField.new("entry_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __entry_y
+		data[__entry_y.tag] = service
+		
+		__entry_z = PBField.new("entry_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __entry_z
+		data[__entry_z.tag] = service
+		
+		__entry_rot_y = PBField.new("entry_rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __entry_rot_y
+		data[__entry_rot_y.tag] = service
+		
+	var data = {}
+	
+	var __peer_id: PBField
+	func has_peer_id() -> bool:
+		if __peer_id.value != null:
+			return true
+		return false
+	func get_peer_id() -> int:
+		return __peer_id.value
+	func clear_peer_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__peer_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_peer_id(value : int) -> void:
+		__peer_id.value = value
+	
+	var __from_zone_id: PBField
+	func has_from_zone_id() -> bool:
+		if __from_zone_id.value != null:
+			return true
+		return false
+	func get_from_zone_id() -> String:
+		return __from_zone_id.value
+	func clear_from_zone_id() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__from_zone_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_from_zone_id(value : String) -> void:
+		__from_zone_id.value = value
+	
+	var __to_zone_id: PBField
+	func has_to_zone_id() -> bool:
+		if __to_zone_id.value != null:
+			return true
+		return false
+	func get_to_zone_id() -> String:
+		return __to_zone_id.value
+	func clear_to_zone_id() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__to_zone_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_to_zone_id(value : String) -> void:
+		__to_zone_id.value = value
+	
+	var __player_state: PBField
+	func has_player_state() -> bool:
+		if __player_state.value != null:
+			return true
+		return false
+	func get_player_state() -> PlayerState:
+		return __player_state.value
+	func clear_player_state() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__player_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_player_state() -> PlayerState:
+		__player_state.value = PlayerState.new()
+		return __player_state.value
+	
+	var __entry_x: PBField
+	func has_entry_x() -> bool:
+		if __entry_x.value != null:
+			return true
+		return false
+	func get_entry_x() -> float:
+		return __entry_x.value
+	func clear_entry_x() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__entry_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_entry_x(value : float) -> void:
+		__entry_x.value = value
+	
+	var __entry_y: PBField
+	func has_entry_y() -> bool:
+		if __entry_y.value != null:
+			return true
+		return false
+	func get_entry_y() -> float:
+		return __entry_y.value
+	func clear_entry_y() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__entry_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_entry_y(value : float) -> void:
+		__entry_y.value = value
+	
+	var __entry_z: PBField
+	func has_entry_z() -> bool:
+		if __entry_z.value != null:
+			return true
+		return false
+	func get_entry_z() -> float:
+		return __entry_z.value
+	func clear_entry_z() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__entry_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_entry_z(value : float) -> void:
+		__entry_z.value = value
+	
+	var __entry_rot_y: PBField
+	func has_entry_rot_y() -> bool:
+		if __entry_rot_y.value != null:
+			return true
+		return false
+	func get_entry_rot_y() -> float:
+		return __entry_rot_y.value
+	func clear_entry_rot_y() -> void:
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		__entry_rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_entry_rot_y(value : float) -> void:
+		__entry_rot_y.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class PreparePlayer:
+	func _init():
+		var service
+		
+		__transfer_token = PBField.new("transfer_token", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __transfer_token
+		data[__transfer_token.tag] = service
+		
+		__player_state = PBField.new("player_state", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __player_state
+		service.func_ref = Callable(self, "new_player_state")
+		data[__player_state.tag] = service
+		
+		__entry_x = PBField.new("entry_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __entry_x
+		data[__entry_x.tag] = service
+		
+		__entry_y = PBField.new("entry_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __entry_y
+		data[__entry_y.tag] = service
+		
+		__entry_z = PBField.new("entry_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __entry_z
+		data[__entry_z.tag] = service
+		
+		__entry_rot_y = PBField.new("entry_rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __entry_rot_y
+		data[__entry_rot_y.tag] = service
+		
+	var data = {}
+	
+	var __transfer_token: PBField
+	func has_transfer_token() -> bool:
+		if __transfer_token.value != null:
+			return true
+		return false
+	func get_transfer_token() -> String:
+		return __transfer_token.value
+	func clear_transfer_token() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__transfer_token.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_transfer_token(value : String) -> void:
+		__transfer_token.value = value
+	
+	var __player_state: PBField
+	func has_player_state() -> bool:
+		if __player_state.value != null:
+			return true
+		return false
+	func get_player_state() -> PlayerState:
+		return __player_state.value
+	func clear_player_state() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__player_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_player_state() -> PlayerState:
+		__player_state.value = PlayerState.new()
+		return __player_state.value
+	
+	var __entry_x: PBField
+	func has_entry_x() -> bool:
+		if __entry_x.value != null:
+			return true
+		return false
+	func get_entry_x() -> float:
+		return __entry_x.value
+	func clear_entry_x() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__entry_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_entry_x(value : float) -> void:
+		__entry_x.value = value
+	
+	var __entry_y: PBField
+	func has_entry_y() -> bool:
+		if __entry_y.value != null:
+			return true
+		return false
+	func get_entry_y() -> float:
+		return __entry_y.value
+	func clear_entry_y() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__entry_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_entry_y(value : float) -> void:
+		__entry_y.value = value
+	
+	var __entry_z: PBField
+	func has_entry_z() -> bool:
+		if __entry_z.value != null:
+			return true
+		return false
+	func get_entry_z() -> float:
+		return __entry_z.value
+	func clear_entry_z() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__entry_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_entry_z(value : float) -> void:
+		__entry_z.value = value
+	
+	var __entry_rot_y: PBField
+	func has_entry_rot_y() -> bool:
+		if __entry_rot_y.value != null:
+			return true
+		return false
+	func get_entry_rot_y() -> float:
+		return __entry_rot_y.value
+	func clear_entry_rot_y() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__entry_rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_entry_rot_y(value : float) -> void:
+		__entry_rot_y.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class PreparePlayerAck:
+	func _init():
+		var service
+		
+		__transfer_token = PBField.new("transfer_token", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __transfer_token
+		data[__transfer_token.tag] = service
+		
+		__accepted = PBField.new("accepted", PB_DATA_TYPE.BOOL, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL])
+		service = PBServiceField.new()
+		service.field = __accepted
+		data[__accepted.tag] = service
+		
+	var data = {}
+	
+	var __transfer_token: PBField
+	func has_transfer_token() -> bool:
+		if __transfer_token.value != null:
+			return true
+		return false
+	func get_transfer_token() -> String:
+		return __transfer_token.value
+	func clear_transfer_token() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__transfer_token.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_transfer_token(value : String) -> void:
+		__transfer_token.value = value
+	
+	var __accepted: PBField
+	func has_accepted() -> bool:
+		if __accepted.value != null:
+			return true
+		return false
+	func get_accepted() -> bool:
+		return __accepted.value
+	func clear_accepted() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__accepted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL]
+	func set_accepted(value : bool) -> void:
+		__accepted.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class ZoneTransferResponse:
+	func _init():
+		var service
+		
+		__peer_id = PBField.new("peer_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __peer_id
+		data[__peer_id.tag] = service
+		
+		__transfer_token = PBField.new("transfer_token", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __transfer_token
+		data[__transfer_token.tag] = service
+		
+		__target_address = PBField.new("target_address", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __target_address
+		data[__target_address.tag] = service
+		
+		__target_port = PBField.new("target_port", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __target_port
+		data[__target_port.tag] = service
+		
+		__zone_id = PBField.new("zone_id", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __zone_id
+		data[__zone_id.tag] = service
+		
+	var data = {}
+	
+	var __peer_id: PBField
+	func has_peer_id() -> bool:
+		if __peer_id.value != null:
+			return true
+		return false
+	func get_peer_id() -> int:
+		return __peer_id.value
+	func clear_peer_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__peer_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_peer_id(value : int) -> void:
+		__peer_id.value = value
+	
+	var __transfer_token: PBField
+	func has_transfer_token() -> bool:
+		if __transfer_token.value != null:
+			return true
+		return false
+	func get_transfer_token() -> String:
+		return __transfer_token.value
+	func clear_transfer_token() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__transfer_token.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_transfer_token(value : String) -> void:
+		__transfer_token.value = value
+	
+	var __target_address: PBField
+	func has_target_address() -> bool:
+		if __target_address.value != null:
+			return true
+		return false
+	func get_target_address() -> String:
+		return __target_address.value
+	func clear_target_address() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__target_address.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_target_address(value : String) -> void:
+		__target_address.value = value
+	
+	var __target_port: PBField
+	func has_target_port() -> bool:
+		if __target_port.value != null:
+			return true
+		return false
+	func get_target_port() -> int:
+		return __target_port.value
+	func clear_target_port() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__target_port.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_target_port(value : int) -> void:
+		__target_port.value = value
+	
+	var __zone_id: PBField
+	func has_zone_id() -> bool:
+		if __zone_id.value != null:
+			return true
+		return false
+	func get_zone_id() -> String:
+		return __zone_id.value
+	func clear_zone_id() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_zone_id(value : String) -> void:
+		__zone_id.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class Packet:
 	func _init():
 		var service
@@ -1424,6 +2328,18 @@ class Packet:
 		service.func_ref = Callable(self, "new_input_batch")
 		data[__input_batch.tag] = service
 		
+		__zone_redirect = PBField.new("zone_redirect", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __zone_redirect
+		service.func_ref = Callable(self, "new_zone_redirect")
+		data[__zone_redirect.tag] = service
+		
+		__zone_arrival = PBField.new("zone_arrival", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __zone_arrival
+		service.func_ref = Callable(self, "new_zone_arrival")
+		data[__zone_arrival.tag] = service
+		
 	var data = {}
 	
 	var __player_input: PBField
@@ -1446,6 +2362,10 @@ class Packet:
 		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_redirect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__zone_arrival.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__player_input.value = PlayerInput.new()
 		return __player_input.value
 	
@@ -1469,6 +2389,10 @@ class Packet:
 		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_redirect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__zone_arrival.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__world_diff.value = WorldDiff.new()
 		return __world_diff.value
 	
@@ -1492,6 +2416,10 @@ class Packet:
 		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_redirect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__zone_arrival.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = ClockPing.new()
 		return __clock_ping.value
 	
@@ -1515,6 +2443,10 @@ class Packet:
 		data[4].state = PB_SERVICE_STATE.FILLED
 		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_redirect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__zone_arrival.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__clock_pong.value = ClockPong.new()
 		return __clock_pong.value
 	
@@ -1538,8 +2470,238 @@ class Packet:
 		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
 		data[5].state = PB_SERVICE_STATE.FILLED
+		__zone_redirect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__zone_arrival.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__input_batch.value = InputBatch.new()
 		return __input_batch.value
+	
+	var __zone_redirect: PBField
+	func has_zone_redirect() -> bool:
+		if __zone_redirect.value != null:
+			return true
+		return false
+	func get_zone_redirect() -> ZoneRedirect:
+		return __zone_redirect.value
+	func clear_zone_redirect() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__zone_redirect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_zone_redirect() -> ZoneRedirect:
+		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		data[6].state = PB_SERVICE_STATE.FILLED
+		__zone_arrival.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__zone_redirect.value = ZoneRedirect.new()
+		return __zone_redirect.value
+	
+	var __zone_arrival: PBField
+	func has_zone_arrival() -> bool:
+		if __zone_arrival.value != null:
+			return true
+		return false
+	func get_zone_arrival() -> ZoneArrival:
+		return __zone_arrival.value
+	func clear_zone_arrival() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__zone_arrival.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_zone_arrival() -> ZoneArrival:
+		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_redirect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		data[7].state = PB_SERVICE_STATE.FILLED
+		__zone_arrival.value = ZoneArrival.new()
+		return __zone_arrival.value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class OrchestratorPacket:
+	func _init():
+		var service
+		
+		__zone_register = PBField.new("zone_register", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __zone_register
+		service.func_ref = Callable(self, "new_zone_register")
+		data[__zone_register.tag] = service
+		
+		__zone_transfer_request = PBField.new("zone_transfer_request", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __zone_transfer_request
+		service.func_ref = Callable(self, "new_zone_transfer_request")
+		data[__zone_transfer_request.tag] = service
+		
+		__prepare_player = PBField.new("prepare_player", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __prepare_player
+		service.func_ref = Callable(self, "new_prepare_player")
+		data[__prepare_player.tag] = service
+		
+		__prepare_player_ack = PBField.new("prepare_player_ack", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __prepare_player_ack
+		service.func_ref = Callable(self, "new_prepare_player_ack")
+		data[__prepare_player_ack.tag] = service
+		
+		__zone_transfer_response = PBField.new("zone_transfer_response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __zone_transfer_response
+		service.func_ref = Callable(self, "new_zone_transfer_response")
+		data[__zone_transfer_response.tag] = service
+		
+	var data = {}
+	
+	var __zone_register: PBField
+	func has_zone_register() -> bool:
+		if __zone_register.value != null:
+			return true
+		return false
+	func get_zone_register() -> ZoneRegister:
+		return __zone_register.value
+	func clear_zone_register() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__zone_register.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_zone_register() -> ZoneRegister:
+		data[1].state = PB_SERVICE_STATE.FILLED
+		__zone_transfer_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_register.value = ZoneRegister.new()
+		return __zone_register.value
+	
+	var __zone_transfer_request: PBField
+	func has_zone_transfer_request() -> bool:
+		if __zone_transfer_request.value != null:
+			return true
+		return false
+	func get_zone_transfer_request() -> ZoneTransferRequest:
+		return __zone_transfer_request.value
+	func clear_zone_transfer_request() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_zone_transfer_request() -> ZoneTransferRequest:
+		__zone_register.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		data[2].state = PB_SERVICE_STATE.FILLED
+		__prepare_player.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_request.value = ZoneTransferRequest.new()
+		return __zone_transfer_request.value
+	
+	var __prepare_player: PBField
+	func has_prepare_player() -> bool:
+		if __prepare_player.value != null:
+			return true
+		return false
+	func get_prepare_player() -> PreparePlayer:
+		return __prepare_player.value
+	func clear_prepare_player() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_prepare_player() -> PreparePlayer:
+		__zone_register.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.FILLED
+		__prepare_player_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player.value = PreparePlayer.new()
+		return __prepare_player.value
+	
+	var __prepare_player_ack: PBField
+	func has_prepare_player_ack() -> bool:
+		if __prepare_player_ack.value != null:
+			return true
+		return false
+	func get_prepare_player_ack() -> PreparePlayerAck:
+		return __prepare_player_ack.value
+	func clear_prepare_player_ack() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_prepare_player_ack() -> PreparePlayerAck:
+		__zone_register.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		data[4].state = PB_SERVICE_STATE.FILLED
+		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player_ack.value = PreparePlayerAck.new()
+		return __prepare_player_ack.value
+	
+	var __zone_transfer_response: PBField
+	func has_zone_transfer_response() -> bool:
+		if __zone_transfer_response.value != null:
+			return true
+		return false
+	func get_zone_transfer_response() -> ZoneTransferResponse:
+		return __zone_transfer_response.value
+	func clear_zone_transfer_response() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_zone_transfer_response() -> ZoneTransferResponse:
+		__zone_register.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__zone_transfer_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__prepare_player_ack.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		data[5].state = PB_SERVICE_STATE.FILLED
+		__zone_transfer_response.value = ZoneTransferResponse.new()
+		return __zone_transfer_response.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
