@@ -8,11 +8,24 @@ const CORRECTION_THRESHOLD = 1.0
 @onready var _network: Node = %Network
 @onready var _local_player: Player = %LocalPlayer
 @onready var _entities: Node = %Entities
+@onready var _zone_container: Node3D = %ZoneContainer
 
 var _remote_players: Dictionary[int, RemotePlayerController] = {}
 
+var _current_zone: Node = null
+
+func load_zone(zone_id: String) -> void:
+	if _current_zone:
+		_current_zone.queue_free()
+		_current_zone = null
+	var scene_path: String = Globals.ZONE_SCENES[zone_id]
+	var scene := load(scene_path) as PackedScene
+	_current_zone = scene.instantiate()
+	_zone_container.add_child(_current_zone)
+
 func _ready() -> void:
 	_network.world_diff_received.connect(_on_world_diff)
+	load_zone("forest")
 	
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_T:

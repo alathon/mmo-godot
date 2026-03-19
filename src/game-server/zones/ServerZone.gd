@@ -35,9 +35,9 @@ func _ready() -> void:
 			if n:
 				n.queue_free()
 
+
 	# Align physics tick rate with network tick rate so physics_factor = 1.0
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
-
 
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -62,6 +62,7 @@ func _tick(_delta: float, current_tick: int) -> void:
 		var state: ServerPlayerState = _player_states[peer_id]
 
 		if not state.has_received_input:
+			print("No input received yet for peer %d" % peer_id)
 			# Client hasn't finished clock sync yet — skip simulation.
 			continue
 
@@ -71,7 +72,6 @@ func _tick(_delta: float, current_tick: int) -> void:
 		if buf.has(sim_tick):
 			input = buf[sim_tick]
 			buf.erase(sim_tick)
-			state.has_received_input = true
 		else:
 			# No input for this tick — re-execute last known input
 			input = state.last_input
@@ -167,7 +167,9 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 		"jump_pressed": input.get_jump_pressed(),
 	}
 
-	_player_states[peer_id].last_input_tick = input_tick
+	var state: ServerPlayerState = _player_states[peer_id]
+	state.last_input_tick = input_tick
+	state.has_received_input = true
 
 func _on_peer_connected(id: int) -> void:
 	if id == 1:
