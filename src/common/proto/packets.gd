@@ -1829,25 +1829,10 @@ class ZoneTransferRequest:
 		service.func_ref = Callable(self, "new_player_state")
 		data[__player_state.tag] = service
 		
-		__entry_x = PBField.new("entry_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		__entry_spawn_path = PBField.new("entry_spawn_path", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
-		service.field = __entry_x
-		data[__entry_x.tag] = service
-		
-		__entry_y = PBField.new("entry_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
-		service = PBServiceField.new()
-		service.field = __entry_y
-		data[__entry_y.tag] = service
-		
-		__entry_z = PBField.new("entry_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
-		service = PBServiceField.new()
-		service.field = __entry_z
-		data[__entry_z.tag] = service
-		
-		__entry_rot_y = PBField.new("entry_rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
-		service = PBServiceField.new()
-		service.field = __entry_rot_y
-		data[__entry_rot_y.tag] = service
+		service.field = __entry_spawn_path
+		data[__entry_spawn_path.tag] = service
 		
 	var data = {}
 	
@@ -1904,57 +1889,18 @@ class ZoneTransferRequest:
 		__player_state.value = PlayerState.new()
 		return __player_state.value
 	
-	var __entry_x: PBField
-	func has_entry_x() -> bool:
-		if __entry_x.value != null:
+	var __entry_spawn_path: PBField
+	func has_entry_spawn_path() -> bool:
+		if __entry_spawn_path.value != null:
 			return true
 		return false
-	func get_entry_x() -> float:
-		return __entry_x.value
-	func clear_entry_x() -> void:
+	func get_entry_spawn_path() -> String:
+		return __entry_spawn_path.value
+	func clear_entry_spawn_path() -> void:
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__entry_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
-	func set_entry_x(value : float) -> void:
-		__entry_x.value = value
-	
-	var __entry_y: PBField
-	func has_entry_y() -> bool:
-		if __entry_y.value != null:
-			return true
-		return false
-	func get_entry_y() -> float:
-		return __entry_y.value
-	func clear_entry_y() -> void:
-		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__entry_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
-	func set_entry_y(value : float) -> void:
-		__entry_y.value = value
-	
-	var __entry_z: PBField
-	func has_entry_z() -> bool:
-		if __entry_z.value != null:
-			return true
-		return false
-	func get_entry_z() -> float:
-		return __entry_z.value
-	func clear_entry_z() -> void:
-		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__entry_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
-	func set_entry_z(value : float) -> void:
-		__entry_z.value = value
-	
-	var __entry_rot_y: PBField
-	func has_entry_rot_y() -> bool:
-		if __entry_rot_y.value != null:
-			return true
-		return false
-	func get_entry_rot_y() -> float:
-		return __entry_rot_y.value
-	func clear_entry_rot_y() -> void:
-		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__entry_rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
-	func set_entry_rot_y(value : float) -> void:
-		__entry_rot_y.value = value
+		__entry_spawn_path.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_entry_spawn_path(value : String) -> void:
+		__entry_spawn_path.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -1992,25 +1938,10 @@ class PreparePlayer:
 		service.func_ref = Callable(self, "new_player_state")
 		data[__player_state.tag] = service
 		
-		__entry_x = PBField.new("entry_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		__entry_spawn_path = PBField.new("entry_spawn_path", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
-		service.field = __entry_x
-		data[__entry_x.tag] = service
-		
-		__entry_y = PBField.new("entry_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
-		service = PBServiceField.new()
-		service.field = __entry_y
-		data[__entry_y.tag] = service
-		
-		__entry_z = PBField.new("entry_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
-		service = PBServiceField.new()
-		service.field = __entry_z
-		data[__entry_z.tag] = service
-		
-		__entry_rot_y = PBField.new("entry_rot_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
-		service = PBServiceField.new()
-		service.field = __entry_rot_y
-		data[__entry_rot_y.tag] = service
+		service.field = __entry_spawn_path
+		data[__entry_spawn_path.tag] = service
 		
 	var data = {}
 	
@@ -2041,57 +1972,18 @@ class PreparePlayer:
 		__player_state.value = PlayerState.new()
 		return __player_state.value
 	
-	var __entry_x: PBField
-	func has_entry_x() -> bool:
-		if __entry_x.value != null:
+	var __entry_spawn_path: PBField
+	func has_entry_spawn_path() -> bool:
+		if __entry_spawn_path.value != null:
 			return true
 		return false
-	func get_entry_x() -> float:
-		return __entry_x.value
-	func clear_entry_x() -> void:
+	func get_entry_spawn_path() -> String:
+		return __entry_spawn_path.value
+	func clear_entry_spawn_path() -> void:
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__entry_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
-	func set_entry_x(value : float) -> void:
-		__entry_x.value = value
-	
-	var __entry_y: PBField
-	func has_entry_y() -> bool:
-		if __entry_y.value != null:
-			return true
-		return false
-	func get_entry_y() -> float:
-		return __entry_y.value
-	func clear_entry_y() -> void:
-		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__entry_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
-	func set_entry_y(value : float) -> void:
-		__entry_y.value = value
-	
-	var __entry_z: PBField
-	func has_entry_z() -> bool:
-		if __entry_z.value != null:
-			return true
-		return false
-	func get_entry_z() -> float:
-		return __entry_z.value
-	func clear_entry_z() -> void:
-		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__entry_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
-	func set_entry_z(value : float) -> void:
-		__entry_z.value = value
-	
-	var __entry_rot_y: PBField
-	func has_entry_rot_y() -> bool:
-		if __entry_rot_y.value != null:
-			return true
-		return false
-	func get_entry_rot_y() -> float:
-		return __entry_rot_y.value
-	func clear_entry_rot_y() -> void:
-		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__entry_rot_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
-	func set_entry_rot_y(value : float) -> void:
-		__entry_rot_y.value = value
+		__entry_spawn_path.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_entry_spawn_path(value : String) -> void:
+		__entry_spawn_path.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

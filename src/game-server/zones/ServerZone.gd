@@ -177,10 +177,9 @@ func _handle_prepare_player(msg: Proto.PreparePlayer) -> void:
 		"pos": Vector3(state.get_pos_x(), state.get_pos_y(), state.get_pos_z()),
 		"vel": Vector3(state.get_vel_x(), state.get_vel_y(), state.get_vel_z()),
 		"rot_y": state.get_rot_y(),
-		"entry_pos": Vector3(msg.get_entry_x(), msg.get_entry_y(), msg.get_entry_z()),
-		"entry_rot_y": msg.get_entry_rot_y(),
+		"entry_spawn_path": msg.get_entry_spawn_path(),
 	}
-	print("[SERVER] Prepared arrival slot (token=%s)" % token)
+	print("[SERVER] Prepared arrival slot (token=%s, spawn_path='%s')" % [token, msg.get_entry_spawn_path()])
 
 	# Acknowledge to orchestrator.
 	var pkt := Proto.OrchestratorPacket.new()
@@ -369,7 +368,8 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 	if _border_immunity.has(peer_id) and NetworkTime.tick < _border_immunity[peer_id]:
 		return  # just arrived, immune to borders
 
-	print("[SERVER] Peer %d entered zone border → %s" % [peer_id, border.target_zone_id])
+	print("[SERVER] Peer %d entered zone border → %s (spawn_path='%s')" % [
+		peer_id, border.target_zone_id, border.target_spawn_path])
 
 	# Freeze the player immediately.
 	_frozen_peers[peer_id] = true
@@ -381,10 +381,7 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 	req.set_peer_id(peer_id)
 	req.set_from_zone_id(zone_id)
 	req.set_to_zone_id(border.target_zone_id)
-	req.set_entry_x(border.target_entry_position.x)
-	req.set_entry_y(border.target_entry_position.y)
-	req.set_entry_z(border.target_entry_position.z)
-	req.set_entry_rot_y(border.target_entry_rotation_y)
+	req.set_entry_spawn_path(border.target_spawn_path)
 	var state := req.new_player_state()
 	state.set_pos_x(player.global_position.x)
 	state.set_pos_y(player.global_position.y)
@@ -404,14 +401,24 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 	var arrival: Dictionary = _pending_arrivals[token]
 	_pending_arrivals.erase(token)
 
-	# Reposition the player (already spawned in _on_peer_connected at default pos).
+	# Resolve spawn point from the world scene.
+	var spawn_path: String = arrival["entry_spawn_path"]
+	var spawn_node: Node3D = get_parent().get_node_or_null(spawn_path) as Node3D
+	if spawn_node == null:
+		printerr("[SERVER] Spawn path '%s' not found — using default spawn" % spawn_path)
+		spawn_node = null
+
 	if players.has(peer_id):
 		var player: CommonPlayer = players[peer_id]
-		player.global_position = arrival["entry_pos"]
-		player.rotation.y = arrival["entry_rot_y"]
+		if spawn_node:
+			player.global_position = spawn_node.global_position
+			player.rotation.y = spawn_node.rotation.y
+		else:
+			player.global_position = SPAWN_POSITION
 		player.velocity = Vector3.ZERO
 		_border_immunity[peer_id] = NetworkTime.tick + BORDER_IMMUNITY_TICKS
-		print("[SERVER] Peer %d arrived via zone transfer at %s" % [peer_id, arrival["entry_pos"]])
+		var pos := player.global_position
+		print("[SERVER] Peer %d arrived via zone transfer at %s (spawn='%s')" % [peer_id, pos, spawn_path])
 
 func _find_peer_for_body(body: Node3D) -> int:
 	for peer_id in players:

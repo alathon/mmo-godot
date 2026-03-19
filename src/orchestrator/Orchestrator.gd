@@ -148,17 +148,15 @@ func _handle_zone_transfer_request(origin_peer: int, msg: Proto.ZoneTransferRequ
 		"created_at": Time.get_unix_time_from_system(),
 	}
 
-	print("[ORCHESTRATOR] Transfer: peer %d from '%s' → '%s' (token=%s)" % [
-		game_peer_id, from_zone, to_zone, token])
+	var spawn_path: String = msg.get_entry_spawn_path()
+	print("[ORCHESTRATOR] Transfer: peer %d from '%s' → '%s' (token=%s, spawn_path='%s')" % [
+		game_peer_id, from_zone, to_zone, token, spawn_path])
 
 	# Send PreparePlayer to destination server.
 	var pkt := Proto.OrchestratorPacket.new()
 	var prepare := pkt.new_prepare_player()
 	prepare.set_transfer_token(token)
-	prepare.set_entry_x(msg.get_entry_x())
-	prepare.set_entry_y(msg.get_entry_y())
-	prepare.set_entry_z(msg.get_entry_z())
-	prepare.set_entry_rot_y(msg.get_entry_rot_y())
+	prepare.set_entry_spawn_path(spawn_path)
 	var src_state := msg.get_player_state()
 	var dst_state := prepare.new_player_state()
 	dst_state.set_pos_x(src_state.get_pos_x())

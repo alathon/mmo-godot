@@ -1,6 +1,12 @@
 #!/bin/sh
 SCRIPT_DIR="$(dirname "$0")"
 
+cleanup() {
+    kill 0
+    wait
+}
+trap cleanup INT TERM
+
 "$SCRIPT_DIR/run_game_server.sh" ServerForest 7000 &
 "$SCRIPT_DIR/run_game_server.sh" ServerOther 7001 &
 

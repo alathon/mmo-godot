@@ -99,20 +99,14 @@ message ZoneTransferRequest {
   string from_zone_id = 2;
   string to_zone_id = 3;
   PlayerState player_state = 4;
-  float entry_x = 5;
-  float entry_y = 6;
-  float entry_z = 7;
-  float entry_rot_y = 8;
+  string entry_spawn_path = 5;
 }
 
 // Orchestrator → Game-server (destination): prepare for incoming player.
 message PreparePlayer {
   string transfer_token = 1;
   PlayerState player_state = 2;
-  float entry_x = 3;
-  float entry_y = 4;
-  float entry_z = 5;
-  float entry_rot_y = 6;
+  string entry_spawn_path = 3;
 }
 
 // Game-server (destination) → Orchestrator: confirm ready for the player.
