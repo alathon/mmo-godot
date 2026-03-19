@@ -39,6 +39,8 @@ func _ready() -> void:
 	# Align physics tick rate with network tick rate so physics_factor = 1.0
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
 
+	_connect_zone_borders()
+
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.peer_packet.connect(_on_packet)
@@ -193,3 +195,29 @@ func _on_peer_disconnected(id: int) -> void:
 		players.erase(id)
 		_player_states.erase(id)
 	_input_buffers.erase(id)
+
+# ── Zone Borders ──────────────────────────────────────────────────────────────
+
+func _connect_zone_borders() -> void:
+	var borders_node := get_parent().get_node_or_null("ZoneBorders")
+	if not borders_node:
+		return
+	for child in borders_node.get_children():
+		if child is ZoneBorder:
+			child.body_entered.connect(_on_zone_border_entered.bind(child))
+
+func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
+	# Find which peer owns this body.
+	var peer_id := _find_peer_for_body(body)
+	if peer_id < 0:
+		return
+	print("[SERVER] Peer %d entered zone border → %s (entry_pos=%s)" % [
+		peer_id, border.target_zone_id, border.target_entry_position])
+	# TODO: initiate zone transfer via orchestrator.
+	# For now, just log it.
+
+func _find_peer_for_body(body: Node3D) -> int:
+	for peer_id in players:
+		if players[peer_id] == body:
+			return peer_id
+	return -1
