@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://btit4ocb6jg8x"]
 
-[ext_resource type="Script" uid="uid://bd4gjdm2vh75" path="res://src/game-server/Zone.gd" id="1_nbfo2"]
-[ext_resource type="Terrain3DMaterial" uid="uid://du5vxkiec3kip" path="res://data/terrain/new_terrain_3d_material.tres" id="2_wfuaf"]
-[ext_resource type="Terrain3DAssets" uid="uid://bny8j0h1laphg" path="res://data/terrain/new_terrain_3d_assets.tres" id="3_iibgt"]
-[ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="4_debug"]
+[ext_resource type="Script" uid="uid://bd4gjdm2vh75" path="res://src/game-server/zones/BaseZone.gd" id="1_ljngd"]
+[ext_resource type="Terrain3DMaterial" uid="uid://du5vxkiec3kip" path="res://data/terrain/new_terrain_3d_material.tres" id="2_m82rj"]
+[ext_resource type="Terrain3DAssets" uid="uid://bny8j0h1laphg" path="res://data/terrain/new_terrain_3d_assets.tres" id="3_4bqfj"]
+[ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="4_eu4nw"]
 
 [node name="Root" type="Node" unique_id=588403582]
-script = ExtResource("1_nbfo2")
+script = ExtResource("1_ljngd")
 
 [node name="Network" type="Node" parent="." unique_id=1006523342]
 
@@ -19,8 +19,8 @@ light_color = Color(0.96445924, 0.613305, 0.18748218, 1)
 
 [node name="Terrain3D" type="Terrain3D" parent="." unique_id=815162506]
 data_directory = "res://data/terrain"
-material = ExtResource("2_wfuaf")
-assets = ExtResource("3_iibgt")
+material = ExtResource("2_m82rj")
+assets = ExtResource("3_4bqfj")
 collision_layer = 2
 collision_mask = 0
 top_level = true
@@ -30,4 +30,4 @@ metadata/_edit_lock_ = true
 unique_name_in_owner = true
 
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=1899178943]
-script = ExtResource("4_debug")
+script = ExtResource("4_eu4nw")
