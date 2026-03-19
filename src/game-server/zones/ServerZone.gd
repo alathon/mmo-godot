@@ -216,8 +216,8 @@ func _tick(_delta: float, current_tick: int) -> void:
 		var player: CommonPlayer = players[peer_id]
 		var state: ServerPlayerState = _player_states[peer_id]
 
-		if not state.has_received_input:
-			# Client hasn't finished clock sync yet — skip simulation.
+		if state.first_input_tick < 0 or sim_tick < state.first_input_tick:
+			# Client hasn't sent input old enough for sim_tick yet — skip.
 			continue
 
 		var buf: Dictionary = _input_buffers.get(peer_id, {})
@@ -296,6 +296,8 @@ func _handle_clock_ping(peer_id: int, ping: Proto.ClockPing) -> void:
 func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 	if not players.has(peer_id):
 		return
+	if _frozen_peers.has(peer_id):
+		return
 
 	var input_tick: int = input.get_tick()
 	var current_tick: int = NetworkTime.tick
@@ -325,7 +327,8 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 
 	var state: ServerPlayerState = _player_states[peer_id]
 	state.last_input_tick = input_tick
-	state.has_received_input = true
+	if state.first_input_tick < 0:
+		state.first_input_tick = input_tick
 
 func _on_peer_connected(id: int) -> void:
 	if id == 1:
@@ -380,10 +383,11 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 	print("[SERVER] Peer %d entered zone border → %s (spawn_path='%s')" % [
 		peer_id, border.target_zone_id, border.target_spawn_path])
 
-	# Freeze the player immediately — zero velocity so the client reconciles to a stop.
+	# Freeze the player immediately — zero velocity and clear buffered input.
 	_frozen_peers[peer_id] = true
 	var player: CommonPlayer = players[peer_id]
 	player.velocity = Vector3.ZERO
+	_input_buffers[peer_id] = {}
 	var pkt := Proto.OrchestratorPacket.new()
 	var req := pkt.new_zone_transfer_request()
 	req.set_peer_id(peer_id)
@@ -424,6 +428,8 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 		else:
 			player.global_position = SPAWN_POSITION
 		player.velocity = Vector3.ZERO
+		_player_states[peer_id].first_input_tick = -1
+		_input_buffers[peer_id] = {}
 		_border_immunity[peer_id] = NetworkTime.tick + BORDER_IMMUNITY_TICKS
 		var pos := player.global_position
 		print("[SERVER] Peer %d arrived via zone transfer at %s (spawn='%s')" % [peer_id, pos, spawn_path])

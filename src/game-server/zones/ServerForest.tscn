@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://cbmrmmobq3svd"]
+
+[ext_resource type="PackedScene" uid="uid://h4fdxnwsctgh" path="res://src/common/zones/Forest.tscn" id="1_y31u1"]
+[ext_resource type="PackedScene" uid="uid://btit4ocb6jg8x" path="res://src/game-server/zones/ServerZone.tscn" id="2_gg3qb"]
+
+[node name="ServerForest" type="Node3D" unique_id=33351356]
+
+[node name="ServerZone" parent="." unique_id=588403582 instance=ExtResource("2_gg3qb")]
+
+[node name="ZoneTerrain" parent="." unique_id=395385420 instance=ExtResource("1_y31u1")]
