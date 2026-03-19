@@ -8,5 +8,6 @@ const TICK_RATE: int = 20
 const INPUT_BUFFER_SIZE: int = 5
 
 const ZONE_SCENES: Dictionary = {
-	"forest": "res://src/common/zones/Forest.tscn"
+	"forest": "res://src/common/zones/Forest.tscn",
+	"other": "res://src/common/zones/Other.tscn"
 }

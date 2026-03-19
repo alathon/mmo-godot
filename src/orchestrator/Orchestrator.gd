@@ -106,6 +106,8 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 		_handle_prepare_player_ack(peer_id, pkt.get_prepare_player_ack())
 	elif pkt.has_heartbeat_ack():
 		_last_heartbeat_ack[peer_id] = Time.get_unix_time_from_system()
+		var zone_name: String = _peer_zones.get(peer_id, "unknown")
+		print("[ORCHESTRATOR] Heartbeat ack from peer %d (zone '%s')" % [peer_id, zone_name])
 
 # ── Zone Registration ─────────────────────────────────────────────────────────
 
@@ -206,10 +208,13 @@ func _send_heartbeats() -> void:
 	_next_ping_id += 1
 	hb.set_ping_id(_next_ping_id)
 	var bytes := pkt.to_bytes()
+	var count := 0
 	for peer_id in _peers:
 		var ws: WebSocketPeer = _peers[peer_id]
 		if ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
 			ws.send(bytes, WebSocketPeer.WRITE_MODE_BINARY)
+			count += 1
+	print("[ORCHESTRATOR] Heartbeat sent to %d peer(s) (ping_id=%d)" % [count, _next_ping_id])
 
 func _check_heartbeat_timeouts() -> void:
 	var now := Time.get_unix_time_from_system()

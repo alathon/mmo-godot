@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://folsd43eqj02"]
+
+[ext_resource type="PackedScene" uid="uid://56twc3bddi3a" path="res://src/common/zones/Other.tscn" id="1_2wu4i"]
+[ext_resource type="PackedScene" uid="uid://btit4ocb6jg8x" path="res://src/game-server/zones/ServerZone.tscn" id="2_y8sma"]
+
+[node name="Root" unique_id=395385420 instance=ExtResource("1_2wu4i")]
+
+[node name="ServerZone" parent="." index="0" unique_id=588403582 instance=ExtResource("2_y8sma")]
+zone_id = "other"
+
+[node name="Sky3D" parent="." index="1" unique_id=1333401661]
+current_time = 13.946879999992486
+
+[node name="SunLight" parent="Sky3D" index="0" unique_id=1661133506]
+transform = Transform3D(0.778543, 0.41097054, -0.47431424, 0, 0.7557694, 0.6548379, 0.62759125, -0.50981945, 0.58839893, -0.47431424, 0.6548379, 0.58839893)
+light_color = Color(1, 1, 1, 1)
+light_energy = 1.0
+shadow_enabled = true
+
+[node name="MoonLight" parent="Sky3D" index="1" unique_id=679287759]
+transform = Transform3D(0, -0.8903657, 0.45524618, 0.4338183, 0.41017702, 0.8022198, -0.90100044, 0.19749413, 0.3862569, 0.45524615, 0.80221975, 0.38625687)
+light_energy = 0.0
+shadow_enabled = false
+
+[node name="SkyDome" parent="Sky3D" index="2" unique_id=680469966]
+sun_azimuth = -3.820048
+sun_altitude = -0.8568282
+moon_azimuth = -2.274394
+moon_altitude = -0.6397923
+
+[node name="TimeOfDay" parent="Sky3D" index="3" unique_id=1305249844]
+current_time = 13.946879999992486
+
+[node name="ToForestZone" parent="ZoneBorders" parent_id_path=PackedInt32Array(524813708) index="0" unique_id=563370041]
+transform = Transform3D(0.006527476, 0, -0.99997866, 0, 1, 0, 0.99997866, 0, 0.006527476, 31.427624, 0, -0.114341736)
+
+[editable path="ServerZone"]

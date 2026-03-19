@@ -42,6 +42,12 @@ var _pending_arrivals: Dictionary[String, Dictionary] = {}
 var _orch_ws: WebSocketPeer = null
 var _orch_connected: bool = false
 
+func _parse_cmdline_args() -> void:
+	var args := OS.get_cmdline_user_args()
+	for i in args.size():
+		if args[i] == "--port" and i + 1 < args.size():
+			PORT = int(args[i + 1])
+
 func _ready() -> void:
 	# Disable MCP editor services when running headless — they share the same
 	# user:// data dir as the editor game and would intercept MCP commands.
@@ -53,6 +59,8 @@ func _ready() -> void:
 
 	# Align physics tick rate with network tick rate so physics_factor = 1.0
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
+
+	_parse_cmdline_args()
 
 	if zone_id.is_empty() or not Globals.ZONE_SCENES.has(zone_id):
 		printerr("[SERVER] Invalid zone_id '%s'. Must be one of: %s" % [zone_id, Globals.ZONE_SCENES.keys()])
