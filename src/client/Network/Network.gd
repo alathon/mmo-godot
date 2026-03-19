@@ -8,6 +8,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 signal connected_to_server
 signal disconnected_from_server
 signal world_diff_received(diff: Proto.WorldDiff)
+signal zone_redirect_received(zone_id: String, address: String, port: int, token: String)
 
 func _ready() -> void:
 	multiplayer.connected_to_server.connect(_on_connected)
@@ -16,15 +17,24 @@ func _ready() -> void:
 	multiplayer.peer_packet.connect(_on_packet)
 	_join()
 
-func _join(address: String = "") -> void:
+func _join(address: String = "", port: int = 0) -> void:
 	if address.is_empty():
 		address = DEFAULT_SERVER_IP
+	if port == 0:
+		port = PORT
 	var peer = ENetMultiplayerPeer.new()
-	var error = peer.create_client(address, PORT)
+	var error = peer.create_client(address, port)
 	if error:
 		printerr("[CLIENT] Failed to connect: %s" % error)
 		return
 	multiplayer.multiplayer_peer = peer
+
+func disconnect_from_server() -> void:
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+
+func reconnect(address: String, port: int) -> void:
+	disconnect_from_server()
+	_join(address, port)
 
 func send_clock_ping(ping_id: int, client_time: float) -> void:
 	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
@@ -47,6 +57,14 @@ func send_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: float
 	input.set_rot_y(rot_y)
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
+func send_zone_arrival(token: String) -> void:
+	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+		return
+	var pkt = Proto.Packet.new()
+	var arrival = pkt.new_zone_arrival()
+	arrival.set_transfer_token(token)
+	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
+
 var _packets_received: int = 0
 
 func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
@@ -58,6 +76,14 @@ func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
 		world_diff_received.emit(diff)
 	elif pkt.has_clock_pong():
 		%NetworkClock.on_clock_pong(pkt.get_clock_pong())
+	elif pkt.has_zone_redirect():
+		var redirect := pkt.get_zone_redirect()
+		zone_redirect_received.emit(
+			redirect.get_zone_id(),
+			redirect.get_address(),
+			redirect.get_port(),
+			redirect.get_transfer_token()
+		)
 
 func _on_connected() -> void:
 	print("[CLIENT] Connected to server")

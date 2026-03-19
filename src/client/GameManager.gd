@@ -13,6 +13,7 @@ const CORRECTION_THRESHOLD = 1.0
 var _remote_players: Dictionary[int, RemotePlayerController] = {}
 
 var _current_zone: Node = null
+var _pending_transfer_token: String = ""
 
 func load_zone(zone_id: String) -> void:
 	if _current_zone:
@@ -25,7 +26,33 @@ func load_zone(zone_id: String) -> void:
 
 func _ready() -> void:
 	_network.world_diff_received.connect(_on_world_diff)
+	_network.zone_redirect_received.connect(_on_zone_redirect)
+	_network.connected_to_server.connect(_on_connected_to_server)
 	load_zone("forest")
+
+func _on_zone_redirect(zone_id: String, address: String, port: int, token: String) -> void:
+	print("[CLIENT] Zone redirect → %s at %s:%d" % [zone_id, address, port])
+	_pending_transfer_token = token
+
+	# Clear all remote players.
+	for id in _remote_players.keys():
+		_despawn_remote_player(id)
+
+	# Reset local player state.
+	_local_player._input_history.clear()
+	_local_player._pending_server_tick = -1
+
+	# Load new zone visuals.
+	load_zone(zone_id)
+
+	# Reconnect to the new server.
+	_network.reconnect(address, port)
+
+func _on_connected_to_server() -> void:
+	if _pending_transfer_token != "":
+		print("[CLIENT] Sending ZoneArrival (token=%s)" % _pending_transfer_token)
+		_network.send_zone_arrival(_pending_transfer_token)
+		_pending_transfer_token = ""
 	
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_T:

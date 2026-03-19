@@ -9,29 +9,28 @@
 zone_id = "other"
 
 [node name="Sky3D" parent="." index="1" unique_id=1333401661]
-current_time = 13.946879999992486
+current_time = 1.0823999999973568
 
 [node name="SunLight" parent="Sky3D" index="0" unique_id=1661133506]
-transform = Transform3D(0.778543, 0.41097054, -0.47431424, 0, 0.7557694, 0.6548379, 0.62759125, -0.50981945, 0.58839893, -0.47431424, 0.6548379, 0.58839893)
-light_color = Color(1, 1, 1, 1)
-light_energy = 1.0
-shadow_enabled = true
+transform = Transform3D(0.40901345, 0.86724627, 0.2838873, 0, 0.31109968, -0.95037735, -0.91252834, 0.38871711, 0.12724397, 0.28388727, -0.9503773, 0.12724395)
 
 [node name="MoonLight" parent="Sky3D" index="1" unique_id=679287759]
-transform = Transform3D(0, -0.8903657, 0.45524618, 0.4338183, 0.41017702, 0.8022198, -0.90100044, 0.19749413, 0.3862569, 0.45524615, 0.80221975, 0.38625687)
+transform = Transform3D(0, -0.6993517, -0.7147777, -0.14085199, 0.70765185, -0.69237965, 0.99003065, 0.10067786, -0.09850509, -0.7147777, -0.69237965, -0.09850509)
 light_energy = 0.0
 shadow_enabled = false
 
 [node name="SkyDome" parent="Sky3D" index="2" unique_id=680469966]
-sun_azimuth = -3.820048
-sun_altitude = -0.8568282
-moon_azimuth = -2.274394
-moon_altitude = -0.6397923
+sun_azimuth = -1.992169
+sun_altitude = -2.8252428
+moon_azimuth = -4.8493385
+moon_altitude = -2.3355782
 
 [node name="TimeOfDay" parent="Sky3D" index="3" unique_id=1305249844]
-current_time = 13.946879999992486
+current_time = 1.0823999999973568
+day = 5
 
 [node name="ToForestZone" parent="ZoneBorders" parent_id_path=PackedInt32Array(524813708) index="0" unique_id=563370041]
 transform = Transform3D(0.006527476, 0, -0.99997866, 0, 1, 0, 0.99997866, 0, 0.006527476, 31.427624, 0, -0.114341736)
+target_entry_position = Vector3(5, 3, 0)
 
 [editable path="ServerZone"]

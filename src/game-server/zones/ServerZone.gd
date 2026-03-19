@@ -29,6 +29,12 @@ var _input_buffers: Dictionary[int, Dictionary] = {}
 ## Peers frozen during zone transfer (excluded from simulation and broadcast).
 var _frozen_peers: Dictionary[int, bool] = {}
 
+## Peers with zone border immunity after arrival: peer_id -> expiry tick.
+var _border_immunity: Dictionary[int, int] = {}
+
+## How many ticks a player is immune to zone borders after arriving.
+const BORDER_IMMUNITY_TICKS := 40  # 2 seconds at 20 tick/s
+
 ## transfer_token -> { peer_id, target_zone_id, target_address, target_port }
 var _pending_redirects: Dictionary[String, Dictionary] = {}
 
@@ -337,6 +343,7 @@ func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
 
 func _remove_player(id: int) -> void:
 	_frozen_peers.erase(id)
+	_border_immunity.erase(id)
 	if players.has(id):
 		players[id].queue_free()
 		players.erase(id)
@@ -359,6 +366,8 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 		return
 	if _frozen_peers.has(peer_id):
 		return  # already transferring
+	if _border_immunity.has(peer_id) and NetworkTime.tick < _border_immunity[peer_id]:
+		return  # just arrived, immune to borders
 
 	print("[SERVER] Peer %d entered zone border → %s" % [peer_id, border.target_zone_id])
 
@@ -401,6 +410,7 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 		player.global_position = arrival["entry_pos"]
 		player.rotation.y = arrival["entry_rot_y"]
 		player.velocity = Vector3.ZERO
+		_border_immunity[peer_id] = NetworkTime.tick + BORDER_IMMUNITY_TICKS
 		print("[SERVER] Peer %d arrived via zone transfer at %s" % [peer_id, arrival["entry_pos"]])
 
 func _find_peer_for_body(body: Node3D) -> int:
