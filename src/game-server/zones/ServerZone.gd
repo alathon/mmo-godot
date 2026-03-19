@@ -3,7 +3,7 @@ extends Node
 const Proto = preload("res://src/common/proto/packets.gd")
 const ServerPlayerScene = preload("res://src/game-server/ServerPlayer.tscn")
 
-@export var zone_id: String = ""
+var zone_id: String = ""
 @export var PORT: int = 7000
 @export var MAX_CLIENTS: int = 32
 @export var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9000"
@@ -43,6 +43,9 @@ var _pending_redirects: Dictionary[String, Dictionary] = {}
 var _pending_arrivals: Dictionary[String, Dictionary] = {}
 
 @onready var _entities: Node = %Entities
+@onready var _zone_container: Node3D = %ZoneContainer
+
+var _current_zone: Node = null
 
 ## Raw WebSocket connection to the orchestrator.
 var _orch_ws: WebSocketPeer = null
@@ -53,6 +56,8 @@ func _parse_cmdline_args() -> void:
 	for i in args.size():
 		if args[i] == "--port" and i + 1 < args.size():
 			PORT = int(args[i + 1])
+		elif args[i] == "--zone" and i + 1 < args.size():
+			zone_id = args[i + 1]
 
 func _ready() -> void:
 	# Disable MCP editor services when running headless — they share the same
@@ -73,6 +78,7 @@ func _ready() -> void:
 		get_tree().quit(1)
 		return
 
+	_load_zone(zone_id)
 	_connect_zone_borders()
 	_connect_to_orchestrator()
 
@@ -89,6 +95,16 @@ func _ready() -> void:
 	NetworkTime.start_server()
 	NetworkTime.on_tick.connect(_tick)
 	print("[SERVER] Zone '%s' listening on port %d" % [zone_id, PORT])
+
+func _load_zone(id: String) -> void:
+	if _current_zone:
+		_current_zone.queue_free()
+		_current_zone = null
+	var scene_path: String = Globals.ZONE_SCENES[id]
+	var scene := load(scene_path) as PackedScene
+	_current_zone = scene.instantiate()
+	_zone_container.add_child(_current_zone)
+	print("[SERVER] Loaded zone scene: %s" % scene_path)
 
 # ── Orchestrator Connection ────────────────────────────────────────────────────
 
@@ -348,12 +364,9 @@ func _remove_player(id: int) -> void:
 # ── Zone Borders ──────────────────────────────────────────────────────────────
 
 func _connect_zone_borders() -> void:
-	var borders_node := get_parent().get_node_or_null("ZoneBorders")
-	if not borders_node:
-		return
-	for child in borders_node.get_children():
-		if child is ZoneBorder:
-			child.body_entered.connect(_on_zone_border_entered.bind(child))
+	for border in get_tree().get_nodes_in_group("zone_borders"):
+		if border is ZoneBorder:
+			border.body_entered.connect(_on_zone_border_entered.bind(border))
 
 func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 	var peer_id := _find_peer_for_body(body)
@@ -396,9 +409,9 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 	var arrival: Dictionary = _pending_arrivals[token]
 	_pending_arrivals.erase(token)
 
-	# Resolve spawn point from the world scene.
+	# Resolve spawn point from the loaded zone scene.
 	var spawn_path: String = arrival["entry_spawn_path"]
-	var spawn_node: Node3D = get_parent().get_node_or_null(spawn_path) as Node3D
+	var spawn_node: Node3D = _current_zone.get_node_or_null(spawn_path) as Node3D
 	if spawn_node == null:
 		printerr("[SERVER] Spawn path '%s' not found — using default spawn" % spawn_path)
 		spawn_node = null

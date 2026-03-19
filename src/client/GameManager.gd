@@ -23,6 +23,10 @@ func load_zone(zone_id: String) -> void:
 	var scene := load(scene_path) as PackedScene
 	_current_zone = scene.instantiate()
 	_zone_container.add_child(_current_zone)
+	# Strip server-only nodes (NPC spawners, etc.).
+	for node in _current_zone.get_children():
+		if node.is_in_group("server_only"):
+			node.queue_free()
 	_connect_zone_borders()
 
 func _ready() -> void:
