@@ -23,12 +23,23 @@ func load_zone(zone_id: String) -> void:
 	var scene := load(scene_path) as PackedScene
 	_current_zone = scene.instantiate()
 	_zone_container.add_child(_current_zone)
+	_connect_zone_borders()
 
 func _ready() -> void:
 	_network.world_diff_received.connect(_on_world_diff)
 	_network.zone_redirect_received.connect(_on_zone_redirect)
 	_network.connected_to_server.connect(_on_connected_to_server)
 	load_zone("forest")
+
+func _connect_zone_borders() -> void:
+	for border in get_tree().get_nodes_in_group("zone_borders"):
+		if border is ZoneBorder:
+			border.body_entered.connect(_on_zone_border_entered)
+
+func _on_zone_border_entered(body: Node3D) -> void:
+	if body == _local_player:
+		_local_player.frozen = true
+		_local_player.velocity = Vector3.ZERO
 
 func _on_zone_redirect(zone_id: String, address: String, port: int, token: String) -> void:
 	print("[CLIENT] Zone redirect → %s at %s:%d" % [zone_id, address, port])
@@ -39,6 +50,7 @@ func _on_zone_redirect(zone_id: String, address: String, port: int, token: Strin
 		_despawn_remote_player(id)
 
 	# Reset local player state.
+	_local_player.frozen = false
 	_local_player._input_history.clear()
 	_local_player._pending_server_tick = -1
 

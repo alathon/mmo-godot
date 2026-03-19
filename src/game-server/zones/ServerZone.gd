@@ -239,8 +239,6 @@ func _tick(_delta: float, current_tick: int) -> void:
 	var diff = pkt.new_world_diff()
 	diff.set_tick(current_tick)
 	for peer_id in players:
-		if _frozen_peers.has(peer_id):
-			continue
 		var player: CommonPlayer = players[peer_id]
 		var state = diff.add_entities()
 		state.set_entity_id(peer_id)
@@ -254,8 +252,6 @@ func _tick(_delta: float, current_tick: int) -> void:
 
 	var bytes = pkt.to_bytes()
 	for peer_id in players:
-		if _frozen_peers.has(peer_id):
-			continue
 		multiplayer.send_bytes(bytes, peer_id, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
 func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
@@ -371,11 +367,10 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 	print("[SERVER] Peer %d entered zone border → %s (spawn_path='%s')" % [
 		peer_id, border.target_zone_id, border.target_spawn_path])
 
-	# Freeze the player immediately.
+	# Freeze the player immediately — zero velocity so the client reconciles to a stop.
 	_frozen_peers[peer_id] = true
-
-	# Send transfer request to orchestrator.
 	var player: CommonPlayer = players[peer_id]
+	player.velocity = Vector3.ZERO
 	var pkt := Proto.OrchestratorPacket.new()
 	var req := pkt.new_zone_transfer_request()
 	req.set_peer_id(peer_id)
