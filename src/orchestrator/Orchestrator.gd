@@ -212,7 +212,8 @@ func _send_heartbeats() -> void:
 		if ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
 			ws.send(bytes, WebSocketPeer.WRITE_MODE_BINARY)
 			count += 1
-	print("[ORCHESTRATOR] Heartbeat sent to %d peer(s) (ping_id=%d)" % [count, _next_ping_id])
+	if count > 0:
+		print("[ORCHESTRATOR] Heartbeat sent to %d peer(s) (ping_id=%d)" % [count, _next_ping_id])
 
 func _check_heartbeat_timeouts() -> void:
 	var now := Time.get_unix_time_from_system()
