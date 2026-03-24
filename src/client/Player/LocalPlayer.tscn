@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://drypncuar6hv"]
 
 [ext_resource type="Script" uid="uid://naetria54hrc" path="res://src/client/Player/Player.gd" id="1_nhtww"]
+[ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="2_vsmooth"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
 
@@ -20,8 +21,10 @@ collision_mask = 2
 script = ExtResource("1_nhtww")
 show_physics_debug = true
 
-[node name="Visual" type="MeshInstance3D" parent="." unique_id=1005671327]
+[node name="Visual" type="MeshInstance3D" parent="." unique_id=1005671327 node_paths=PackedStringArray("player")]
 mesh = SubResource("CapsuleMesh_qjrt4")
+script = ExtResource("2_vsmooth")
+player = NodePath("..")
 
 [node name="Nose" type="MeshInstance3D" parent="Visual" unique_id=1745966047]
 transform = Transform3D(0.19999999, 0, 0, 0, 0.19999999, 0, 0, 0, 0.19999999, 0, 0.45133114, -0.5521852)

@@ -14,11 +14,6 @@ const INPUT_HISTORY_SIZE := 64
 @export_range(4.5, 10.0) var JumpVelocity = 4.5
 @export_range(1.0, 30.0) var TurnSpeed = 10.0
 
-## How fast the visual position corrects toward the physics position (per second).
-## Higher = snappier but lets more tick-rate jitter through.
-## Lower = smoother but visual can drift further from physics.
-@export_range(1.0, 30.0) var visual_correction_rate: float = 10.0
-
 # When set, this player runs physics from the input source and sends to the server.
 # These must be set by the spawner (GameManager) after add_child — %unique lookups
 # don't work for dynamically-spawned nodes because the owner chain points to the
@@ -39,12 +34,12 @@ var _pending_server_rot: float = 0.0
 
 var frozen: bool = false
 
-## Smoothed position for rendering. Moves at constant speed based on input,
-## correcting toward the physics position. Use this for camera follow etc.
-var visual_position: Vector3 = Vector3.ZERO
-var _visual_initialized: bool = false
-@onready var _visual: Node3D = $Visual
+@onready var _visual_smoother: VisualSmoother = $Visual
 @onready var _physics_debug: MeshInstance3D = $PhysicsDebug
+
+## Smoothed position for rendering. Camera and other systems should read this.
+var visual_position: Vector3:
+	get: return _visual_smoother.smooth_position if _visual_smoother else global_position
 
 ## Show a translucent red capsule at the physics body position.
 @export var show_physics_debug: bool = false:
@@ -61,45 +56,11 @@ func _ready() -> void:
 	NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
 	NetworkTime.on_tick.connect(_on_network_tick)
 	NetworkTime.on_tick_reset.connect(_on_tick_reset)
-	# Detach the visual mesh from the physics body's transform so we can
-	# position it independently at the smoothed visual_position.
-	_visual.top_level = true
 
 func _on_tick_reset() -> void:
 	print("[CLIENT] Player tick reset — input history and pending server tick cleared")
 	_input_history.clear()
 	_pending_server_tick = -1
-	# Re-snap visual so it doesn't lerp from a stale position.
-	_visual_initialized = false
-
-func _process(delta: float) -> void:
-	if not _visual_initialized or frozen or input_source == null:
-		visual_position = global_position
-		_visual_initialized = true
-		_sync_visual()
-		return
-
-	# Predict horizontal movement at constant speed using current input.
-	var ix: float = input_source.movement.x
-	var iz: float = input_source.movement.z
-	var has_input := ix != 0.0 or iz != 0.0
-
-	if has_input:
-		visual_position.x += ix * Speed * delta
-		visual_position.z += iz * Speed * delta
-		# Vertical axis: track physics directly (gravity/jump are tick-driven).
-		visual_position.y = global_position.y
-		# Correct toward the authoritative physics position to prevent drift.
-		visual_position = visual_position.lerp(global_position, visual_correction_rate * delta)
-	else:
-		# No input — track physics directly so we don't drift backwards.
-		visual_position = global_position
-
-	_sync_visual()
-
-func _sync_visual() -> void:
-	_visual.global_position = visual_position
-	_visual.global_rotation.y = rotation.y
 
 func _on_before_tick_loop() -> void:
 	if _pending_server_tick < 0:
