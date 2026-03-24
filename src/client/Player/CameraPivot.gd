@@ -24,9 +24,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float):
 	if target != null:
-		global_position.x = target.global_position.x + offset.x
-		global_position.y = target.global_position.y + offset.y
-		global_position.z = target.global_position.z + offset.z
+		# Follow visual_position (smoothed) when available, so the camera
+		# isn't affected by tick-rate jitter from clock stretching.
+		var pos: Vector3 = target.visual_position if &"visual_position" in target else target.global_position
+		global_position.x = pos.x + offset.x
+		global_position.y = pos.y + offset.y
+		global_position.z = pos.z + offset.z
 
 func _request_mouse_restore():
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
