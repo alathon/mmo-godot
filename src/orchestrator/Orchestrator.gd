@@ -8,8 +8,17 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 @export var PORT: int = 9000
 
+## Port that game clients connect to for login.
+@export var CLIENT_PORT: int = 9001
+
 ## Transfer tokens expire after this many seconds.
 const TOKEN_TIMEOUT := 30.0
+
+## Default login spawn positions per zone: zone_id -> { pos: Vector3, rot_y: float }
+const ZONE_LOGIN_SPAWNS := {
+	"forest": { "pos": Vector3(41.17052, 1.7646443, -28.533752), "rot_y": 0.0 },
+	"other":  { "pos": Vector3(0.0, 1.0, 0.0), "rot_y": 0.0 },
+}
 
 ## Registered zone servers: zone_id -> { peer_id, address, port, max_players, current_players }
 var _zones: Dictionary[String, Dictionary] = {}
@@ -18,17 +27,23 @@ var _zones: Dictionary[String, Dictionary] = {}
 var _peer_zones: Dictionary[int, String] = {}
 
 ## Pending transfers: transfer_token -> { from_zone_id, to_zone_id, peer_id, player_state,
-##   entry_x, entry_y, entry_z, entry_rot_y, origin_peer, dest_peer, created_at }
+##   entry_x, entry_y, entry_z, entry_rot_y, origin_peer, dest_peer, created_at,
+##   is_login (bool), client_peer_id (int, only for logins) }
 var _pending_transfers: Dictionary[String, Dictionary] = {}
 
 ## Connected game server WebSocket peers: peer_id -> WebSocketPeer
 var _peers: Dictionary[int, WebSocketPeer] = {}
 
+## Connected client WebSocket peers: peer_id -> WebSocketPeer
+var _client_peers: Dictionary[int, WebSocketPeer] = {}
+
 ## peer_id -> last time we received a HeartbeatAck (unix timestamp)
 var _last_heartbeat_ack: Dictionary[int, float] = {}
 
 var _tcp_server: TCPServer = null
+var _client_tcp_server: TCPServer = null
 var _next_peer_id: int = 1
+var _next_client_peer_id: int = 10000
 var _next_ping_id: int = 0
 var _heartbeat_timer: float = 0.0
 
@@ -43,11 +58,20 @@ func _ready() -> void:
 	if error != OK:
 		printerr("[ORCHESTRATOR] Failed to listen on port %d: %s" % [PORT, error])
 		return
-	print("[ORCHESTRATOR] Listening on port %d" % PORT)
+	print("[ORCHESTRATOR] Listening on port %d (game servers)" % PORT)
+
+	_client_tcp_server = TCPServer.new()
+	error = _client_tcp_server.listen(CLIENT_PORT)
+	if error != OK:
+		printerr("[ORCHESTRATOR] Failed to listen on client port %d: %s" % [CLIENT_PORT, error])
+		return
+	print("[ORCHESTRATOR] Listening on port %d (clients)" % CLIENT_PORT)
 
 func _process(delta: float) -> void:
 	_accept_new_connections()
+	_accept_client_connections()
 	_poll_peers()
+	_poll_client_peers()
 	_expire_tokens()
 	_heartbeat_timer += delta
 	if _heartbeat_timer >= HEARTBEAT_INTERVAL:
@@ -66,6 +90,16 @@ func _accept_new_connections() -> void:
 		_last_heartbeat_ack[peer_id] = Time.get_unix_time_from_system()
 		print("[ORCHESTRATOR] Game server connecting: peer %d" % peer_id)
 
+func _accept_client_connections() -> void:
+	while _client_tcp_server.is_connection_available():
+		var tcp := _client_tcp_server.take_connection()
+		var ws := WebSocketPeer.new()
+		ws.accept_stream(tcp)
+		var peer_id := _next_client_peer_id
+		_next_client_peer_id += 1
+		_client_peers[peer_id] = ws
+		print("[ORCHESTRATOR] Client connecting: peer %d" % peer_id)
+
 func _poll_peers() -> void:
 	for peer_id in _peers.keys():
 		var ws: WebSocketPeer = _peers[peer_id]
@@ -78,6 +112,18 @@ func _poll_peers() -> void:
 			print("[ORCHESTRATOR] Game server disconnected: peer %d" % peer_id)
 			_on_peer_disconnected(peer_id)
 			_peers.erase(peer_id)
+
+func _poll_client_peers() -> void:
+	for peer_id in _client_peers.keys():
+		var ws: WebSocketPeer = _client_peers[peer_id]
+		ws.poll()
+		var state := ws.get_ready_state()
+		if state == WebSocketPeer.STATE_OPEN:
+			while ws.get_available_packet_count() > 0:
+				_on_client_packet(peer_id, ws.get_packet())
+		elif state == WebSocketPeer.STATE_CLOSED:
+			print("[ORCHESTRATOR] Client disconnected: peer %d" % peer_id)
+			_client_peers.erase(peer_id)
 
 func _expire_tokens() -> void:
 	var now := Time.get_unix_time_from_system()
@@ -123,6 +169,58 @@ func _handle_zone_register(peer_id: int, msg: Proto.ZoneRegister) -> void:
 	_peer_zones[peer_id] = zone_id
 	print("[ORCHESTRATOR] Registered zone '%s' at %s:%d (peer %d)" % [
 		zone_id, msg.get_address(), msg.get_port(), peer_id])
+
+# ── Client Login ──────────────────────────────────────────────────────────────
+
+func _on_client_packet(client_peer_id: int, bytes: PackedByteArray) -> void:
+	var pkt := Proto.Packet.new()
+	pkt.from_bytes(bytes)
+	if pkt.has_login_request():
+		_handle_login_request(client_peer_id, pkt.get_login_request())
+
+func _handle_login_request(client_peer_id: int, msg: Proto.LoginRequest) -> void:
+	var username: String = msg.get_username()
+	# TODO: authenticate username. For now, accept all.
+	var initial_zone := "forest"
+	if not _zones.has(initial_zone):
+		printerr("[ORCHESTRATOR] Login rejected for '%s': zone '%s' not available" % [username, initial_zone])
+		return
+
+	var dest: Dictionary = _zones[initial_zone]
+	var token := _generate_token()
+
+	_pending_transfers[token] = {
+		"is_login": true,
+		"client_peer_id": client_peer_id,
+		"to_zone_id": initial_zone,
+		"dest_peer": dest["peer_id"],
+		"created_at": Time.get_unix_time_from_system(),
+	}
+
+	print("[ORCHESTRATOR] Login: '%s' → '%s' (token=%s)" % [username, initial_zone, token])
+
+	# Send PreparePlayer to the destination game server.
+	# The orchestrator is authoritative on spawn location — the game server must
+	# not fall back to any hardcoded position.
+	var spawn: Variant = ZONE_LOGIN_SPAWNS.get(initial_zone)
+	if spawn == null:
+		printerr("[ORCHESTRATOR] Login rejected for '%s': no spawn defined for zone '%s'" % [username, initial_zone])
+		# TODO: How do we signal to the client to abort?
+		return
+	var spawn_pos: Vector3 = spawn["pos"]
+	var pkt := Proto.OrchestratorPacket.new()
+	var prepare := pkt.new_prepare_player()
+	prepare.set_transfer_token(token)
+	prepare.set_entry_spawn_path("")  # position supplied directly in player_state
+	var state := prepare.new_player_state()
+	state.set_pos_x(spawn_pos.x)
+	state.set_pos_y(spawn_pos.y)
+	state.set_pos_z(spawn_pos.z)
+	state.set_vel_x(0.0)
+	state.set_vel_y(0.0)
+	state.set_vel_z(0.0)
+	state.set_rot_y(spawn["rot_y"])
+	_send_to_peer(dest["peer_id"], pkt)
 
 # ── Zone Transfer ─────────────────────────────────────────────────────────────
 
@@ -185,18 +283,30 @@ func _handle_prepare_player_ack(dest_peer: int, msg: Proto.PreparePlayerAck) -> 
 
 	var dest: Dictionary = _zones[transfer["to_zone_id"]]
 
-	# Send ZoneTransferResponse to origin server so it can redirect the client.
-	var pkt := Proto.OrchestratorPacket.new()
-	var resp := pkt.new_zone_transfer_response()
-	resp.set_peer_id(transfer["peer_id"])
-	resp.set_transfer_token(token)
-	resp.set_target_address(dest["address"])
-	resp.set_target_port(dest["port"])
-	resp.set_zone_id(transfer["to_zone_id"])
-
-	_send_to_peer(transfer["origin_peer"], pkt)
-	print("[ORCHESTRATOR] Redirect sent to origin for peer %d (token=%s)" % [
-		transfer["peer_id"], token])
+	if transfer.get("is_login", false):
+		# Login: send ZoneRedirect directly to the client over WebSocket.
+		var client_peer_id: int = transfer["client_peer_id"]
+		var pkt := Proto.Packet.new()
+		var redirect := pkt.new_zone_redirect()
+		redirect.set_zone_id(transfer["to_zone_id"])
+		redirect.set_address(dest["address"])
+		redirect.set_port(dest["port"])
+		redirect.set_transfer_token(token)
+		if _client_peers.has(client_peer_id):
+			_client_peers[client_peer_id].send(pkt.to_bytes(), WebSocketPeer.WRITE_MODE_BINARY)
+		print("[ORCHESTRATOR] Login redirect sent to client peer %d (token=%s)" % [client_peer_id, token])
+	else:
+		# Zone transfer: send ZoneTransferResponse to origin server so it can redirect the client.
+		var pkt := Proto.OrchestratorPacket.new()
+		var resp := pkt.new_zone_transfer_response()
+		resp.set_peer_id(transfer["peer_id"])
+		resp.set_transfer_token(token)
+		resp.set_target_address(dest["address"])
+		resp.set_target_port(dest["port"])
+		resp.set_zone_id(transfer["to_zone_id"])
+		_send_to_peer(transfer["origin_peer"], pkt)
+		print("[ORCHESTRATOR] Redirect sent to origin for peer %d (token=%s)" % [
+			transfer["peer_id"], token])
 
 # ── Heartbeat ─────────────────────────────────────────────────────────────────
 

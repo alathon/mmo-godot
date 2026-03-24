@@ -70,6 +70,19 @@ message ZoneArrival {
   string transfer_token = 1;
 }
 
+// Client → Orchestrator: request initial login and zone assignment.
+message LoginRequest {
+  string username = 1;
+}
+
+// Server → Client: authoritative spawn point, sent once after ZoneArrival is accepted.
+message PlayerSpawn {
+  float pos_x = 1;
+  float pos_y = 2;
+  float pos_z = 3;
+  float rot_y = 4;
+}
+
 // ── Zone transfer (server ↔ orchestrator, over WebSocket) ────────────────────
 
 // Shared player state transferred between servers during zone transitions.
@@ -135,6 +148,8 @@ message Packet {
     InputBatch input_batch = 5;
     ZoneRedirect zone_redirect = 6;
     ZoneArrival zone_arrival = 7;
+    LoginRequest login_request = 8;
+    PlayerSpawn player_spawn = 9;
   }
 }
 

@@ -18,11 +18,11 @@ var _pending_transfer_token: String = ""
 func _ready() -> void:
 	_api.world_diff_received.connect(_on_world_diff)
 	_api.zone_redirect_received.connect(_on_zone_redirect)
+	_api.player_spawn_received.connect(_on_player_spawn)
 	_api.connected_to_server.connect(_on_connected_to_server)
 	NetworkTime.after_sync.connect(_on_clock_synced)
 	_zone_container = %ZoneContainer as ZoneContainer
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
-	_zone_container.load_zone("forest")
 
 func _swap_zone_container(zone_id: String) -> void:
 	# Pull the local player out before freeing the container.
@@ -86,6 +86,14 @@ func _on_connected_to_server() -> void:
 		# Do not unfreeze here — clock sync with the new server must complete
 		# first. Unfreeze happens in _on_clock_synced via NetworkTime.after_sync.
 
+func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
+	if _local_player == null:
+		_spawn_local_player(pos, rot_y)
+	else:
+		# Zone transfer: reposition existing player.
+		_local_player.global_position = pos
+		_local_player.rotation.y = rot_y
+
 func _on_world_diff(diff: Proto.WorldDiff) -> void:
 	if _local_player != null and _local_player.frozen:
 		return
@@ -98,9 +106,8 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 
 		seen_ids[id] = true
 		if id == local_id:
-			if _local_player == null:
-				_spawn_local_player()
-			_local_player.on_entity_diff(entity, tick)
+			if _local_player != null:
+				_local_player.on_entity_diff(entity, tick)
 		elif not _remote_players.has(id):
 			_spawn_remote_player(entity, tick)
 		else:
@@ -110,9 +117,11 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 		if not seen_ids.has(id):
 			_despawn_remote_player(id)
 
-func _spawn_local_player() -> void:
+func _spawn_local_player(pos: Vector3, rot_y: float) -> void:
 	var node := LocalPlayerScene.instantiate() as Player
 	node.name = "LocalPlayer"
+	node.position = pos
+	node.rotation.y = rot_y
 	_local_player = node
 	_zone_container.entities.add_child(node)
 	_tick_interpolator.target = node

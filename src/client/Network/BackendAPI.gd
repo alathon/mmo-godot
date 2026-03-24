@@ -5,18 +5,61 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 @export var PORT = 7000
 @export var DEFAULT_SERVER_IP = "127.0.0.1"
+@export var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9001"
 
 signal connected_to_server
 signal disconnected_from_server
 signal world_diff_received(diff: Proto.WorldDiff)
 signal zone_redirect_received(zone_id: String, address: String, port: int, token: String)
+signal player_spawn_received(pos: Vector3, rot_y: float)
+
+var _orch_ws: WebSocketPeer = null
+var _orch_connected: bool = false
 
 func _ready() -> void:
 	multiplayer.connected_to_server.connect(_on_connected)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_disconnected)
 	multiplayer.peer_packet.connect(_on_packet)
-	_join()
+	_connect_to_orchestrator()
+
+func _connect_to_orchestrator() -> void:
+	_orch_ws = WebSocketPeer.new()
+	var error := _orch_ws.connect_to_url(ORCHESTRATOR_URL)
+	if error != OK:
+		printerr("[CLIENT] Failed to connect to orchestrator: %s" % error)
+		_orch_ws = null
+
+func _process(_delta: float) -> void:
+	if _orch_ws == null:
+		return
+	_orch_ws.poll()
+	var state := _orch_ws.get_ready_state()
+	if state == WebSocketPeer.STATE_OPEN:
+		if not _orch_connected:
+			_orch_connected = true
+			print("[CLIENT] Connected to orchestrator, sending LoginRequest")
+			var pkt := Proto.Packet.new()
+			var req := pkt.new_login_request()
+			req.set_username("player")
+			_orch_ws.send(pkt.to_bytes(), WebSocketPeer.WRITE_MODE_BINARY)
+		while _orch_ws.get_available_packet_count() > 0:
+			_on_orchestrator_packet(_orch_ws.get_packet())
+	elif state == WebSocketPeer.STATE_CLOSED:
+		_orch_ws = null
+		_orch_connected = false
+
+func _on_orchestrator_packet(bytes: PackedByteArray) -> void:
+	var pkt := Proto.Packet.new()
+	pkt.from_bytes(bytes)
+	if pkt.has_zone_redirect():
+		var redirect := pkt.get_zone_redirect()
+		zone_redirect_received.emit(
+			redirect.get_zone_id(),
+			redirect.get_address(),
+			redirect.get_port(),
+			redirect.get_transfer_token()
+		)
 
 func _join(address: String = "", port: int = 0) -> void:
 	if address.is_empty():
@@ -85,6 +128,9 @@ func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
 			redirect.get_port(),
 			redirect.get_transfer_token()
 		)
+	elif pkt.has_player_spawn():
+		var ps := pkt.get_player_spawn()
+		player_spawn_received.emit(Vector3(ps.get_pos_x(), ps.get_pos_y(), ps.get_pos_z()), ps.get_rot_y())
 
 func _on_connected() -> void:
 	print("[CLIENT] Connected to server")

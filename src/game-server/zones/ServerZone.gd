@@ -14,9 +14,6 @@ const INPUT_FUTURE_LIMIT := 20
 ## Kick a player if no input received for this many seconds.
 const INPUT_TIMEOUT := 10.0
 
-## Where new players spawn. Must match the client's LocalPlayer transform.
-const SPAWN_POSITION := Vector3(41.17052, 1.7646443, -28.533752)
-
 ## peer_id -> ServerPlayer node
 var players: Dictionary[int, CommonPlayer] = {}
 
@@ -239,8 +236,6 @@ func _tick(_delta: float, current_tick: int) -> void:
 			print("[SERVER] REPLAY input for peer %d at sim_tick=%d" % [peer_id, sim_tick])
 
 		player.simulate(input, Globals.TICK_INTERVAL)
-		if current_tick % 20 == 0:
-			print("[SERVER] peer=%d y=%.3f on_floor=%s" % [peer_id, player.global_position.y, player.is_on_floor()])
 		state.last_input = input.duplicate()
 		state.last_input["jump_pressed"] = false
 
@@ -342,8 +337,7 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 func _on_peer_connected(id: int) -> void:
 	if id == 1:
 		return  # server's own peer — not a real client
-	print("[SERVER] Peer connected: %d" % id)
-	_spawn_player(id, SPAWN_POSITION)
+	print("[SERVER] Peer connected: %d (waiting for ZoneArrival)" % id)
 
 func _on_peer_disconnected(id: int) -> void:
 	print("[SERVER] Peer disconnected: %d" % id)
@@ -420,16 +414,18 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 	var arrival: Dictionary = _pending_arrivals[token]
 	_pending_arrivals.erase(token)
 
-	# Resolve spawn point from the loaded zone scene.
+	# Resolve spawn point. entry_spawn_path (a named node in the zone) takes
+	# priority; if absent the orchestrator-provided player_state position is used.
 	var spawn_path: String = arrival["entry_spawn_path"]
-	var spawn_node: Node3D = _current_zone.get_node_or_null(spawn_path) as Node3D
-	if spawn_node == null:
-		printerr("[SERVER] Spawn path '%s' not found — using default spawn" % spawn_path)
-		spawn_node = null
+	var spawn_node: Node3D = null
+	if not spawn_path.is_empty():
+		spawn_node = _current_zone.get_node_or_null(spawn_path) as Node3D
+		if spawn_node == null:
+			printerr("[SERVER] Spawn path '%s' not found — falling back to player_state pos" % spawn_path)
 
-	var spawn_pos := spawn_node.global_position if spawn_node else SPAWN_POSITION
+	var spawn_pos: Vector3 = spawn_node.global_position if spawn_node else arrival["pos"]
 	print("[SERVER] _handle_zone_arrival() spawn_pos=%s" % spawn_pos)
-	var spawn_rot := spawn_node.rotation.y if spawn_node else 0.0
+	var spawn_rot: float = spawn_node.rotation.y if spawn_node else arrival["rot_y"]
 	if not players.has(peer_id):
 		_spawn_player(peer_id, spawn_pos, spawn_rot)
 	else:
@@ -441,6 +437,15 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 		_input_buffers[peer_id] = {}
 	_border_immunity[peer_id] = NetworkTime.tick + BORDER_IMMUNITY_TICKS
 	print("[SERVER] Peer %d arrived via zone transfer at %s (spawn='%s')" % [peer_id, spawn_pos, spawn_path])
+
+	# Tell the client exactly where it spawned — client must not guess from WorldDiff.
+	var spawn_pkt := Proto.Packet.new()
+	var ps := spawn_pkt.new_player_spawn()
+	ps.set_pos_x(spawn_pos.x)
+	ps.set_pos_y(spawn_pos.y)
+	ps.set_pos_z(spawn_pos.z)
+	ps.set_rot_y(spawn_rot)
+	multiplayer.send_bytes(spawn_pkt.to_bytes(), peer_id, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
 
 func _find_peer_for_body(body: Node3D) -> int:
 	for peer_id in players:
