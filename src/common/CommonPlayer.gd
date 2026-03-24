@@ -14,8 +14,7 @@ func simulate(input: Dictionary, delta: float) -> void:
 	var iz: float = input.get("input_z", 0.0)
 	var jump: bool = input.get("jump_pressed", false)
 
-	if not is_on_floor():
-		velocity += get_gravity() * delta
+	velocity += get_gravity() * delta  # always; move_and_slide zeroes it on floor contact
 
 	if jump and is_on_floor():
 		velocity.y = JUMP_VELOCITY

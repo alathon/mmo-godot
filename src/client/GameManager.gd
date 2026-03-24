@@ -25,15 +25,19 @@ func _ready() -> void:
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
 
 func _swap_zone_container(zone_id: String) -> void:
-	# Pull the local player out before freeing the container.
+	# Completely destroy the local player — it will be re-created fresh by
+	# _on_player_spawn once the new server confirms the spawn position.
 	if _local_player:
-		_zone_container.entities.remove_child(_local_player)
+		_tick_interpolator.target = null
+		_camera_pivot.target = null
+		_local_player.queue_free()
+		_local_player = null
 	_zone_container.queue_free()
 	_zone_container = ZoneContainer.new()
 	_zone_container.name = "ZoneContainer"
 	get_parent().add_child(_zone_container)
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
-	_zone_container.load_zone(zone_id, _local_player)
+	_zone_container.load_zone(zone_id)
 
 func _on_zone_border_entered(body: Node3D) -> void:
 	if body == _local_player:
@@ -42,12 +46,12 @@ func _on_zone_border_entered(body: Node3D) -> void:
 func freeze_local_player() -> void:
 	print("[CLIENT] Player frozen")
 	_local_player.frozen = true
-	#_local_player.set_physics_process(false)
 	_local_player.velocity = Vector3.ZERO
-	# Clear prediction state immediately — no stale reconciliation while frozen.
-	print("[CLIENT] Player input history and pending server tick cleared")
+	# Clear all prediction/reconciliation state so nothing stale leaks into the new zone.
 	_local_player._input_history.clear()
 	_local_player._pending_server_tick = -1
+	%InputBatcher.clear()
+	print("[CLIENT] Input history, pending server tick, and input batcher cleared")
 
 func unfreeze_local_player() -> void:
 	print("[CLIENT] Player unfrozen")
@@ -87,12 +91,7 @@ func _on_connected_to_server() -> void:
 		# first. Unfreeze happens in _on_clock_synced via NetworkTime.after_sync.
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
-	if _local_player == null:
-		_spawn_local_player(pos, rot_y)
-	else:
-		# Zone transfer: reposition existing player.
-		_local_player.global_position = pos
-		_local_player.rotation.y = rot_y
+	_spawn_local_player(pos, rot_y)
 
 func _on_world_diff(diff: Proto.WorldDiff) -> void:
 	if _local_player != null and _local_player.frozen:

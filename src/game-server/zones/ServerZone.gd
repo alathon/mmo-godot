@@ -221,7 +221,6 @@ func _tick(_delta: float, current_tick: int) -> void:
 		var state: ServerPlayerState = _player_states[peer_id]
 
 		if state.first_input_tick < 0 or sim_tick < state.first_input_tick:
-			# Client hasn't sent input old enough for sim_tick yet — skip.
 			continue
 
 		var buf: Dictionary = _input_buffers.get(peer_id, {})
@@ -386,6 +385,7 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 
 	# Freeze the player immediately — zero velocity and clear buffered input.
 	_frozen_peers[peer_id] = true
+	print("[SERVER] peer=%d FROZEN for zone transfer at pos=%s" % [peer_id, players[peer_id].global_position])
 	var player: CommonPlayer = players[peer_id]
 	player.velocity = Vector3.ZERO
 	_input_buffers[peer_id] = {}
@@ -436,7 +436,7 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 		_player_states[peer_id].first_input_tick = -1
 		_input_buffers[peer_id] = {}
 	_border_immunity[peer_id] = NetworkTime.tick + BORDER_IMMUNITY_TICKS
-	print("[SERVER] Peer %d arrived via zone transfer at %s (spawn='%s')" % [peer_id, spawn_pos, spawn_path])
+	print("[SERVER] peer=%d ARRIVED at pos=%s rot_y=%.2f spawn_path='%s'" % [peer_id, spawn_pos, spawn_rot, spawn_path])
 
 	# Tell the client exactly where it spawned — client must not guess from WorldDiff.
 	var spawn_pkt := Proto.Packet.new()

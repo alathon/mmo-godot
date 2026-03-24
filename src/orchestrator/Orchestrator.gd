@@ -37,6 +37,12 @@ var _peers: Dictionary[int, WebSocketPeer] = {}
 ## Connected client WebSocket peers: peer_id -> WebSocketPeer
 var _client_peers: Dictionary[int, WebSocketPeer] = {}
 
+## Login requests waiting for a zone to become available:
+##   Array of { client_peer_id, username, zone_id, retry_at }
+var _pending_login_queue: Array[Dictionary] = []
+
+const LOGIN_RETRY_INTERVAL := 3.0
+
 ## peer_id -> last time we received a HeartbeatAck (unix timestamp)
 var _last_heartbeat_ack: Dictionary[int, float] = {}
 
@@ -72,6 +78,7 @@ func _process(delta: float) -> void:
 	_accept_client_connections()
 	_poll_peers()
 	_poll_client_peers()
+	_retry_pending_logins()
 	_expire_tokens()
 	_heartbeat_timer += delta
 	if _heartbeat_timer >= HEARTBEAT_INTERVAL:
@@ -181,32 +188,39 @@ func _on_client_packet(client_peer_id: int, bytes: PackedByteArray) -> void:
 func _handle_login_request(client_peer_id: int, msg: Proto.LoginRequest) -> void:
 	var username: String = msg.get_username()
 	# TODO: authenticate username. For now, accept all.
-	var initial_zone := "forest"
+	var initial_zone := "other"
 	if not _zones.has(initial_zone):
-		printerr("[ORCHESTRATOR] Login rejected for '%s': zone '%s' not available" % [username, initial_zone])
+		print("[ORCHESTRATOR] Zone '%s' not ready for '%s' — will retry in %.0fs" % [initial_zone, username, LOGIN_RETRY_INTERVAL])
+		_pending_login_queue.append({
+			"client_peer_id": client_peer_id,
+			"username": username,
+			"zone_id": initial_zone,
+			"retry_at": Time.get_unix_time_from_system() + LOGIN_RETRY_INTERVAL,
+		})
 		return
 
-	var dest: Dictionary = _zones[initial_zone]
+	_do_login(client_peer_id, username, initial_zone)
+
+func _do_login(client_peer_id: int, username: String, zone_id: String) -> void:
+	var spawn: Variant = ZONE_LOGIN_SPAWNS.get(zone_id)
+	if spawn == null:
+		printerr("[ORCHESTRATOR] Login rejected for '%s': no spawn defined for zone '%s'" % [username, zone_id])
+		# TODO: signal client to abort
+		return
+
+	var dest: Dictionary = _zones[zone_id]
 	var token := _generate_token()
 
 	_pending_transfers[token] = {
 		"is_login": true,
 		"client_peer_id": client_peer_id,
-		"to_zone_id": initial_zone,
+		"to_zone_id": zone_id,
 		"dest_peer": dest["peer_id"],
 		"created_at": Time.get_unix_time_from_system(),
 	}
 
-	print("[ORCHESTRATOR] Login: '%s' → '%s' (token=%s)" % [username, initial_zone, token])
+	print("[ORCHESTRATOR] Login: '%s' → '%s' (token=%s)" % [username, zone_id, token])
 
-	# Send PreparePlayer to the destination game server.
-	# The orchestrator is authoritative on spawn location — the game server must
-	# not fall back to any hardcoded position.
-	var spawn: Variant = ZONE_LOGIN_SPAWNS.get(initial_zone)
-	if spawn == null:
-		printerr("[ORCHESTRATOR] Login rejected for '%s': no spawn defined for zone '%s'" % [username, initial_zone])
-		# TODO: How do we signal to the client to abort?
-		return
 	var spawn_pos: Vector3 = spawn["pos"]
 	var pkt := Proto.OrchestratorPacket.new()
 	var prepare := pkt.new_prepare_player()
@@ -221,6 +235,28 @@ func _handle_login_request(client_peer_id: int, msg: Proto.LoginRequest) -> void
 	state.set_vel_z(0.0)
 	state.set_rot_y(spawn["rot_y"])
 	_send_to_peer(dest["peer_id"], pkt)
+
+func _retry_pending_logins() -> void:
+	if _pending_login_queue.is_empty():
+		return
+	var now := Time.get_unix_time_from_system()
+	for i in range(_pending_login_queue.size() - 1, -1, -1):
+		var entry: Dictionary = _pending_login_queue[i]
+		if now < entry["retry_at"]:
+			continue
+		# Drop if the client disconnected while waiting.
+		if not _client_peers.has(entry["client_peer_id"]):
+			print("[ORCHESTRATOR] Login retry dropped — client %d disconnected" % entry["client_peer_id"])
+			_pending_login_queue.remove_at(i)
+			continue
+		if not _zones.has(entry["zone_id"]):
+			print("[ORCHESTRATOR] Zone '%s' still not ready for '%s' — retrying in %.0fs" % [
+				entry["zone_id"], entry["username"], LOGIN_RETRY_INTERVAL])
+			entry["retry_at"] = now + LOGIN_RETRY_INTERVAL
+			continue
+		# Zone is ready — proceed with login.
+		_pending_login_queue.remove_at(i)
+		_do_login(entry["client_peer_id"], entry["username"], entry["zone_id"])
 
 # ── Zone Transfer ─────────────────────────────────────────────────────────────
 

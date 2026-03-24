@@ -13,6 +13,10 @@ const Proto = preload("res://src/common/proto/packets.gd")
 var _current_batch: Array[Dictionary] = []
 var _previous_batch: Array[Dictionary] = []
 
+func clear() -> void:
+	_current_batch.clear()
+	_previous_batch.clear()
+
 func queue_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: float, tick: int) -> void:
 	_current_batch.append({
 		"input_x": input_x,
