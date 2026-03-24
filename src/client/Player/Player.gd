@@ -67,10 +67,11 @@ func _on_before_tick_loop() -> void:
 			print("[Player] SNAP correction: error=%.2f at sim_tick=%d" % [error, sim_tick])
 
 	# Snap to server state (position + velocity + rotation).
-	global_position = _pending_server_pos
-	velocity = _pending_server_vel
-	face_angle = _pending_server_rot
-	reset_physics_interpolation()
+	if not frozen:
+		global_position = _pending_server_pos
+		velocity = _pending_server_vel
+		face_angle = _pending_server_rot
+		reset_physics_interpolation()
 
 	# Drop inputs the server has already processed.
 	for tick_key in _input_history.keys():
@@ -92,6 +93,9 @@ func _on_before_tick_loop() -> void:
 
 ## Core movement simulation — used for both normal ticks and CSP replay.
 func _simulate(input: Dictionary, delta: float) -> void:
+	if frozen:
+		return
+
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 	if input.get("jump_pressed", false) and is_on_floor():

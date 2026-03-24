@@ -7,5 +7,5 @@ cd "$(dirname "$0")/.." || exit 1
 NUM_BOTS=${1:-10}
 
 for i in $(seq 1 $NUM_BOTS); do
-    /Applications/godot.app/Contents/MacOS/godot --headless --scene res://src/client/Bot/BotGame.tscn &
+    godot --headless --scene res://src/client/Bot/BotGame.tscn &
 done

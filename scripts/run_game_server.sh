@@ -8,4 +8,4 @@ fi
 ZONE="$1"
 PORT="$2"
 shift 2
-/Applications/godot.app/Contents/MacOS/godot --headless --scene "res://src/game-server/zones/ServerZone.tscn" -- --zone "$ZONE" --port "$PORT" "$@"
+godot --headless --scene "res://src/game-server/zones/ServerZone.tscn" -- --zone "$ZONE" --port "$PORT" "$@"

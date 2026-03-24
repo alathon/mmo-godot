@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://drypncuar6hv"]
 
 [ext_resource type="Script" uid="uid://naetria54hrc" path="res://src/client/Player/Player.gd" id="1_nhtww"]
-[ext_resource type="Script" uid="uid://b34d17q5c0w5b" path="res://src/client/Network/TickInterpolator.gd" id="2_nhtww"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_qjrt4"]
 
@@ -12,12 +11,6 @@
 [node name="LocalPlayer" type="CharacterBody3D" unique_id=1596003875]
 collision_mask = 2
 script = ExtResource("1_nhtww")
-
-[node name="TickInterpolator" type="Node" parent="." unique_id=1553277211 node_paths=PackedStringArray("target")]
-physics_interpolation_mode = 2
-script = ExtResource("2_nhtww")
-target = NodePath("..")
-properties = Array[String]([":global_transform"])
 
 [node name="Visual" type="MeshInstance3D" parent="." unique_id=1005671327]
 mesh = SubResource("CapsuleMesh_qjrt4")

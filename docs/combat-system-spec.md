@@ -756,10 +756,6 @@ message CombatTickEvents {
   repeated CombatEvent events = 2;
 }
 
-// ─── Periodic Entity State Snapshot (server → all clients, every ~2s) ───
-// Syncs HP, resources, and status effect durations for all entities.
-// Used both in and out of combat. Not used to drive visual effects — CombatTickEvents handles that.
-
 message StatusEffectState {
   string status_id = 1;
   uint32 source_entity_id = 2;
@@ -767,17 +763,10 @@ message StatusEffectState {
   float remaining_duration = 4; // 0 = permanent
 }
 
-// EntityStatusSnapshot: periodic re-sync of active status effect durations for all entities.
-// Used to correct client-side timer drift. Apply/remove events are driven by CombatTickEvents.
-message EntityStatusSnapshot {
-  uint32 tick = 1;
-  repeated EntityStatusState entities = 2;
-}
-
-message EntityStatusState {
-  uint32 entity_id = 1;
-  repeated StatusEffectState active_effects = 2;
-}
+// Note: there is no periodic status-effect snapshot message. CombatTickEvents carries the
+// sim tick (CombatTickEvents.tick) on every event batch; BuffApplied/DebuffApplied include
+// remaining_duration and stacks. The client starts local timers from that information and
+// does not need a separate drift-correction snapshot.
 ```
 
 ### 7.3 Modified Existing Messages
@@ -794,12 +783,13 @@ message EntityState {
   float vel_z = 7;
   float rot_y = 8;
   Impulse active_impulse = 9;
-  float hp = 10;         // NEW
-  float max_hp = 11;     // NEW
-  float mana = 12;       // NEW
-  float max_mana = 13;   // NEW
-  float stamina = 14;    // NEW
-  float max_stamina = 15; // NEW
+  uint32 hp = 10;         // NEW — whole number, range 0–65535 (uint16 semantics)
+  uint32 max_hp = 11;     // NEW
+  uint32 mana = 12;       // NEW
+  uint32 max_mana = 13;   // NEW
+  uint32 stamina = 14;    // NEW
+  uint32 max_stamina = 15; // NEW
+  // Note: protobuf has no uint16 type; uint32 is used with values constrained to 0–65535.
 }
 
 // PlayerInput gains an optional ability field
@@ -824,7 +814,6 @@ message Packet {
     AbilityUseAccepted ability_accepted = 7;   // NEW (to casting player only)
     AbilityUseRejected ability_rejected = 8;   // NEW (to casting player only)
     CombatTickEvents combat_tick_events = 9;   // NEW (broadcast to zone)
-    EntityStatusSnapshot entity_status_snapshot = 10; // NEW (periodic, broadcast to zone)
   }
 }
 ```
@@ -897,7 +886,7 @@ Client                              Server
 |---|---|---|
 | 0 | Unreliable Ordered | `PlayerInput` / `InputBatch`, `WorldDiff` (existing) |
 | 0 | Reliable | `ClockPing`, `ClockPong` (existing) |
-| 1 | Reliable | `TargetSelect`, `AbilityUseAccepted`, `AbilityUseRejected`, `CombatTickEvents`, `EntityStatusSnapshot` |
+| 1 | Reliable | `TargetSelect`, `AbilityUseAccepted`, `AbilityUseRejected`, `CombatTickEvents` |
 
 Combat messages use channel 1 (reliable) to ensure no dropped events. Movement remains on channel 0 (unreliable ordered) as before.
 
@@ -912,8 +901,8 @@ Combat messages use channel 1 (reliable) to ensure no dropped events. Movement r
 | Cooldown start | Yes | Start cooldown timer on cast start. |
 | Self-displacement (dash) | Yes | Apply impulse immediately for responsiveness. Rubberband if server disagrees. |
 | Target displacement | No | Wait for server (knockback on enemy). Rubberband if predicted incorrectly. |
-| Damage/heal numbers | No | Wait for CombatSnapshot. Use animations to mask delay. |
-| Buff/debuff application | No | Wait for CombatSnapshot. |
+| Damage/heal numbers | No | Wait for CombatTickEvents. Use animations to mask delay. |
+| Buff/debuff application | No | Wait for CombatTickEvents. |
 | Hit type (hit/miss/crit) | No | Server decides. |
 
 ---
@@ -929,7 +918,6 @@ A new `CombatManager` component is added to `Zone.gd` (or as a sibling node). It
 - Resolving effects in priority order.
 - Tracking cooldowns, status effects, and aggro per entity.
 - Emitting `CombatTickEvents` to all clients each tick (only ticks with events).
-- Periodically emitting `EntityStatusSnapshot` for status effect duration correction (every ~2 seconds). HP/mana/stamina are covered by `WorldDiff` every tick.
 
 ### 8.2 Per-Tick Processing
 
@@ -959,9 +947,7 @@ Within each server tick (`_tick()`):
 7. Process queued abilities (dequeue → begin casting if conditions still valid)
    Emit AbilityUseStarted for newly started casts
 8. Broadcast CombatTickEvents if any events were generated this tick
-9. Broadcast WorldDiff (with updated positions from displacement)
-10. Every ~2 seconds: broadcast EntityStatusSnapshot with active status effect durations for all entities
-    (HP/mana/stamina corrections are handled by WorldDiff every tick)
+9. Broadcast WorldDiff (with updated positions from displacement; HP/mana/stamina included)
 ```
 
 ### 8.3 Entity Combat State
@@ -969,12 +955,12 @@ Within each server tick (`_tick()`):
 Each entity (player or NPC) tracks:
 
 ```
-- hp: float
-- max_hp: float
-- mana: float
-- max_mana: float
-- stamina: float
-- max_stamina: float
+- hp: int
+- max_hp: int
+- mana: int
+- max_mana: int
+- stamina: int
+- max_stamina: int
 - active_cast: { ability_id, target_entity_id, ground_pos, remaining_time, total_time }
 - queued_ability: { ability_id, target_entity_id, ground_pos }
 - cooldowns: { ability_id_or_group → remaining_time }
@@ -1039,7 +1025,43 @@ NPCs use the same ability system as players:
 
 ---
 
-## 11. File Structure (Proposed)
+## 11. Godot Timer Usage
+
+Godot's [`Timer`](https://docs.godotengine.org/en/stable/classes/class_timer.html) node is a good fit for several combat timing concerns. Notes on where to use it and where not to:
+
+### The ordering problem on the server
+
+Godot's `Timer` fires on either `_process` (idle) or `_physics_process` (physics). The network tick runs *inside* `_physics_process` via `NetworkTime`, but a Timer callback fires as a separate call — meaning it fires on the next physics frame after expiry, not at the tick boundary where the cooldown logically lapses. This creates unpredictable ordering relative to the tick loop (e.g., a cooldown could appear to expire one tick late, or a callback could run after the tick has already checked it).
+
+**Rule: do not use `Timer` for any server-side combat state.** Use manual float/int decrements inside the tick loop instead. This is deterministic, ordering-safe, and exactly mirrors how the existing input buffer and physics simulation work.
+
+```gdscript
+# Server: correct approach — decrement in tick loop
+func _tick(delta: float) -> void:
+    if gcd_remaining > 0:
+        gcd_remaining -= Globals.TICK_INTERVAL
+```
+
+### Client: UI display (use Timer)
+
+On the client, `Timer` is appropriate for **display-only** purposes, because:
+- UI needs smooth per-frame updates (radial fills, cast bar progress won't look choppy).
+- The server is authoritative — a slight mismatch between the client Timer and the real server state just means the server may reject a cast, which is handled gracefully by `AbilityUseRejected`.
+
+| Use case | `one_shot` | Notes |
+|---|---|---|
+| **Cast bar fill** | `true` | Start on `AbilityUseAccepted`, `stop()` on cancel. Query `time_left` for fill %. |
+| **GCD radial display** | `true` | Started predictively on cast begin. |
+| **Per-ability cooldown display** | `true` | Started predictively on cast begin. Query `time_left` for greyed-out icon. |
+| **Buff/debuff duration display** | `true` | Start on `BuffApplied`/`DebuffApplied` using `remaining_duration` from the event. Stop on `StatusEffectRemoved`. |
+
+### Client: ability logic (tick loop preferred)
+
+For client-side checks that suppress ability activation (is GCD active? is ability on cooldown?), tick-loop decrements are more consistent with the server model and easier to reconcile. Using Timers here is workable but means the suppression logic runs on a different clock than the server's tick-aligned state.
+
+---
+
+## 12. File Structure (Proposed)
 
 ```
 src/
@@ -1080,7 +1102,7 @@ src/
 
 ---
 
-## 12. Out of Scope (Future Work)
+## 13. Out of Scope (Future Work)
 
 The following are explicitly deferred:
 

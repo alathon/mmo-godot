@@ -1,11 +1,12 @@
 [gd_scene format=3 uid="uid://bxeoxsb8u26yf"]
 
-[ext_resource type="PackedScene" uid="uid://drypncuar6hv" path="res://src/client/Player/LocalPlayer.tscn" id="3_xm4vw"]
+[ext_resource type="Script" uid="uid://b34d17q5c0w5b" path="res://src/client/Network/TickInterpolator.gd" id="5_xh6x3"]
 [ext_resource type="Script" uid="uid://bpd6m32l31yfn" path="res://src/client/Player/LocalInput.gd" id="15_g0ymg"]
 [ext_resource type="PackedScene" uid="uid://douvkry2b0t65" path="res://src/client/Network/Network.tscn" id="15_y2wwv"]
 [ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="16_g0ymg"]
-[ext_resource type="Script" path="res://src/client/GameManager.gd" id="16_yrfyh"]
+[ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="16_yrfyh"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="17_debug"]
+[ext_resource type="Script" uid="uid://zone_container_gd" path="res://src/client/ZoneContainer.gd" id="19_zc"]
 [ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="18_ibatch"]
 
 [node name="Root" type="Node3D" unique_id=145430831]
@@ -22,22 +23,19 @@ unique_name_in_owner = true
 script = ExtResource("16_yrfyh")
 
 [node name="LocalInput" type="Node" parent="." unique_id=431661699 node_paths=PackedStringArray("camera")]
+unique_name_in_owner = true
 script = ExtResource("15_g0ymg")
 camera = NodePath("../CameraPivot/SpringArm3D/Camera")
 
-[node name="Entities" type="Node" parent="." unique_id=1648308303]
+[node name="TickInterpolator" type="Node" parent="." unique_id=2116065758]
 unique_name_in_owner = true
-
-[node name="LocalPlayer" parent="Entities" unique_id=1596003875 node_paths=PackedStringArray("input_source") instance=ExtResource("3_xm4vw")]
-unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.17052, 1.7646443, -28.533752)
-input_source = NodePath("../../LocalInput")
+script = ExtResource("5_xh6x3")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1942551230 node_paths=PackedStringArray("target")]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 0.9659258, 0.25881904, 0, -0.25881904, 0.9659258, 0, 2, 0)
 script = ExtResource("16_g0ymg")
-target = NodePath("../Entities/LocalPlayer")
+target = NodePath("")
 
 [node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=1082816809]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.3841858e-07)
@@ -46,6 +44,7 @@ spring_length = 4.0
 [node name="Camera" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=728128730]
 unique_name_in_owner = true
 physics_interpolation_mode = 2
+cull_mask = 524287
 far = 400.0
 
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=914765252]
@@ -53,5 +52,4 @@ script = ExtResource("17_debug")
 
 [node name="ZoneContainer" type="Node3D" parent="." unique_id=1320743261]
 unique_name_in_owner = true
-
-[editable path="Entities/LocalPlayer"]
+script = ExtResource("19_zc")

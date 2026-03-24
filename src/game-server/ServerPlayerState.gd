@@ -10,4 +10,3 @@ var last_input_tick: int = -1
 
 ## Last applied input (re-executed when no new input arrives for a tick).
 var last_input := { "input_x": 0.0, "input_z": 0.0, "jump_pressed": false }
-
