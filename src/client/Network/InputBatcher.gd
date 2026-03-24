@@ -25,7 +25,8 @@ func queue_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: floa
 		_flush()
 
 func _flush() -> void:
-	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+	var peer = multiplayer.multiplayer_peer
+	if peer == null or peer is OfflineMultiplayerPeer or peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
 		return
 
 	var pkt = Proto.Packet.new()

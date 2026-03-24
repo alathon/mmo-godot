@@ -15,7 +15,12 @@
       "Bash(node -e \"const p = require\\(''./node_modules/@modelcontextprotocol/sdk/package.json''\\); console.log\\(p.version\\)\")",
       "mcp__godot-mcp__godot_read_script",
       "Bash(npm run:*)",
-      "mcp__godot-mcp__godot_execute"
+      "mcp__godot-mcp__godot_execute",
+      "Read(//Applications/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(chmod +x /Users/alathon/Workspace/experiments/mmo-godot/scripts/run_orchestrator.sh)",
+      "Bash(\"/Applications/Godot.app/Contents/MacOS/Godot\" --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd)",
+      "Bash(chmod +x /Users/alathon/Workspace/experiments/mmo-godot/scripts/run_all_zones.sh)"
     ]
   }
 }

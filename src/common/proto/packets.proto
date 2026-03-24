@@ -55,6 +55,77 @@ message InputBatch {
   repeated PlayerInput inputs = 1;
 }
 
+// ── Zone transfer (server ↔ client, over ENet) ──────────────────────────────
+
+// Server → Client: tells client to disconnect and reconnect to another server.
+message ZoneRedirect {
+  string zone_id = 1;
+  string address = 2;
+  uint32 port = 3;
+  string transfer_token = 4;
+}
+
+// Client → Server: presented on connect to claim a pre-allocated transfer slot.
+message ZoneArrival {
+  string transfer_token = 1;
+}
+
+// ── Zone transfer (server ↔ orchestrator, over WebSocket) ────────────────────
+
+// Shared player state transferred between servers during zone transitions.
+message PlayerState {
+  float pos_x = 1;
+  float pos_y = 2;
+  float pos_z = 3;
+  float vel_x = 4;
+  float vel_y = 5;
+  float vel_z = 6;
+  float rot_y = 7;
+  // Future: stats, inventory, buffs, quest state, etc.
+}
+
+// Game-server → Orchestrator: register this server on startup.
+message ZoneRegister {
+  string zone_id = 1;
+  string address = 2;
+  uint32 port = 3;
+  uint32 max_players = 4;
+  uint32 current_players = 5;
+}
+
+// Game-server → Orchestrator: request a player transfer to another zone.
+message ZoneTransferRequest {
+  uint32 peer_id = 1;
+  string from_zone_id = 2;
+  string to_zone_id = 3;
+  PlayerState player_state = 4;
+  string entry_spawn_path = 5;
+}
+
+// Orchestrator → Game-server (destination): prepare for incoming player.
+message PreparePlayer {
+  string transfer_token = 1;
+  PlayerState player_state = 2;
+  string entry_spawn_path = 3;
+}
+
+// Game-server (destination) → Orchestrator: confirm ready for the player.
+message PreparePlayerAck {
+  string transfer_token = 1;
+  bool accepted = 2;
+}
+
+// Orchestrator → Game-server (origin): redirect the client to the destination.
+message ZoneTransferResponse {
+  uint32 peer_id = 1;
+  string transfer_token = 2;
+  string target_address = 3;
+  uint32 target_port = 4;
+  string zone_id = 5;
+}
+
+// ── Top-level packet wrapper ─────────────────────────────────────────────────
+
 message Packet {
   oneof payload {
     PlayerInput player_input = 1;
@@ -62,5 +133,31 @@ message Packet {
     ClockPing clock_ping = 3;
     ClockPong clock_pong = 4;
     InputBatch input_batch = 5;
+    ZoneRedirect zone_redirect = 6;
+    ZoneArrival zone_arrival = 7;
+  }
+}
+
+// Orchestrator → Game-server: heartbeat ping.
+message Heartbeat {
+  uint32 ping_id = 1;
+}
+
+// Game-server → Orchestrator: heartbeat response.
+message HeartbeatAck {
+  uint32 ping_id = 1;
+}
+
+// Orchestrator ↔ game-server messages use a separate wrapper since they travel
+// over WebSocket, not ENet.
+message OrchestratorPacket {
+  oneof payload {
+    ZoneRegister zone_register = 1;
+    ZoneTransferRequest zone_transfer_request = 2;
+    PreparePlayer prepare_player = 3;
+    PreparePlayerAck prepare_player_ack = 4;
+    ZoneTransferResponse zone_transfer_response = 5;
+    Heartbeat heartbeat = 6;
+    HeartbeatAck heartbeat_ack = 7;
   }
 }

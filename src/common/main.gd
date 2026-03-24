@@ -3,7 +3,7 @@ extends Node
 ## The only purpose is to boot up the application and route to e.g., client or game_server or other.
 
 @export var CLIENT_MAIN = "res://src/client/Game.tscn"
-@export var GAME_SERVER_MAIN = "res://src/game-server/Zone.tscn"
+@export var GAME_SERVER_MAIN = "res://src/game-server/zones/ServerForest.tscn"
 @export var BOT_MAIN = "res://src/client/Bot/BotGame.tscn"
 
 # Called when the node enters the scene tree for the first time.

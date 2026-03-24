@@ -30,6 +30,8 @@ var _pending_server_pos: Vector3 = Vector3.ZERO
 var _pending_server_vel: Vector3 = Vector3.ZERO
 var _pending_server_rot: float = 0.0
 
+var frozen: bool = false
+
 var face_angle: float:
 	get: return rotation.y
 	set(v): rotation.y = v
@@ -113,6 +115,8 @@ func _simulate(input: Dictionary, delta: float) -> void:
 	velocity /= NetworkTime.physics_factor
 
 func _on_network_tick(delta: float, current_tick: int) -> void:
+	if frozen:
+		return
 	var input := {
 		"input_x": input_source.movement.x,
 		"input_z": input_source.movement.z,
