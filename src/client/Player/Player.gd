@@ -20,7 +20,7 @@ const INPUT_HISTORY_SIZE := 64
 # zone scene root, not Game.tscn's root where Network/InputBatcher live.
 var input_source: Node
 var input_batcher: InputBatcher
-var network: Node
+var api: BackendAPI
 
 ## Input + prediction history for CSP reconciliation.
 ## tick -> { input_x, input_z, jump_pressed, predicted_pos }
@@ -144,10 +144,10 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 
 	if input_batcher:
 		input_batcher.queue_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
-	elif network:
-		network.send_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
+	elif api:
+		api.send_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
 	else:
-		printerr("[CLIENT] No input_batcher or network in Player.gd!")
+		printerr("[CLIENT] No input_batcher or api in Player.gd!")
 
 func on_entity_diff(entity: Proto.EntityState, tick: int) -> void:
 	var server_pos := Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())

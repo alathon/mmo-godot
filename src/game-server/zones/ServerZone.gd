@@ -339,9 +339,6 @@ func _on_peer_connected(id: int) -> void:
 	if id == 1:
 		return  # server's own peer — not a real client
 	print("[SERVER] Peer connected: %d" % id)
-	# Don't spawn yet if the client might be a zone transfer arrival.
-	# They'll send a ZoneArrival packet or regular input; we handle both.
-	# For now, spawn at default position. ZoneArrival handling will override.
 	_spawn_player(id, SPAWN_POSITION)
 
 func _on_peer_disconnected(id: int) -> void:
@@ -425,19 +422,19 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 		printerr("[SERVER] Spawn path '%s' not found — using default spawn" % spawn_path)
 		spawn_node = null
 
-	if players.has(peer_id):
+	var spawn_pos := spawn_node.global_position if spawn_node else SPAWN_POSITION
+	var spawn_rot := spawn_node.rotation.y if spawn_node else 0.0
+	if not players.has(peer_id):
+		_spawn_player(peer_id, spawn_pos, spawn_rot)
+	else:
 		var player: CommonPlayer = players[peer_id]
-		if spawn_node:
-			player.global_position = spawn_node.global_position
-			player.rotation.y = spawn_node.rotation.y
-		else:
-			player.global_position = SPAWN_POSITION
+		player.global_position = spawn_pos
+		player.rotation.y = spawn_rot
 		player.velocity = Vector3.ZERO
 		_player_states[peer_id].first_input_tick = -1
 		_input_buffers[peer_id] = {}
-		_border_immunity[peer_id] = NetworkTime.tick + BORDER_IMMUNITY_TICKS
-		var pos := player.global_position
-		print("[SERVER] Peer %d arrived via zone transfer at %s (spawn='%s')" % [peer_id, pos, spawn_path])
+	_border_immunity[peer_id] = NetworkTime.tick + BORDER_IMMUNITY_TICKS
+	print("[SERVER] Peer %d arrived via zone transfer at %s (spawn='%s')" % [peer_id, spawn_pos, spawn_path])
 
 func _find_peer_for_body(body: Node3D) -> int:
 	for peer_id in players:

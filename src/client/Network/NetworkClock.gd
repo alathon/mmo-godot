@@ -33,6 +33,8 @@ var _local_time: float = 0.0    # monotonic, advances by delta each frame
 var _offset: float = 0.0        # applied offset: get_time() = _local_time + _offset
 var _target_offset: float = 0.0 # measured offset to nudge toward
 
+@onready var _api: BackendAPI = %BackendAPI
+
 ## Current lead time added to run ahead of the server (seconds).
 ## Equals RTT/2 + jitter buffer so input arrives before the server needs it.
 var lead_time: float = 0.0
@@ -40,7 +42,7 @@ var lead_time: float = 0.0
 var rtt: float = 0.0
 
 func _ready() -> void:
-	get_parent().connected_to_server.connect(_on_connected)
+	_api.connected_to_server.connect(_on_connected)
 
 func _on_connected() -> void:
 	# Reset sync state so _finalize_sync takes the fresh-snap path and
@@ -72,7 +74,7 @@ func _process(delta: float) -> void:
 			_handshaking = false
 
 	# Periodic re-sync.
-	if is_synced:
+	if is_synced and not _handshaking:
 		_resync_timer -= delta
 		if _resync_timer <= 0.0:
 			_pings_sent = 0
@@ -87,7 +89,7 @@ func _send_ping() -> void:
 	_next_ping_id += 1
 	var t1 := Time.get_unix_time_from_system()
 	_pending[id] = t1
-	get_parent().send_clock_ping(id, t1)
+	_api.send_clock_ping(id, t1)
 
 func on_clock_pong(pong) -> void:
 	var t4 := Time.get_unix_time_from_system()
@@ -97,10 +99,10 @@ func on_clock_pong(pong) -> void:
 	var t1: float = _pending[id]
 	_pending.erase(id)
 
-	var rtt: float = t4 - t1
+	var rttime: float = t4 - t1
 	var server_tick: int = pong.get_server_tick()
 	var server_time: float = pong.get_server_time()
-	_samples.append({"rtt": rtt, "server_tick": server_tick, "server_time": server_time, "t4": t4})
+	_samples.append({"rtt": rttime, "server_tick": server_tick, "server_time": server_time, "t4": t4})
 
 	if _samples.size() >= PING_COUNT:
 		_finalize_sync()

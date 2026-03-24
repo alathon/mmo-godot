@@ -20,7 +20,11 @@
       "Read(//usr/local/bin/**)",
       "Bash(chmod +x /Users/alathon/Workspace/experiments/mmo-godot/scripts/run_orchestrator.sh)",
       "Bash(\"/Applications/Godot.app/Contents/MacOS/Godot\" --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd)",
-      "Bash(chmod +x /Users/alathon/Workspace/experiments/mmo-godot/scripts/run_all_zones.sh)"
+      "Bash(chmod +x /Users/alathon/Workspace/experiments/mmo-godot/scripts/run_all_zones.sh)",
+      "Bash(tasklist /FI \"IMAGENAME eq godot-mono.exe\")",
+      "Bash(cmd.exe /c \"tasklist /FI \"\"IMAGENAME eq godot-mono.exe\"\"\")",
+      "Bash(cmd.exe /c \"netstat -ano | findstr \"\"7000 7001 9000\"\"\")",
+      "Bash(cmd.exe /c \"taskkill /PID 27856 /PID 14036 /PID 3192 /F\")"
     ]
   }
 }

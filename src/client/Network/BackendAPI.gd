@@ -1,3 +1,4 @@
+class_name BackendAPI
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")

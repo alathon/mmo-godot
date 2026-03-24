@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://bxeoxsb8u26yf"]
 
+[ext_resource type="Script" uid="uid://vvo7ggrbjgrw" path="res://src/client/Network/BackendAPI.gd" id="1_bl3gm"]
+[ext_resource type="Script" uid="uid://lyn3t2l3rqx5" path="res://src/client/Network/NetworkClock.gd" id="2_13q3r"]
 [ext_resource type="Script" uid="uid://b34d17q5c0w5b" path="res://src/client/Network/TickInterpolator.gd" id="5_xh6x3"]
 [ext_resource type="Script" uid="uid://bpd6m32l31yfn" path="res://src/client/Player/LocalInput.gd" id="15_g0ymg"]
-[ext_resource type="PackedScene" uid="uid://douvkry2b0t65" path="res://src/client/Network/Network.tscn" id="15_y2wwv"]
 [ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="16_g0ymg"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="16_yrfyh"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="17_debug"]
@@ -11,25 +12,34 @@
 
 [node name="Root" type="Node3D" unique_id=145430831]
 
-[node name="Network" parent="." unique_id=545662185 instance=ExtResource("15_y2wwv")]
-unique_name_in_owner = true
+[node name="IngameServices" type="Node" parent="." unique_id=149581719]
 
-[node name="GameManager" type="Node" parent="." unique_id=278296434]
+[node name="BackendAPI" type="Node" parent="IngameServices" unique_id=1274132915]
 unique_name_in_owner = true
-script = ExtResource("16_yrfyh")
+script = ExtResource("1_bl3gm")
+metadata/_custom_type_script = "uid://vvo7ggrbjgrw"
 
-[node name="LocalInput" type="Node" parent="." unique_id=431661699 node_paths=PackedStringArray("camera")]
+[node name="NetworkClock" type="Node" parent="IngameServices" unique_id=1061239635]
+unique_name_in_owner = true
+script = ExtResource("2_13q3r")
+metadata/_custom_type_script = "uid://lyn3t2l3rqx5"
+
+[node name="LocalInput" type="Node" parent="IngameServices" unique_id=431661699 node_paths=PackedStringArray("camera")]
 unique_name_in_owner = true
 script = ExtResource("15_g0ymg")
-camera = NodePath("../CameraPivot/SpringArm3D/Camera")
+camera = NodePath("../../CameraPivot/SpringArm3D/Camera")
 
-[node name="InputBatcher" type="Node" parent="." unique_id=455953914]
+[node name="InputBatcher" type="Node" parent="IngameServices" unique_id=455953914]
 unique_name_in_owner = true
 script = ExtResource("18_ibatch")
 
-[node name="TickInterpolator" type="Node" parent="." unique_id=2116065758]
+[node name="TickInterpolator" type="Node" parent="IngameServices" unique_id=2116065758]
 unique_name_in_owner = true
 script = ExtResource("5_xh6x3")
+
+[node name="GameManager" type="Node" parent="IngameServices" unique_id=278296434]
+unique_name_in_owner = true
+script = ExtResource("16_yrfyh")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1942551230]
 unique_name_in_owner = true

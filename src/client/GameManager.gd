@@ -6,8 +6,8 @@ const LocalPlayerScene = preload("res://src/client/Player/LocalPlayer.tscn")
 
 const CORRECTION_THRESHOLD = 1.0
 
-@onready var _network: Node = %Network
-@onready var _tick_interpolator: Node = %TickInterpolator
+@onready var _api: BackendAPI = %BackendAPI
+@onready var _tick_interpolator: TickInterpolator = %TickInterpolator
 @onready var _camera_pivot: Node3D = %CameraPivot
 
 var _zone_container: ZoneContainer
@@ -16,9 +16,9 @@ var _remote_players: Dictionary[int, RemotePlayerController] = {}
 var _pending_transfer_token: String = ""
 
 func _ready() -> void:
-	_network.world_diff_received.connect(_on_world_diff)
-	_network.zone_redirect_received.connect(_on_zone_redirect)
-	_network.connected_to_server.connect(_on_connected_to_server)
+	_api.world_diff_received.connect(_on_world_diff)
+	_api.zone_redirect_received.connect(_on_zone_redirect)
+	_api.connected_to_server.connect(_on_connected_to_server)
 	NetworkTime.after_sync.connect(_on_clock_synced)
 	_zone_container = %ZoneContainer as ZoneContainer
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
@@ -76,12 +76,12 @@ func _on_zone_redirect(zone_id: String, address: String, port: int, token: Strin
 
 	# Reconnect — this triggers a fresh clock sync on the new server.
 	# Player stays frozen until _on_clock_synced fires.
-	_network.reconnect(address, port)
+	_api.reconnect(address, port)
 
 func _on_connected_to_server() -> void:
 	if _pending_transfer_token != "":
 		print("[CLIENT] Sending ZoneArrival (token=%s)" % _pending_transfer_token)
-		_network.send_zone_arrival(_pending_transfer_token)
+		_api.send_zone_arrival(_pending_transfer_token)
 		_pending_transfer_token = ""
 		# Do not unfreeze here — clock sync with the new server must complete
 		# first. Unfreeze happens in _on_clock_synced via NetworkTime.after_sync.
@@ -119,7 +119,7 @@ func _spawn_local_player() -> void:
 	_camera_pivot.target = node
 	_local_player.input_source = %LocalInput
 	_local_player.input_batcher = %InputBatcher
-	_local_player.network = _network
+	_local_player.api = _api
 
 func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
 	var node := RemotePlayerScene.instantiate()
