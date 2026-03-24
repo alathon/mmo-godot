@@ -44,6 +44,14 @@ var frozen: bool = false
 var visual_position: Vector3 = Vector3.ZERO
 var _visual_initialized: bool = false
 @onready var _visual: Node3D = $Visual
+@onready var _physics_debug: MeshInstance3D = $PhysicsDebug
+
+## Show a translucent red capsule at the physics body position.
+@export var show_physics_debug: bool = false:
+	set(v):
+		show_physics_debug = v
+		if _physics_debug:
+			_physics_debug.visible = v
 
 var face_angle: float:
 	get: return rotation.y
@@ -74,15 +82,18 @@ func _process(delta: float) -> void:
 	# Predict horizontal movement at constant speed using current input.
 	var ix: float = input_source.movement.x
 	var iz: float = input_source.movement.z
-	if ix != 0.0 or iz != 0.0:
+	var has_input := ix != 0.0 or iz != 0.0
+
+	if has_input:
 		visual_position.x += ix * Speed * delta
 		visual_position.z += iz * Speed * delta
-
-	# Vertical axis: track physics directly (gravity/jump are tick-driven).
-	visual_position.y = global_position.y
-
-	# Correct toward the authoritative physics position to prevent drift.
-	visual_position = visual_position.lerp(global_position, visual_correction_rate * delta)
+		# Vertical axis: track physics directly (gravity/jump are tick-driven).
+		visual_position.y = global_position.y
+		# Correct toward the authoritative physics position to prevent drift.
+		visual_position = visual_position.lerp(global_position, visual_correction_rate * delta)
+	else:
+		# No input — track physics directly so we don't drift backwards.
+		visual_position = global_position
 
 	_sync_visual()
 

@@ -8,9 +8,17 @@
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_qjrt4"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_debug"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.2, 0.2, 0.3)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_debug"]
+
 [node name="LocalPlayer" type="CharacterBody3D" unique_id=1596003875]
 collision_mask = 2
 script = ExtResource("1_nhtww")
+show_physics_debug = true
 
 [node name="Visual" type="MeshInstance3D" parent="." unique_id=1005671327]
 mesh = SubResource("CapsuleMesh_qjrt4")
@@ -21,3 +29,7 @@ mesh = SubResource("BoxMesh_nhtww")
 
 [node name="Collider" type="CollisionShape3D" parent="." unique_id=1736948836]
 shape = SubResource("CapsuleShape3D_qjrt4")
+
+[node name="PhysicsDebug" type="MeshInstance3D" parent="." unique_id=2070671510]
+material_override = SubResource("StandardMaterial3D_debug")
+mesh = SubResource("CapsuleMesh_debug")

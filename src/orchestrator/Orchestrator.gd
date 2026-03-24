@@ -98,6 +98,8 @@ func _accept_new_connections() -> void:
 		print("[ORCHESTRATOR] Game server connecting: peer %d" % peer_id)
 
 func _accept_client_connections() -> void:
+	if _client_tcp_server == null:
+		return
 	while _client_tcp_server.is_connection_available():
 		var tcp := _client_tcp_server.take_connection()
 		var ws := WebSocketPeer.new()
