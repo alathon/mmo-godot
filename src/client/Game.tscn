@@ -6,17 +6,13 @@
 [ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="16_g0ymg"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="16_yrfyh"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="17_debug"]
-[ext_resource type="Script" uid="uid://zone_container_gd" path="res://src/client/ZoneContainer.gd" id="19_zc"]
 [ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="18_ibatch"]
+[ext_resource type="Script" uid="uid://dihdjnvj7ctd6" path="res://src/client/ZoneContainer.gd" id="19_zc"]
 
 [node name="Root" type="Node3D" unique_id=145430831]
 
 [node name="Network" parent="." unique_id=545662185 instance=ExtResource("15_y2wwv")]
 unique_name_in_owner = true
-
-[node name="InputBatcher" type="Node" parent="Network" unique_id=455953914]
-unique_name_in_owner = true
-script = ExtResource("18_ibatch")
 
 [node name="GameManager" type="Node" parent="." unique_id=278296434]
 unique_name_in_owner = true
@@ -27,15 +23,18 @@ unique_name_in_owner = true
 script = ExtResource("15_g0ymg")
 camera = NodePath("../CameraPivot/SpringArm3D/Camera")
 
+[node name="InputBatcher" type="Node" parent="." unique_id=455953914]
+unique_name_in_owner = true
+script = ExtResource("18_ibatch")
+
 [node name="TickInterpolator" type="Node" parent="." unique_id=2116065758]
 unique_name_in_owner = true
 script = ExtResource("5_xh6x3")
 
-[node name="CameraPivot" type="Node3D" parent="." unique_id=1942551230 node_paths=PackedStringArray("target")]
+[node name="CameraPivot" type="Node3D" parent="." unique_id=1942551230]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 0.9659258, 0.25881904, 0, -0.25881904, 0.9659258, 0, 2, 0)
 script = ExtResource("16_g0ymg")
-target = NodePath("")
 
 [node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=1082816809]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.3841858e-07)

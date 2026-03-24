@@ -15,10 +15,12 @@ const INPUT_HISTORY_SIZE := 64
 @export_range(1.0, 30.0) var TurnSpeed = 10.0
 
 # When set, this player runs physics from the input source and sends to the server.
-@export var input_source: Node
-
-@onready var _network: Node = %Network
-@onready var _input_batcher: InputBatcher = %InputBatcher
+# These must be set by the spawner (GameManager) after add_child — %unique lookups
+# don't work for dynamically-spawned nodes because the owner chain points to the
+# zone scene root, not Game.tscn's root where Network/InputBatcher live.
+var input_source: Node
+var input_batcher: InputBatcher
+var network: Node
 
 ## Input + prediction history for CSP reconciliation.
 ## tick -> { input_x, input_z, jump_pressed, predicted_pos }
@@ -42,6 +44,7 @@ func _ready() -> void:
 	NetworkTime.on_tick_reset.connect(_on_tick_reset)
 
 func _on_tick_reset() -> void:
+	print("[CLIENT] Player tick reset — input history and pending server tick cleared")
 	_input_history.clear()
 	_pending_server_tick = -1
 
@@ -71,7 +74,6 @@ func _on_before_tick_loop() -> void:
 		global_position = _pending_server_pos
 		velocity = _pending_server_vel
 		face_angle = _pending_server_rot
-		reset_physics_interpolation()
 
 	# Drop inputs the server has already processed.
 	for tick_key in _input_history.keys():
@@ -119,8 +121,9 @@ func _simulate(input: Dictionary, delta: float) -> void:
 	velocity /= NetworkTime.physics_factor
 
 func _on_network_tick(delta: float, current_tick: int) -> void:
-	if frozen:
+	if frozen or input_source == null:
 		return
+
 	var input := {
 		"input_x": input_source.movement.x,
 		"input_z": input_source.movement.z,
@@ -139,10 +142,12 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 		if tick_key < oldest:
 			_input_history.erase(tick_key)
 
-	if _input_batcher:
-		_input_batcher.queue_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
-	elif _network:
-		_network.send_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
+	if input_batcher:
+		input_batcher.queue_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
+	elif network:
+		network.send_input(input["input_x"], input["input_z"], input["jump_pressed"], rotation.y, current_tick)
+	else:
+		printerr("[CLIENT] No input_batcher or network in Player.gd!")
 
 func on_entity_diff(entity: Proto.EntityState, tick: int) -> void:
 	var server_pos := Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())

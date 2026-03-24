@@ -43,6 +43,11 @@ func _ready() -> void:
 	get_parent().connected_to_server.connect(_on_connected)
 
 func _on_connected() -> void:
+	# Reset sync state so _finalize_sync takes the fresh-snap path and
+	# re-emits synchronized + calls NetworkTime.start_client, ensuring the
+	# tick loop re-aligns with the new server (critical for zone transfers).
+	is_synced = false
+	print("[CLIENT] NetworkClock: beginning clock sync")
 	_pings_sent = 0
 	_samples.clear()
 	_pending.clear()
@@ -130,6 +135,7 @@ func _finalize_sync() -> void:
 		_resync_timer = RESYNC_INTERVAL
 		NetworkTime.start_client(get_server_tick(), self)
 		synchronized.emit()
+		print("[CLIENT] NetworkClock: clock synced")
 		return
 
 	# Panic: measurement is too far from current clock — snap immediately

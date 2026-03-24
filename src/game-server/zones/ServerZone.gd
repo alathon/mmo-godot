@@ -53,6 +53,7 @@ var _orch_connected: bool = false
 
 func _parse_cmdline_args() -> void:
 	var args := OS.get_cmdline_user_args()
+	print("Args: %s" % args)
 	for i in args.size():
 		if args[i] == "--port" and i + 1 < args.size():
 			PORT = int(args[i + 1])
@@ -72,6 +73,10 @@ func _ready() -> void:
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
 
 	_parse_cmdline_args()
+
+	# TODO: For now. Can't find a way to pass to get_cmdline_user_args() in debug start, argh...
+	if zone_id.is_empty():
+		zone_id = "forest"
 
 	if zone_id.is_empty() or not Globals.ZONE_SCENES.has(zone_id):
 		printerr("[SERVER] Invalid zone_id '%s'. Must be one of: %s" % [zone_id, Globals.ZONE_SCENES.keys()])

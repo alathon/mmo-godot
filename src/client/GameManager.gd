@@ -19,6 +19,7 @@ func _ready() -> void:
 	_network.world_diff_received.connect(_on_world_diff)
 	_network.zone_redirect_received.connect(_on_zone_redirect)
 	_network.connected_to_server.connect(_on_connected_to_server)
+	NetworkTime.after_sync.connect(_on_clock_synced)
 	_zone_container = %ZoneContainer as ZoneContainer
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
 	_zone_container.load_zone("forest")
@@ -36,20 +37,31 @@ func _swap_zone_container(zone_id: String) -> void:
 
 func _on_zone_border_entered(body: Node3D) -> void:
 	if body == _local_player:
-		_local_player.frozen = true
-		_local_player.set_physics_process(false)
-		_local_player.velocity = Vector3.ZERO
+		freeze_local_player()
 
 func freeze_local_player() -> void:
+	print("[CLIENT] Player frozen")
 	_local_player.frozen = true
 	_local_player.set_physics_process(false)
 	_local_player.velocity = Vector3.ZERO
-
-func unfreeze_local_player() -> void:
-	_local_player.frozen = false
-	_local_player.set_physics_process(true)
+	# Clear prediction state immediately — no stale reconciliation while frozen.
+	print("[CLIENT] Player input history and pending server tick cleared")
 	_local_player._input_history.clear()
 	_local_player._pending_server_tick = -1
+
+func unfreeze_local_player() -> void:
+	print("[CLIENT] Player unfrozen")
+	_local_player.frozen = false
+	_local_player.set_physics_process(true)
+	# Don't clear _pending_server_tick here — any diff received from the new
+	# server while frozen should apply on the first reconcile after unfreeze.
+
+func _on_clock_synced() -> void:
+	# Fires after every successful clock sync (initial connect and zone transfers).
+	# Only unfreeze if there's a live player — on the very first sync the local
+	# player hasn't been spawned yet and the frozen flag isn't set.
+	if _local_player != null and _local_player.frozen:
+		unfreeze_local_player()
 
 func _on_zone_redirect(zone_id: String, address: String, port: int, token: String) -> void:
 	print("[CLIENT] Zone redirect → %s at %s:%d" % [zone_id, address, port])
@@ -62,18 +74,21 @@ func _on_zone_redirect(zone_id: String, address: String, port: int, token: Strin
 	# Swap to a fresh ZoneContainer for the new zone.
 	_swap_zone_container(zone_id)
 
-	# Reconnect to the new server.
+	# Reconnect — this triggers a fresh clock sync on the new server.
+	# Player stays frozen until _on_clock_synced fires.
 	_network.reconnect(address, port)
-
 
 func _on_connected_to_server() -> void:
 	if _pending_transfer_token != "":
 		print("[CLIENT] Sending ZoneArrival (token=%s)" % _pending_transfer_token)
 		_network.send_zone_arrival(_pending_transfer_token)
 		_pending_transfer_token = ""
-		unfreeze_local_player()
+		# Do not unfreeze here — clock sync with the new server must complete
+		# first. Unfreeze happens in _on_clock_synced via NetworkTime.after_sync.
 
 func _on_world_diff(diff: Proto.WorldDiff) -> void:
+	if _local_player != null and _local_player.frozen:
+		return
 	var local_id := multiplayer.get_unique_id()
 	var tick := diff.get_tick()
 	var seen_ids := {}
@@ -83,6 +98,8 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 
 		seen_ids[id] = true
 		if id == local_id:
+			if _local_player == null:
+				_spawn_local_player()
 			_local_player.on_entity_diff(entity, tick)
 		elif not _remote_players.has(id):
 			_spawn_remote_player(entity, tick)
@@ -100,6 +117,9 @@ func _spawn_local_player() -> void:
 	_zone_container.entities.add_child(node)
 	_tick_interpolator.target = node
 	_camera_pivot.target = node
+	_local_player.input_source = %LocalInput
+	_local_player.input_batcher = %InputBatcher
+	_local_player.network = _network
 
 func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
 	var node := RemotePlayerScene.instantiate()
