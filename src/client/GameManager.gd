@@ -37,7 +37,7 @@ func _ready() -> void:
 
 func _connect_zone_borders() -> void:
 	for border in get_tree().get_nodes_in_group("zone_borders"):
-		if border is ZoneBorder:
+		if border is ZoneBorder and not border.body_entered.is_connected(_on_zone_border_entered):
 			border.body_entered.connect(_on_zone_border_entered)
 
 func _on_zone_border_entered(body: Node3D) -> void:
@@ -45,10 +45,7 @@ func _on_zone_border_entered(body: Node3D) -> void:
 		_local_player.frozen = true
 		_local_player.velocity = Vector3.ZERO
 
-func _on_zone_redirect(zone_id: String, address: String, port: int, token: String) -> void:
-	print("[CLIENT] Zone redirect → %s at %s:%d" % [zone_id, address, port])
-	_pending_transfer_token = token
-
+func _reset_local_state() -> void:
 	# Clear all remote players.
 	for id in _remote_players.keys():
 		_despawn_remote_player(id)
@@ -57,6 +54,12 @@ func _on_zone_redirect(zone_id: String, address: String, port: int, token: Strin
 	_local_player.frozen = false
 	_local_player._input_history.clear()
 	_local_player._pending_server_tick = -1
+
+func _on_zone_redirect(zone_id: String, address: String, port: int, token: String) -> void:
+	print("[CLIENT] Zone redirect → %s at %s:%d" % [zone_id, address, port])
+	_pending_transfer_token = token
+
+	_reset_local_state()
 
 	# Load new zone visuals.
 	load_zone(zone_id)
@@ -69,10 +72,6 @@ func _on_connected_to_server() -> void:
 		print("[CLIENT] Sending ZoneArrival (token=%s)" % _pending_transfer_token)
 		_network.send_zone_arrival(_pending_transfer_token)
 		_pending_transfer_token = ""
-	
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_T:
-		_test_displacement()
 
 func _on_world_diff(diff: Proto.WorldDiff) -> void:
 	var local_id := multiplayer.get_unique_id()
@@ -104,11 +103,3 @@ func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
 func _despawn_remote_player(id: int) -> void:
 	_remote_players[id].queue_free()
 	_remote_players.erase(id)
-
-func _test_displacement() -> void:
-	for id in _remote_players:
-		var player := _remote_players[id]
-		# Push away from local player
-		var dir := (player.global_position - _local_player.global_position).normalized()
-		dir.y = 0.0
-		player.apply_displacement(dir * 15.0)

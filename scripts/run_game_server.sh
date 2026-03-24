@@ -1,4 +1,5 @@
 #!/bin/sh
+cd "$(dirname "$0")/.." || exit 1
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo "Usage: $0 <zone_id> <port> [extra args...]"
     echo "Example: $0 forest 7000"

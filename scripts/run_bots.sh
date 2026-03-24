@@ -1,4 +1,5 @@
 #!/bin/sh
+cd "$(dirname "$0")/.." || exit 1
 
 # Run a bunch of bots in headless mode.
 # Defaults to 10, but you can specify as input to script.
