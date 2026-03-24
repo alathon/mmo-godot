@@ -42,7 +42,7 @@ func _on_zone_border_entered(body: Node3D) -> void:
 func freeze_local_player() -> void:
 	print("[CLIENT] Player frozen")
 	_local_player.frozen = true
-	_local_player.set_physics_process(false)
+	#_local_player.set_physics_process(false)
 	_local_player.velocity = Vector3.ZERO
 	# Clear prediction state immediately — no stale reconciliation while frozen.
 	print("[CLIENT] Player input history and pending server tick cleared")
@@ -52,7 +52,7 @@ func freeze_local_player() -> void:
 func unfreeze_local_player() -> void:
 	print("[CLIENT] Player unfrozen")
 	_local_player.frozen = false
-	_local_player.set_physics_process(true)
+	#_local_player.set_physics_process(true)
 	# Don't clear _pending_server_tick here — any diff received from the new
 	# server while frozen should apply on the first reconcile after unfreeze.
 

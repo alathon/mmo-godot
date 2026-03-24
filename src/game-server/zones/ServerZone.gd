@@ -42,10 +42,10 @@ var _pending_redirects: Dictionary[String, Dictionary] = {}
 ## Players arriving via zone transfer — token validated on connect.
 var _pending_arrivals: Dictionary[String, Dictionary] = {}
 
-@onready var _entities: Node = %Entities
 @onready var _zone_container: Node3D = %ZoneContainer
 
 var _current_zone: Node = null
+var _entities: Node = null
 
 ## Raw WebSocket connection to the orchestrator.
 var _orch_ws: WebSocketPeer = null
@@ -105,10 +105,12 @@ func _load_zone(id: String) -> void:
 	if _current_zone:
 		_current_zone.queue_free()
 		_current_zone = null
+		_entities = null
 	var scene_path: String = Globals.ZONE_SCENES[id]
 	var scene := load(scene_path) as PackedScene
 	_current_zone = scene.instantiate()
 	_zone_container.add_child(_current_zone)
+	_entities = _current_zone.get_node("Entities")
 	print("[SERVER] Loaded zone scene: %s" % scene_path)
 
 # ── Orchestrator Connection ────────────────────────────────────────────────────
@@ -237,6 +239,8 @@ func _tick(_delta: float, current_tick: int) -> void:
 			print("[SERVER] REPLAY input for peer %d at sim_tick=%d" % [peer_id, sim_tick])
 
 		player.simulate(input, Globals.TICK_INTERVAL)
+		if current_tick % 20 == 0:
+			print("[SERVER] peer=%d y=%.3f on_floor=%s" % [peer_id, player.global_position.y, player.is_on_floor()])
 		state.last_input = input.duplicate()
 		state.last_input["jump_pressed"] = false
 
@@ -346,6 +350,7 @@ func _on_peer_disconnected(id: int) -> void:
 	_remove_player(id)
 
 func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
+	print("[SERVER] Spawning player %d at %s" % [id, position])
 	var player := ServerPlayerScene.instantiate() as CommonPlayer
 	player.name = "ServerPlayer_%d" % id
 	_entities.add_child(player)
@@ -423,6 +428,7 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 		spawn_node = null
 
 	var spawn_pos := spawn_node.global_position if spawn_node else SPAWN_POSITION
+	print("[SERVER] _handle_zone_arrival() spawn_pos=%s" % spawn_pos)
 	var spawn_rot := spawn_node.rotation.y if spawn_node else 0.0
 	if not players.has(peer_id):
 		_spawn_player(peer_id, spawn_pos, spawn_rot)

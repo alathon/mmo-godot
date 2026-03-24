@@ -9,9 +9,6 @@ script = ExtResource("1_ljngd")
 
 [node name="Network" type="Node" parent="." unique_id=1006523342]
 
-[node name="Entities" type="Node" parent="." unique_id=1648308303]
-unique_name_in_owner = true
-
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=1899178943]
 script = ExtResource("4_eu4nw")
 
