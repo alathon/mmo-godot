@@ -1,3 +1,4 @@
+class_name GameManager
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
@@ -10,7 +11,7 @@ const CORRECTION_THRESHOLD = 1.0
 @onready var _tick_interpolator: TickInterpolator = %TickInterpolator
 @onready var _camera_pivot: Node3D = %CameraPivot
 
-var _zone_container: ZoneContainer
+var _zone_container: ZoneContainer = null
 var _local_player: Player = null
 var _remote_players: Dictionary[int, RemotePlayerController] = {}
 var _pending_transfer_token: String = ""
@@ -21,7 +22,7 @@ func _ready() -> void:
 	_api.player_spawn_received.connect(_on_player_spawn)
 	_api.connected_to_server.connect(_on_connected_to_server)
 	NetworkTime.after_sync.connect(_on_clock_synced)
-	_zone_container = %ZoneContainer as ZoneContainer
+	_zone_container = $"../../ZoneContainer"
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
 
 func _swap_zone_container(zone_id: String) -> void:
