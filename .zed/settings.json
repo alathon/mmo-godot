@@ -19,5 +19,10 @@
       ],
       "env": {},
     },
+    "godot-mcp-win": {
+      "command": "node",
+      "args": ["C:/Workspace/experiments/mmo-godot/mcp_server/dist/index.js"],
+      "env": {},
+    },
   },
 }
