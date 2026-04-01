@@ -783,13 +783,13 @@ message EntityState {
   float vel_z = 7;
   float rot_y = 8;
   Impulse active_impulse = 9;
-  uint32 hp = 10;         // NEW — whole number, range 0–65535 (uint16 semantics)
+  uint32 hp = 10;         // NEW — whole number, range 0–4.2bil (uint32 semantics)
   uint32 max_hp = 11;     // NEW
   uint32 mana = 12;       // NEW
   uint32 max_mana = 13;   // NEW
   uint32 stamina = 14;    // NEW
   uint32 max_stamina = 15; // NEW
-  // Note: protobuf has no uint16 type; uint32 is used with values constrained to 0–65535.
+  // Note: protobuf has no uint16 type; uint32 is used.
 }
 
 // PlayerInput gains an optional ability field
@@ -911,13 +911,14 @@ Combat messages use channel 1 (reliable) to ensure no dropped events. Movement r
 
 ### 8.1 Combat Manager
 
-A new `CombatManager` component is added to `Zone.gd` (or as a sibling node). It is responsible for:
+A new `%CombatManager` component is added as a child of `ServerZone.gd`. It is responsible for:
 
 - Processing ability inputs from the input buffer each tick.
 - Managing the combat stack per tick.
 - Resolving effects in priority order.
 - Tracking cooldowns, status effects, and aggro per entity.
 - Emitting `CombatTickEvents` to all clients each tick (only ticks with events).
+- Understanding what entities are in combat with what other entities, based on aggro lists? Not 100% sure this matters.
 
 ### 8.2 Per-Tick Processing
 

@@ -1,0 +1,38 @@
+{
+  "id": "rejuvenate",
+  "name": "Rejuvenate",
+  "tags": ["magic", "nature"],
+  "target_type": "other_friend",
+  "cast_time": 0.0,
+  "range": 30.0,
+  "gcd": true,
+  "cooldown": 0.0,
+  "resource_cost": {
+    "mana": 35
+  },
+  "effects": [
+    {
+      "type": "heal",
+      "base_value": 20,
+      "aggro_modifier": 0.5
+    },
+    {
+      "type": "status_effect",
+      "status_id": "rejuvenation",
+      "is_debuff": false,
+      "duration": 12.0,
+      "max_stacks": 1,
+      "dispel_category": "magic",
+      "tick_interval": 3.0,
+      "tick_effects": [
+        {
+          "type": "heal",
+          "base_value": 15,
+          "aggro_modifier": 0.5
+        }
+      ],
+      "tags_applied": [],
+      "tags_locked": []
+    }
+  ]
+}

@@ -14,12 +14,148 @@ message Impulse {
   DecayType decay_type = 6;
 }
 
+// ─── Ability Input (client → server) ───────────────────────────────────────
+
+message AbilityInput {
+  string ability_id = 1;
+  uint32 target_entity_id = 2; // 0 if self or ground
+  float ground_x = 3;          // Only for ground target type
+  float ground_y = 4;
+  float ground_z = 5;
+}
+
+// ─── Target Selection (client → server) ────────────────────────────────────
+
+message TargetSelect {
+  uint32 target_entity_id = 1; // 0 = clear target
+}
+
+// ─── Ability Accepted / Rejected (server → casting player only) ────────────
+
+message AbilityUseAccepted {
+  string ability_id = 1;
+  uint32 requested_tick = 2;
+  uint32 start_tick = 3;
+}
+
+message AbilityUseRejected {
+  string ability_id = 1;
+  uint32 requested_tick = 2;
+  uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
+}
+
+// ─── Combat Events (server → all clients in zone, per tick) ─────────────────
+
+enum HitType {
+  HIT = 0;
+  MISS = 1;
+  DODGE = 2;
+  CRIT = 3;
+  BLOCK = 4;
+  CRIT_BLOCK = 5;
+}
+
+message CombatEvent_AbilityUseStarted {
+  uint32 source_entity_id = 1;
+  string ability_id = 2;
+  uint32 target_entity_id = 3;
+  float ground_x = 4;
+  float ground_y = 5;
+  float ground_z = 6;
+  float cast_time = 7;
+}
+
+message CombatEvent_AbilityUseCanceled {
+  uint32 source_entity_id = 1;
+  string ability_id = 2;
+  uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
+}
+
+message CombatEvent_AbilityUseCompleted {
+  uint32 source_entity_id = 1;
+  string ability_id = 2;
+  HitType hit_type = 3;
+}
+
+message CombatEvent_DamageTaken {
+  uint32 source_entity_id = 1;
+  uint32 target_entity_id = 2;
+  string ability_id = 3;
+  float amount = 4;
+}
+
+message CombatEvent_HealingReceived {
+  uint32 source_entity_id = 1;
+  uint32 target_entity_id = 2;
+  string ability_id = 3;
+  float amount = 4;
+}
+
+message CombatEvent_BuffApplied {
+  uint32 source_entity_id = 1;
+  uint32 target_entity_id = 2;
+  string ability_id = 3;
+  string status_id = 4;
+  uint32 stacks = 5;
+  float remaining_duration = 6; // 0 = permanent
+}
+
+message CombatEvent_DebuffApplied {
+  uint32 source_entity_id = 1;
+  uint32 target_entity_id = 2;
+  string ability_id = 3;
+  string status_id = 4;
+  uint32 stacks = 5;
+  float remaining_duration = 6;
+}
+
+message CombatEvent_StatusEffectRemoved {
+  uint32 entity_id = 1;
+  string status_id = 2;
+  uint32 remove_reason = 3; // 0=expired, 1=dispelled, 2=consumed
+}
+
+message CombatEvent_CombatantDied {
+  uint32 entity_id = 1;
+  uint32 killer_entity_id = 2;
+}
+
+message CombatEvent {
+  uint32 tick = 1;
+  oneof event {
+    CombatEvent_AbilityUseStarted   ability_use_started   = 2;
+    CombatEvent_AbilityUseCanceled  ability_use_canceled  = 3;
+    CombatEvent_AbilityUseCompleted ability_use_completed = 4;
+    CombatEvent_DamageTaken         damage_taken          = 5;
+    CombatEvent_HealingReceived     healing_received      = 6;
+    CombatEvent_BuffApplied         buff_applied          = 7;
+    CombatEvent_DebuffApplied       debuff_applied        = 8;
+    CombatEvent_StatusEffectRemoved status_effect_removed = 9;
+    CombatEvent_CombatantDied       combatant_died        = 10;
+  }
+}
+
+message CombatTickEvents {
+  uint32 tick = 1;
+  repeated CombatEvent events = 2;
+}
+
+message StatusEffectState {
+  string status_id = 1;
+  uint32 source_entity_id = 2;
+  uint32 stacks = 3;
+  float remaining_duration = 4; // 0 = permanent
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+
 message PlayerInput {
   float input_x = 1;
   float input_z = 2;
   bool jump_pressed = 3;
   uint32 tick = 4;
   float rot_y = 5;
+  AbilityInput ability_input = 6; // Set when player activates/queues an ability
 }
 
 message EntityState {
@@ -32,6 +168,12 @@ message EntityState {
   float vel_z = 7;
   float rot_y = 8;
   Impulse active_impulse = 9;
+  uint32 hp = 10;
+  uint32 max_hp = 11;
+  uint32 mana = 12;
+  uint32 max_mana = 13;
+  uint32 stamina = 14;
+  uint32 max_stamina = 15;
 }
 
 message WorldDiff {
@@ -150,6 +292,10 @@ message Packet {
     ZoneArrival zone_arrival = 7;
     LoginRequest login_request = 8;
     PlayerSpawn player_spawn = 9;
+    TargetSelect target_select = 10;
+    AbilityUseAccepted ability_accepted = 11;
+    AbilityUseRejected ability_rejected = 12;
+    CombatTickEvents combat_tick_events = 13;
   }
 }
 

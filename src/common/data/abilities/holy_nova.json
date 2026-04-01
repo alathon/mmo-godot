@@ -1,0 +1,31 @@
+{
+  "id": "holy_nova",
+  "name": "Holy Nova",
+  "tags": ["magic", "holy"],
+  "target_type": "ground",
+  "cast_time": 0.0,
+  "range": 10.0,
+  "gcd": true,
+  "cooldown": 8.0,
+  "resource_cost": {
+    "mana": 50
+  },
+  "effects": [
+    {
+      "type": "damage",
+      "base_value": 60,
+      "aggro_modifier": 1.0,
+      "target_type_narrower": "hostile"
+    },
+    {
+      "type": "heal",
+      "base_value": 80,
+      "aggro_modifier": 0.5,
+      "target_type_narrower": "friendly"
+    }
+  ],
+  "aoe": {
+    "shape": "circle",
+    "radius": 8.0
+  }
+}
