@@ -5,7 +5,13 @@ extends Node3D
 @export var target: Node3D
 @export var offset: Vector3 = Vector3(0, 2.0, 0)
 
+@onready var _game_manager: GameManager = %GameManager
+
 var _mouse_position_when_hidden = Vector2.ZERO
+
+func _ready() -> void:
+	_game_manager.zone_before_unloading.connect(func(): target = null)
+	_game_manager.player_spawned.connect(func(p): target = p)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT):

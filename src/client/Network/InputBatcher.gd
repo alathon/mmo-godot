@@ -10,8 +10,13 @@ const Proto = preload("res://src/common/proto/packets.gd")
 ## How many ticks of input to accumulate before sending.
 @export var batch_size: int = 2
 
+@onready var _game_manager: GameManager = %GameManager
+
 var _current_batch: Array[Dictionary] = []
 var _previous_batch: Array[Dictionary] = []
+
+func _ready() -> void:
+	_game_manager.zone_before_unloading.connect(clear)
 
 func clear() -> void:
 	_current_batch.clear()

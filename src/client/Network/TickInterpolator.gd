@@ -8,6 +8,8 @@ extends Node
 ## (e.g. "global_transform"). For sub-node properties, use
 ## "ChildNode:property" (e.g. "Visual:visible").
 
+@onready var _game_manager: GameManager = %GameManager
+
 ## The node whose properties (and sub-tree) are resolved against.
 @export var target: Node
 
@@ -30,14 +32,14 @@ var _to: Dictionary = {}
 var _is_teleporting: bool = false
 
 func _ready() -> void:
-	if target == null:
-		target = get_parent()
 	_resolve_properties()
 	NetworkTime.before_tick_loop.connect(_before_tick_loop)
 	NetworkTime.after_tick_loop.connect(_after_tick_loop)
-	if record_first_state:
+	if record_first_state and target != null:
 		_snapshot_to()
 		_from = _to.duplicate()
+	_game_manager.zone_before_unloading.connect(_on_zone_unloading)
+	_game_manager.player_spawned.connect(_on_player_spawned)
 
 func _exit_tree() -> void:
 	NetworkTime.before_tick_loop.disconnect(_before_tick_loop)
@@ -58,6 +60,16 @@ func teleport() -> void:
 func push_state() -> void:
 	_from = _to.duplicate()
 	_snapshot_to()
+
+func _on_zone_unloading() -> void:
+	target = null
+	_resolved.clear()
+	_from.clear()
+	_to.clear()
+
+func _on_player_spawned(player: Player) -> void:
+	target = player
+	_resolve_properties()
 
 ## Re-resolve property paths. Call if target or properties change at runtime.
 func _resolve_properties() -> void:

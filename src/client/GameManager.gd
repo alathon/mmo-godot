@@ -7,9 +7,13 @@ const LocalPlayerScene = preload("res://src/client/Player/LocalPlayer.tscn")
 
 const CORRECTION_THRESHOLD = 1.0
 
+signal zone_before_unloading
+signal zone_unloading
+signal zone_before_loading(zone_id: String)
+signal zone_loaded(zone_id: String)
+signal player_spawned(player: Player)
+
 @onready var _api: BackendAPI = %BackendAPI
-@onready var _tick_interpolator: TickInterpolator = %TickInterpolator
-@onready var _camera_pivot: Node3D = %CameraPivot
 
 var _zone_container: ZoneContainer = null
 var _local_player: Player = null
@@ -29,16 +33,18 @@ func _swap_zone_container(zone_id: String) -> void:
 	# Completely destroy the local player — it will be re-created fresh by
 	# _on_player_spawn once the new server confirms the spawn position.
 	if _local_player:
-		_tick_interpolator.target = null
-		_camera_pivot.target = null
 		_local_player.queue_free()
 		_local_player = null
+	zone_before_unloading.emit()
 	_zone_container.queue_free()
+	zone_unloading.emit.call_deferred()
 	_zone_container = ZoneContainer.new()
 	_zone_container.name = "ZoneContainer"
 	get_parent().add_child(_zone_container)
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
+	zone_before_loading.emit(zone_id)
 	_zone_container.load_zone(zone_id)
+	zone_loaded.emit(zone_id)
 
 func _on_zone_border_entered(body: Node3D) -> void:
 	if body == _local_player:
@@ -122,13 +128,12 @@ func _spawn_local_player(pos: Vector3, rot_y: float) -> void:
 	node.name = "LocalPlayer"
 	node.position = pos
 	node.rotation.y = rot_y
+	node.input_source = %LocalInput
+	node.input_batcher = %InputBatcher
+	node.api = _api
 	_local_player = node
 	_zone_container.entities.add_child(node)
-	_tick_interpolator.target = node
-	_camera_pivot.target = node
-	_local_player.input_source = %LocalInput
-	_local_player.input_batcher = %InputBatcher
-	_local_player.api = _api
+	player_spawned.emit(node)
 
 func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
 	var node := RemotePlayerScene.instantiate()
