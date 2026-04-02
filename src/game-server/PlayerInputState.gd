@@ -1,4 +1,4 @@
-class_name ServerPlayerState
+class_name PlayerInputState
 extends Node
 
 ## Tick of the first input received from the client.

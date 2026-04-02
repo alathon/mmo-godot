@@ -17,8 +17,8 @@ const INPUT_TIMEOUT := 10.0
 ## peer_id -> ServerPlayer node
 var players: Dictionary[int, CommonPlayer] = {}
 
-## peer_id -> ServerPlayerState node
-var _player_states: Dictionary[int, ServerPlayerState] = {}
+## peer_id -> PlayerInputState node
+var _player_states: Dictionary[int, PlayerInputState] = {}
 
 ## peer_id -> { tick: int -> { input_x, input_z, jump_pressed } }
 var _input_buffers: Dictionary[int, Dictionary] = {}
@@ -38,6 +38,8 @@ var _pending_redirects: Dictionary[String, Dictionary] = {}
 ## transfer_token -> { player_state, entry_x/y/z, entry_rot_y }
 ## Players arriving via zone transfer — token validated on connect.
 var _pending_arrivals: Dictionary[String, Dictionary] = {}
+
+@onready var _combat_manager: CombatManager = %CombatManager
 
 @onready var _zone_container: Node3D = %ZoneContainer
 
@@ -213,12 +215,16 @@ func _handle_prepare_player(msg: Proto.PreparePlayer) -> void:
 func _tick(_delta: float, current_tick: int) -> void:
 	var sim_tick := current_tick - Globals.INPUT_BUFFER_SIZE
 
+	# Collect ability inputs and movement flags for CombatManager this tick
+	var ability_inputs: Dictionary = {}   # peer_id -> {ability_id, ...}
+	var moving_entities: Dictionary = {}  # peer_id -> true
+
 	# Simulate each player using their buffered input for sim_tick
 	for peer_id in players:
 		if _frozen_peers.has(peer_id):
 			continue
 		var player: CommonPlayer = players[peer_id]
-		var state: ServerPlayerState = _player_states[peer_id]
+		var state: PlayerInputState = _player_states[peer_id]
 
 		if state.first_input_tick < 0 or sim_tick < state.first_input_tick:
 			continue
@@ -234,9 +240,23 @@ func _tick(_delta: float, current_tick: int) -> void:
 			input = state.last_input
 			print("[SERVER] REPLAY input for peer %d at sim_tick=%d" % [peer_id, sim_tick])
 
+		# Detect movement before simulating (non-zero directional input cancels casts)
+		if abs(input.get("input_x", 0.0)) > 0.01 or abs(input.get("input_z", 0.0)) > 0.01:
+			moving_entities[peer_id] = true
+
 		player.simulate(input, Globals.TICK_INTERVAL)
 		state.last_input = input.duplicate()
 		state.last_input["jump_pressed"] = false
+		state.last_input["ability_id"] = ""  # never replay ability inputs
+
+		if input.get("ability_id", "") != "":
+			ability_inputs[peer_id] = {
+				"ability_id": input["ability_id"],
+				"target_entity_id": input.get("target_entity_id", 0),
+				"ground_x": input.get("ground_x", 0.0),
+				"ground_y": input.get("ground_y", 0.0),
+				"ground_z": input.get("ground_z", 0.0),
+			}
 
 	# Prune old buffered input (anything older than sim_tick)
 	for peer_id in _input_buffers:
@@ -248,30 +268,60 @@ func _tick(_delta: float, current_tick: int) -> void:
 	# Kick players that haven't sent input within the timeout.
 	var timeout_ticks := int(INPUT_TIMEOUT * Globals.TICK_RATE)
 	for peer_id in players.keys():
-		var state: ServerPlayerState = _player_states[peer_id]
+		var state: PlayerInputState = _player_states[peer_id]
 		if sim_tick - state.last_input_tick > timeout_ticks:
 			print("[SERVER] Kicking peer %d: no input for %.0fs" % [peer_id, INPUT_TIMEOUT])
 			multiplayer.multiplayer_peer.disconnect_peer(peer_id)
 
-	# Broadcast world state (skip frozen peers in both entity list and recipients)
-	var pkt = Proto.Packet.new()
-	var diff = pkt.new_world_diff()
-	diff.set_tick(current_tick)
+	# Run combat tick — returns per-peer ACKs
+	var combat_acks := _combat_manager.tick(sim_tick, players, ability_inputs, moving_entities)
+	for ack in combat_acks:
+		var target: int = ack["peer_id"]
+		if players.has(target) and not _frozen_peers.has(target):
+			multiplayer.send_bytes(ack["bytes"], target, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 1)
+
+	# Unreliable broadcast: positions only (WorldPositions)
+	var upkt = Proto.Packet.new()
+	var wpos = upkt.new_world_positions()
+	wpos.set_tick(current_tick)
 	for peer_id in players:
 		var player: CommonPlayer = players[peer_id]
-		var state = diff.add_entities()
-		state.set_entity_id(peer_id)
-		state.set_pos_x(player.global_position.x)
-		state.set_pos_y(player.global_position.y)
-		state.set_pos_z(player.global_position.z)
-		state.set_vel_x(player.velocity.x)
-		state.set_vel_y(player.velocity.y)
-		state.set_vel_z(player.velocity.z)
-		state.set_rot_y(player.face_angle)
-
-	var bytes = pkt.to_bytes()
+		var ep = wpos.add_entities()
+		ep.set_entity_id(peer_id)
+		ep.set_pos_x(player.global_position.x)
+		ep.set_pos_y(player.global_position.y)
+		ep.set_pos_z(player.global_position.z)
+		ep.set_vel_x(player.velocity.x)
+		ep.set_vel_y(player.velocity.y)
+		ep.set_vel_z(player.velocity.z)
+		ep.set_rot_y(player.face_angle)
+	var ubytes = upkt.to_bytes()
 	for peer_id in players:
-		multiplayer.send_bytes(bytes, peer_id, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
+		if not _frozen_peers.has(peer_id):
+			multiplayer.send_bytes(ubytes, peer_id, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
+
+	# Reliable broadcast: vitals + combat events (WorldState)
+	var rpkt = Proto.Packet.new()
+	var wstate = rpkt.new_world_state()
+	wstate.set_tick(current_tick)
+	for peer_id in players:
+		var player: CommonPlayer = players[peer_id]
+		var mob_stats := player.get_node_or_null("MobStats") as MobStats
+		if mob_stats:
+			var es = wstate.add_entities()
+			es.set_entity_id(peer_id)
+			es.set_hp(mob_stats.hp)
+			es.set_max_hp(mob_stats.max_hp)
+			es.set_mana(mob_stats.mana)
+			es.set_max_mana(mob_stats.max_mana)
+			es.set_stamina(mob_stats.stamina)
+			es.set_max_stamina(mob_stats.max_stamina)
+	if _combat_manager.has_events():
+		_combat_manager.build_combat_events_proto(wstate.new_combat_events(), sim_tick)
+	var rbytes = rpkt.to_bytes()
+	for peer_id in players:
+		if not _frozen_peers.has(peer_id):
+			multiplayer.send_bytes(rbytes, peer_id, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 1)
 
 func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 	var pkt = Proto.Packet.new()
@@ -286,6 +336,12 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 		_handle_clock_ping(peer_id, pkt.get_clock_ping())
 	elif pkt.has_zone_arrival():
 		_handle_zone_arrival(peer_id, pkt.get_zone_arrival())
+	elif pkt.has_target_select():
+		var player := players.get(peer_id) as Node
+		if player:
+			var cs := player.get_node_or_null("MobCombatState") as MobCombatState
+			if cs:
+				cs.target_entity_id = pkt.get_target_select().get_target_entity_id()
 
 func _handle_clock_ping(peer_id: int, ping: Proto.ClockPing) -> void:
 	var pkt = Proto.Packet.new()
@@ -322,13 +378,24 @@ func _handle_input(peer_id: int, input: Proto.PlayerInput) -> void:
 	if not _input_buffers.has(peer_id):
 		_input_buffers[peer_id] = {}
 
-	_input_buffers[peer_id][input_tick] = {
+	var buf_entry := {
 		"input_x": input.get_input_x(),
 		"input_z": input.get_input_z(),
 		"jump_pressed": input.get_jump_pressed(),
+		"ability_id": "",
+		"target_entity_id": 0,
+		"ground_x": 0.0, "ground_y": 0.0, "ground_z": 0.0,
 	}
+	if input.has_ability_input():
+		var ai = input.get_ability_input()
+		buf_entry["ability_id"] = ai.get_ability_id()
+		buf_entry["target_entity_id"] = ai.get_target_entity_id()
+		buf_entry["ground_x"] = ai.get_ground_x()
+		buf_entry["ground_y"] = ai.get_ground_y()
+		buf_entry["ground_z"] = ai.get_ground_z()
+	_input_buffers[peer_id][input_tick] = buf_entry
 
-	var state: ServerPlayerState = _player_states[peer_id]
+	var state: PlayerInputState = _player_states[peer_id]
 	state.last_input_tick = input_tick
 	if state.first_input_tick < 0:
 		state.first_input_tick = input_tick
@@ -350,7 +417,7 @@ func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
 	player.global_position = position
 	player.rotation.y = rot_y
 	players[id] = player
-	var state := player.get_node("ServerPlayerState") as ServerPlayerState
+	var state := player.get_node("PlayerInputState") as PlayerInputState
 	state.last_input_tick = NetworkTime.tick
 	_player_states[id] = state
 	_input_buffers[id] = {}

@@ -2749,7 +2749,7 @@ class PlayerInput:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
-class EntityState:
+class EntityPosition:
 	func _init():
 		var service
 		
@@ -2798,36 +2798,6 @@ class EntityState:
 		service.field = __active_impulse
 		service.func_ref = Callable(self, "new_active_impulse")
 		data[__active_impulse.tag] = service
-		
-		__hp = PBField.new("hp", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 10, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
-		service = PBServiceField.new()
-		service.field = __hp
-		data[__hp.tag] = service
-		
-		__max_hp = PBField.new("max_hp", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 11, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
-		service = PBServiceField.new()
-		service.field = __max_hp
-		data[__max_hp.tag] = service
-		
-		__mana = PBField.new("mana", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 12, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
-		service = PBServiceField.new()
-		service.field = __mana
-		data[__mana.tag] = service
-		
-		__max_mana = PBField.new("max_mana", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 13, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
-		service = PBServiceField.new()
-		service.field = __max_mana
-		data[__max_mana.tag] = service
-		
-		__stamina = PBField.new("stamina", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 14, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
-		service = PBServiceField.new()
-		service.field = __stamina
-		data[__stamina.tag] = service
-		
-		__max_stamina = PBField.new("max_stamina", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 15, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
-		service = PBServiceField.new()
-		service.field = __max_stamina
-		data[__max_stamina.tag] = service
 		
 	var data = {}
 	
@@ -2949,6 +2919,144 @@ class EntityState:
 		__active_impulse.value = Impulse.new()
 		return __active_impulse.value
 	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class WorldPositions:
+	func _init():
+		var service
+		
+		__tick = PBField.new("tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __tick
+		data[__tick.tag] = service
+		
+		var __entities_default: Array[EntityPosition] = []
+		__entities = PBField.new("entities", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 2, true, __entities_default)
+		service = PBServiceField.new()
+		service.field = __entities
+		service.func_ref = Callable(self, "add_entities")
+		data[__entities.tag] = service
+		
+	var data = {}
+	
+	var __tick: PBField
+	func has_tick() -> bool:
+		if __tick.value != null:
+			return true
+		return false
+	func get_tick() -> int:
+		return __tick.value
+	func clear_tick() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_tick(value : int) -> void:
+		__tick.value = value
+	
+	var __entities: PBField
+	func get_entities() -> Array[EntityPosition]:
+		return __entities.value
+	func clear_entities() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__entities.value.clear()
+	func add_entities() -> EntityPosition:
+		var element = EntityPosition.new()
+		__entities.value.append(element)
+		return element
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class EntityState:
+	func _init():
+		var service
+		
+		__entity_id = PBField.new("entity_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __entity_id
+		data[__entity_id.tag] = service
+		
+		__hp = PBField.new("hp", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __hp
+		data[__hp.tag] = service
+		
+		__max_hp = PBField.new("max_hp", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __max_hp
+		data[__max_hp.tag] = service
+		
+		__mana = PBField.new("mana", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __mana
+		data[__mana.tag] = service
+		
+		__max_mana = PBField.new("max_mana", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __max_mana
+		data[__max_mana.tag] = service
+		
+		__stamina = PBField.new("stamina", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __stamina
+		data[__stamina.tag] = service
+		
+		__max_stamina = PBField.new("max_stamina", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __max_stamina
+		data[__max_stamina.tag] = service
+		
+	var data = {}
+	
+	var __entity_id: PBField
+	func has_entity_id() -> bool:
+		if __entity_id.value != null:
+			return true
+		return false
+	func get_entity_id() -> int:
+		return __entity_id.value
+	func clear_entity_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__entity_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_entity_id(value : int) -> void:
+		__entity_id.value = value
+	
 	var __hp: PBField
 	func has_hp() -> bool:
 		if __hp.value != null:
@@ -2957,7 +3065,7 @@ class EntityState:
 	func get_hp() -> int:
 		return __hp.value
 	func clear_hp() -> void:
-		data[10].state = PB_SERVICE_STATE.UNFILLED
+		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__hp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_hp(value : int) -> void:
 		__hp.value = value
@@ -2970,7 +3078,7 @@ class EntityState:
 	func get_max_hp() -> int:
 		return __max_hp.value
 	func clear_max_hp() -> void:
-		data[11].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		__max_hp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_max_hp(value : int) -> void:
 		__max_hp.value = value
@@ -2983,7 +3091,7 @@ class EntityState:
 	func get_mana() -> int:
 		return __mana.value
 	func clear_mana() -> void:
-		data[12].state = PB_SERVICE_STATE.UNFILLED
+		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__mana.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_mana(value : int) -> void:
 		__mana.value = value
@@ -2996,7 +3104,7 @@ class EntityState:
 	func get_max_mana() -> int:
 		return __max_mana.value
 	func clear_max_mana() -> void:
-		data[13].state = PB_SERVICE_STATE.UNFILLED
+		data[5].state = PB_SERVICE_STATE.UNFILLED
 		__max_mana.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_max_mana(value : int) -> void:
 		__max_mana.value = value
@@ -3009,7 +3117,7 @@ class EntityState:
 	func get_stamina() -> int:
 		return __stamina.value
 	func clear_stamina() -> void:
-		data[14].state = PB_SERVICE_STATE.UNFILLED
+		data[6].state = PB_SERVICE_STATE.UNFILLED
 		__stamina.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_stamina(value : int) -> void:
 		__stamina.value = value
@@ -3022,7 +3130,7 @@ class EntityState:
 	func get_max_stamina() -> int:
 		return __max_stamina.value
 	func clear_max_stamina() -> void:
-		data[15].state = PB_SERVICE_STATE.UNFILLED
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__max_stamina.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_max_stamina(value : int) -> void:
 		__max_stamina.value = value
@@ -3048,7 +3156,7 @@ class EntityState:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
-class WorldDiff:
+class WorldState:
 	func _init():
 		var service
 		
@@ -3063,6 +3171,12 @@ class WorldDiff:
 		service.field = __entities
 		service.func_ref = Callable(self, "add_entities")
 		data[__entities.tag] = service
+		
+		__combat_events = PBField.new("combat_events", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __combat_events
+		service.func_ref = Callable(self, "new_combat_events")
+		data[__combat_events.tag] = service
 		
 	var data = {}
 	
@@ -3089,6 +3203,20 @@ class WorldDiff:
 		var element = EntityState.new()
 		__entities.value.append(element)
 		return element
+	
+	var __combat_events: PBField
+	func has_combat_events() -> bool:
+		if __combat_events.value != null:
+			return true
+		return false
+	func get_combat_events() -> CombatTickEvents:
+		return __combat_events.value
+	func clear_combat_events() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__combat_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_combat_events() -> CombatTickEvents:
+		__combat_events.value = CombatTickEvents.new()
+		return __combat_events.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -4268,11 +4396,11 @@ class Packet:
 		service.func_ref = Callable(self, "new_player_input")
 		data[__player_input.tag] = service
 		
-		__world_diff = PBField.new("world_diff", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__world_positions = PBField.new("world_positions", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
-		service.field = __world_diff
-		service.func_ref = Callable(self, "new_world_diff")
-		data[__world_diff.tag] = service
+		service.field = __world_positions
+		service.func_ref = Callable(self, "new_world_positions")
+		data[__world_positions.tag] = service
 		
 		__clock_ping = PBField.new("clock_ping", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
@@ -4334,11 +4462,11 @@ class Packet:
 		service.func_ref = Callable(self, "new_ability_rejected")
 		data[__ability_rejected.tag] = service
 		
-		__combat_tick_events = PBField.new("combat_tick_events", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 13, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__world_state = PBField.new("world_state", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 13, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
-		service.field = __combat_tick_events
-		service.func_ref = Callable(self, "new_combat_tick_events")
-		data[__combat_tick_events.tag] = service
+		service.field = __world_state
+		service.func_ref = Callable(self, "new_world_state")
+		data[__world_state.tag] = service
 		
 	var data = {}
 	
@@ -4354,7 +4482,7 @@ class Packet:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_player_input() -> PlayerInput:
 		data[1].state = PB_SERVICE_STATE.FILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4376,22 +4504,22 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__player_input.value = PlayerInput.new()
 		return __player_input.value
 	
-	var __world_diff: PBField
-	func has_world_diff() -> bool:
-		if __world_diff.value != null:
+	var __world_positions: PBField
+	func has_world_positions() -> bool:
+		if __world_positions.value != null:
 			return true
 		return false
-	func get_world_diff() -> WorldDiff:
-		return __world_diff.value
-	func clear_world_diff() -> void:
+	func get_world_positions() -> WorldPositions:
+		return __world_positions.value
+	func clear_world_positions() -> void:
 		data[2].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-	func new_world_diff() -> WorldDiff:
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_world_positions() -> WorldPositions:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
 		data[2].state = PB_SERVICE_STATE.FILLED
@@ -4415,10 +4543,10 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = WorldDiff.new()
-		return __world_diff.value
+		__world_positions.value = WorldPositions.new()
+		return __world_positions.value
 	
 	var __clock_ping: PBField
 	func has_clock_ping() -> bool:
@@ -4433,7 +4561,7 @@ class Packet:
 	func new_clock_ping() -> ClockPing:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		data[3].state = PB_SERVICE_STATE.FILLED
 		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -4454,7 +4582,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = ClockPing.new()
 		return __clock_ping.value
@@ -4472,7 +4600,7 @@ class Packet:
 	func new_clock_pong() -> ClockPong:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4493,7 +4621,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__clock_pong.value = ClockPong.new()
 		return __clock_pong.value
@@ -4511,7 +4639,7 @@ class Packet:
 	func new_input_batch() -> InputBatch:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4532,7 +4660,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__input_batch.value = InputBatch.new()
 		return __input_batch.value
@@ -4550,7 +4678,7 @@ class Packet:
 	func new_zone_redirect() -> ZoneRedirect:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4571,7 +4699,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__zone_redirect.value = ZoneRedirect.new()
 		return __zone_redirect.value
@@ -4589,7 +4717,7 @@ class Packet:
 	func new_zone_arrival() -> ZoneArrival:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4610,7 +4738,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__zone_arrival.value = ZoneArrival.new()
 		return __zone_arrival.value
@@ -4628,7 +4756,7 @@ class Packet:
 	func new_login_request() -> LoginRequest:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4649,7 +4777,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__login_request.value = LoginRequest.new()
 		return __login_request.value
@@ -4667,7 +4795,7 @@ class Packet:
 	func new_player_spawn() -> PlayerSpawn:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4688,7 +4816,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__player_spawn.value = PlayerSpawn.new()
 		return __player_spawn.value
@@ -4706,7 +4834,7 @@ class Packet:
 	func new_target_select() -> TargetSelect:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4727,7 +4855,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__target_select.value = TargetSelect.new()
 		return __target_select.value
@@ -4745,7 +4873,7 @@ class Packet:
 	func new_ability_accepted() -> AbilityUseAccepted:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4766,7 +4894,7 @@ class Packet:
 		data[11].state = PB_SERVICE_STATE.FILLED
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__ability_accepted.value = AbilityUseAccepted.new()
 		return __ability_accepted.value
@@ -4784,7 +4912,7 @@ class Packet:
 	func new_ability_rejected() -> AbilityUseRejected:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4805,25 +4933,25 @@ class Packet:
 		__ability_accepted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
 		data[12].state = PB_SERVICE_STATE.FILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = AbilityUseRejected.new()
 		return __ability_rejected.value
 	
-	var __combat_tick_events: PBField
-	func has_combat_tick_events() -> bool:
-		if __combat_tick_events.value != null:
+	var __world_state: PBField
+	func has_world_state() -> bool:
+		if __world_state.value != null:
 			return true
 		return false
-	func get_combat_tick_events() -> CombatTickEvents:
-		return __combat_tick_events.value
-	func clear_combat_tick_events() -> void:
+	func get_world_state() -> WorldState:
+		return __world_state.value
+	func clear_world_state() -> void:
 		data[13].state = PB_SERVICE_STATE.UNFILLED
-		__combat_tick_events.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-	func new_combat_tick_events() -> CombatTickEvents:
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_world_state() -> WorldState:
 		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		__world_diff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
@@ -4846,8 +4974,8 @@ class Packet:
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		data[13].state = PB_SERVICE_STATE.FILLED
-		__combat_tick_events.value = CombatTickEvents.new()
-		return __combat_tick_events.value
+		__world_state.value = WorldState.new()
+		return __world_state.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://btit4ocb6jg8x"]
 
 [ext_resource type="Script" uid="uid://bd4gjdm2vh75" path="res://src/game-server/zones/ServerZone.gd" id="1_ljngd"]
+[ext_resource type="Script" uid="uid://bir8bjydalj26" path="res://src/game-server/combat/CombatManager.gd" id="3_45per"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="4_eu4nw"]
 [ext_resource type="Script" uid="uid://301khd73hpc5" path="res://src/game-server/zones/DebugCamera.gd" id="5_dbgcam"]
 
@@ -11,6 +12,11 @@ script = ExtResource("1_ljngd")
 
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=1899178943]
 script = ExtResource("4_eu4nw")
+
+[node name="CombatManager" type="Node" parent="." unique_id=1251288001]
+unique_name_in_owner = true
+script = ExtResource("3_45per")
+metadata/_custom_type_script = "uid://bir8bjydalj26"
 
 [node name="ZoneContainer" type="Node3D" parent="." unique_id=1320743261]
 unique_name_in_owner = true
