@@ -3,7 +3,7 @@ extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
 const RemotePlayerScene = preload("res://src/client/Player/RemotePlayer.tscn")
-const LocalPlayerScene = preload("res://src/client/Player/LocalPlayer.tscn")
+const LocalPlayerScene = preload("res://src/client/Player/Player.tscn")
 
 const CORRECTION_THRESHOLD = 1.0
 
@@ -21,7 +21,8 @@ var _remote_players: Dictionary[int, RemotePlayerController] = {}
 var _pending_transfer_token: String = ""
 
 func _ready() -> void:
-	_api.world_diff_received.connect(_on_world_diff)
+	_api.world_positions_received.connect(on_world_positions)
+	_api.world_state_received.connect(on_world_state)
 	_api.zone_redirect_received.connect(_on_zone_redirect)
 	_api.player_spawn_received.connect(_on_player_spawn)
 	_api.connected_to_server.connect(_on_connected_to_server)
@@ -100,11 +101,14 @@ func _on_connected_to_server() -> void:
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	_spawn_local_player(pos, rot_y)
 
-func _on_world_diff(diff: Proto.WorldDiff) -> void:
+func on_world_state(diff: Proto.WorldState) -> void:
+	return
+
+func on_world_positions(diff: Proto.WorldPositions) -> void:
 	if _local_player != null and _local_player.frozen:
 		return
 	var local_id := multiplayer.get_unique_id()
-	var tick := diff.get_tick()
+	var tick: int = diff.get_tick()
 	var seen_ids := {}
 
 	for entity in diff.get_entities():
@@ -113,11 +117,11 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 		seen_ids[id] = true
 		if id == local_id:
 			if _local_player != null:
-				_local_player.on_entity_diff(entity, tick)
+				_local_player.on_entity_position_diff(entity, tick)
 		elif not _remote_players.has(id):
 			_spawn_remote_player(entity, tick)
 		else:
-			_remote_players[id].on_entity_diff(entity, tick)
+			_remote_players[id].on_entity_position_diff(entity, tick)
 
 	for id in _remote_players.keys():
 		if not seen_ids.has(id):
@@ -126,21 +130,19 @@ func _on_world_diff(diff: Proto.WorldDiff) -> void:
 func _spawn_local_player(pos: Vector3, rot_y: float) -> void:
 	var node := LocalPlayerScene.instantiate() as Player
 	node.name = "LocalPlayer"
-	node.position = pos
-	node.rotation.y = rot_y
-	node.input_source = %LocalInput
-	node.input_batcher = %InputBatcher
-	node.api = _api
+	var body = node.get_node("Body");
+	body.position = pos
+	body.rotation.y = rot_y
 	_local_player = node
 	_zone_container.entities.add_child(node)
 	player_spawned.emit(node)
 
-func _spawn_remote_player(entity: Proto.EntityState, tick: int) -> void:
+func _spawn_remote_player(entity: Proto.EntityPosition, tick: int) -> void:
 	var node := RemotePlayerScene.instantiate()
 	node.name = "RemotePlayer_%d" % entity.get_entity_id()
 	_zone_container.entities.add_child(node)
 	_remote_players[entity.get_entity_id()] = node
-	node.on_entity_diff(entity, tick)
+	node.on_entity_position_diff(entity, tick)
 
 func _despawn_remote_player(id: int) -> void:
 	_remote_players[id].queue_free()

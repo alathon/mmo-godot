@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dki07avh0fjld"]
+
+[ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="1_ocyi7"]
+
+[node name="CameraPivot" type="Node3D" unique_id=1269300943]
+transform = Transform3D(1, 0, 0, 0, 0.9659258, 0.25881904, 0, -0.25881904, 0.9659258, 0, 0, 0)
+script = ExtResource("1_ocyi7")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="." unique_id=1298844576]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.3841858e-07)
+spring_length = 4.0
+
+[node name="Camera" type="Camera3D" parent="SpringArm3D" unique_id=1263478501]
+unique_name_in_owner = true
+physics_interpolation_mode = 2
+cull_mask = 524287
+far = 400.0

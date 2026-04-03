@@ -12,9 +12,9 @@ extends Node
 ## All tick-driven logic should connect to on_tick rather than running its
 ## own accumulator.
 
-signal before_tick_loop
+signal before_tick_loop(tick: int)
 signal on_tick(delta: float, tick: int)
-signal after_tick_loop
+signal after_tick_loop(tick: int)
 signal after_sync   # emitted when the tick loop becomes active
 signal on_tick_reset  # emitted after a hard tick reset; listeners should clear stale state
 
@@ -132,20 +132,19 @@ func _tick_loop(delta: float) -> void:
 	_tick_time += delta * _stretch
 
 	var ticks_this_frame := 0
-	if _tick_time >= _next_tick_time:
-		before_tick_loop.emit()
 
 	while _tick_time >= _next_tick_time and ticks_this_frame < MAX_TICKS_PER_FRAME:
+		before_tick_loop.emit(tick)
 		if _debug:
 			print("[%s] TICK %d | tt=%.4f | ntt=%.4f" % [_role, tick, _tick_time, _next_tick_time])
 		on_tick.emit(Globals.TICK_INTERVAL, tick)
 		tick += 1
 		ticks_this_frame += 1
 		_next_tick_time += Globals.TICK_INTERVAL
+		after_tick_loop.emit(tick)
 
 	if ticks_this_frame > 0:
 		# Re-anchor _process_time to _tick_time so they can't drift apart.
 		# This keeps tick_factor (computed in _process from _process_time)
 		# consistent with _next_tick_time (driven by _tick_time).
 		_process_time = _tick_time
-		after_tick_loop.emit()

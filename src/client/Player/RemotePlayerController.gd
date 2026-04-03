@@ -15,9 +15,9 @@ func _ready() -> void:
 	set_physics_process(false)
 	NetworkTime.on_tick.connect(_on_displacement_tick)
 
-func on_entity_diff(entity: Proto.EntityState, tick: int) -> void:
+func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 	var server_pos := Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
-	var server_rot := entity.get_rot_y()
+	var server_rot: float = entity.get_rot_y()
 	_interpolator.push_snapshot(tick, {
 		"global_position": server_pos,
 		"face_angle": server_rot,

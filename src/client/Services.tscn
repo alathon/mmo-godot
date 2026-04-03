@@ -2,11 +2,7 @@
 
 [ext_resource type="Script" uid="uid://vvo7ggrbjgrw" path="res://src/client/Network/BackendAPI.gd" id="1_4po38"]
 [ext_resource type="Script" uid="uid://lyn3t2l3rqx5" path="res://src/client/Network/NetworkClock.gd" id="2_t2esl"]
-[ext_resource type="Script" uid="uid://bpd6m32l31yfn" path="res://src/client/Player/LocalInput.gd" id="3_0vfmp"]
-[ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="4_7dt86"]
-[ext_resource type="Script" uid="uid://b34d17q5c0w5b" path="res://src/client/Network/TickInterpolator.gd" id="5_5jllb"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="6_mfuft"]
-[ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="7_m5ev8"]
 
 [node name="Services" type="Node" unique_id=1368178531]
 
@@ -24,34 +20,3 @@ metadata/_custom_type_script = "uid://dyjg3a1a48cwy"
 unique_name_in_owner = true
 script = ExtResource("2_t2esl")
 metadata/_custom_type_script = "uid://lyn3t2l3rqx5"
-
-[node name="LocalInput" type="Node" parent="." unique_id=1907464546 node_paths=PackedStringArray("camera")]
-unique_name_in_owner = true
-script = ExtResource("3_0vfmp")
-camera = NodePath("../CameraPivot/SpringArm3D/Camera")
-metadata/_custom_type_script = "uid://bpd6m32l31yfn"
-
-[node name="InputBatcher" type="Node" parent="." unique_id=730546991]
-unique_name_in_owner = true
-script = ExtResource("4_7dt86")
-metadata/_custom_type_script = "uid://cgpkux7vh2jsk"
-
-[node name="TickInterpolator" type="Node" parent="." unique_id=1775335035]
-unique_name_in_owner = true
-script = ExtResource("5_5jllb")
-metadata/_custom_type_script = "uid://b34d17q5c0w5b"
-
-[node name="CameraPivot" type="Node3D" parent="." unique_id=86599721]
-unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 0.9659258, 0.25881904, 0, -0.25881904, 0.9659258, 0, 2, 0)
-script = ExtResource("7_m5ev8")
-
-[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=77587138]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.3841858e-07)
-spring_length = 4.0
-
-[node name="Camera" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=597301510]
-unique_name_in_owner = true
-physics_interpolation_mode = 2
-cull_mask = 524287
-far = 400.0

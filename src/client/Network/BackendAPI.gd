@@ -9,7 +9,8 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 signal connected_to_server
 signal disconnected_from_server
-signal world_diff_received(diff: Proto.WorldDiff)
+signal world_state_received(diff: Proto.WorldState)
+signal world_positions_received(diff: Proto.WorldPositions)
 signal zone_redirect_received(zone_id: String, address: String, port: int, token: String)
 signal player_spawn_received(pos: Vector3, rot_y: float)
 
@@ -114,10 +115,14 @@ var _packets_received: int = 0
 func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
 	var pkt = Proto.Packet.new()
 	pkt.from_bytes(bytes)
-	if pkt.has_world_diff():
-		var diff = pkt.get_world_diff()
+	if pkt.has_world_state():
+		var diff = pkt.get_world_state()
 		_packets_received += 1
-		world_diff_received.emit(diff)
+		world_state_received.emit(diff)
+	elif pkt.has_world_positions():
+		var diff = pkt.get_world_positions()
+		_packets_received += 1
+		world_positions_received.emit(diff)
 	elif pkt.has_clock_pong():
 		%NetworkClock.on_clock_pong(pkt.get_clock_pong())
 	elif pkt.has_zone_redirect():

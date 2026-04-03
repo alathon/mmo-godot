@@ -2,16 +2,17 @@ extends Node3D
 
 @export_range(0.0, 1.0) var mouse_sensitivity = 0.01
 @export var tilt_limit = deg_to_rad(75)
-@export var target: Node3D
 @export var offset: Vector3 = Vector3(0, 2.0, 0)
+@export var _target: Node3D
 
-@onready var _game_manager: GameManager = %GameManager
+@onready var _game_manager: GameManager = $/root/Root/Services/GameManager
+
 
 var _mouse_position_when_hidden = Vector2.ZERO
 
 func _ready() -> void:
-	_game_manager.zone_before_unloading.connect(func(): target = null)
-	_game_manager.player_spawned.connect(func(p): target = p)
+	_game_manager.zone_before_unloading.connect(func(): _target = null)
+	_game_manager.player_spawned.connect(func(p): _target = p.get_node("Visual"))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT):
@@ -29,10 +30,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotation.y += -event.screen_relative.x * mouse_sensitivity
 
 func _process(delta: float):
-	if target != null:
+	if _target != null:
 		# Follow visual_position (smoothed) when available, so the camera
 		# isn't affected by tick-rate jitter from clock stretching.
-		var pos: Vector3 = target.visual_position if &"visual_position" in target else target.global_position
+		var pos: Vector3 = _target.global_position
 		global_position.x = pos.x + offset.x
 		global_position.y = pos.y + offset.y
 		global_position.z = pos.z + offset.z

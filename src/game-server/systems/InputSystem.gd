@@ -1,0 +1,140 @@
+class_name InputSystem
+extends Node
+
+const Proto = preload("res://src/common/proto/packets.gd")
+
+## Reject inputs tagged for ticks further than this into the future.
+const INPUT_FUTURE_LIMIT := 20
+
+## Kick a player if no input received for this many seconds.
+const INPUT_TIMEOUT := 10.0
+
+## peer_id -> { tick: int -> input_dict }
+var _input_buffers: Dictionary[int, Dictionary] = {}
+
+
+func on_player_added(peer_id: int) -> void:
+	_input_buffers[peer_id] = {}
+
+
+func on_player_removed(peer_id: int) -> void:
+	_input_buffers.erase(peer_id)
+
+
+## Buffer a single PlayerInput packet. Call from ServerZone._on_packet().
+func handle_packet(peer_id: int, input: Proto.PlayerInput,
+		players: Dictionary, frozen_peers: Dictionary) -> void:
+	if not players.has(peer_id):
+		return
+	if frozen_peers.has(peer_id):
+		return
+
+	var input_tick: int = input.get_tick()
+	var current_tick: int = NetworkTime.tick
+	var sim_tick := current_tick - Globals.INPUT_BUFFER_SIZE
+
+	if input_tick < sim_tick:
+		print("[INPUT] LATE input from peer %d: input_tick=%d sim_tick=%d (dropped)" % [peer_id, input_tick, sim_tick])
+		return
+	if input_tick > current_tick + INPUT_FUTURE_LIMIT:
+		print("[INPUT] FUTURE input from peer %d: input_tick=%d current=%d (dropped)" % [peer_id, input_tick, current_tick])
+		return
+
+	if not _input_buffers.has(peer_id):
+		_input_buffers[peer_id] = {}
+
+	var buf_entry := {
+		"input_x": input.get_input_x(),
+		"input_z": input.get_input_z(),
+		"jump_pressed": input.get_jump_pressed(),
+		"ability_id": "",
+		"target_entity_id": 0,
+		"ground_x": 0.0, "ground_y": 0.0, "ground_z": 0.0,
+	}
+	if input.has_ability_input():
+		var ai = input.get_ability_input()
+		buf_entry["ability_id"] = ai.get_ability_id()
+		buf_entry["target_entity_id"] = ai.get_target_entity_id()
+		buf_entry["ground_x"] = ai.get_ground_x()
+		buf_entry["ground_y"] = ai.get_ground_y()
+		buf_entry["ground_z"] = ai.get_ground_z()
+	_input_buffers[peer_id][input_tick] = buf_entry
+
+	var state := _get_state(players[peer_id])
+	if state:
+		state.last_input_tick = input_tick
+		if state.first_input_tick < 0:
+			state.first_input_tick = input_tick
+
+
+## Consume buffered inputs for sim_tick. Returns per-player input dicts plus
+## derived sets (ability_inputs, moving_entities) and peers to kick.
+func tick(sim_tick: int, players: Dictionary,
+		frozen_peers: Dictionary) -> Dictionary:
+	var inputs: Dictionary = {}
+	var ability_inputs: Dictionary = {}
+	var moving_entities: Dictionary = {}
+	var kick_peers: Array = []
+
+	var timeout_ticks := int(INPUT_TIMEOUT * Globals.TICK_RATE)
+
+	for peer_id in players:
+		if frozen_peers.has(peer_id):
+			continue
+
+		var state := _get_state(players[peer_id])
+		if state == null:
+			continue
+
+		if sim_tick - state.last_input_tick > timeout_ticks:
+			print("[INPUT] Kicking peer %d: no input for %.0fs" % [peer_id, INPUT_TIMEOUT])
+			kick_peers.append(peer_id)
+			continue
+
+		if state.first_input_tick < 0 or sim_tick < state.first_input_tick:
+			continue
+
+		var buf: Dictionary = _input_buffers.get(peer_id, {})
+		var input: Dictionary
+		if buf.has(sim_tick):
+			input = buf[sim_tick]
+			buf.erase(sim_tick)
+		else:
+			input = state.last_input
+			print("[INPUT] REPLAY input for peer %d at sim_tick=%d" % [peer_id, sim_tick])
+
+		if abs(input.get("input_x", 0.0)) > 0.01 or abs(input.get("input_z", 0.0)) > 0.01:
+			moving_entities[peer_id] = true
+
+		inputs[peer_id] = input
+
+		if input.get("ability_id", "") != "":
+			ability_inputs[peer_id] = {
+				"ability_id": input["ability_id"],
+				"target_entity_id": input.get("target_entity_id", 0),
+				"ground_x": input.get("ground_x", 0.0),
+				"ground_y": input.get("ground_y", 0.0),
+				"ground_z": input.get("ground_z", 0.0),
+			}
+
+		state.last_input = input.duplicate()
+		state.last_input["jump_pressed"] = false
+		state.last_input["ability_id"] = ""
+
+	# Prune inputs older than sim_tick
+	for peer_id in _input_buffers:
+		var buf: Dictionary = _input_buffers[peer_id]
+		for tick_key in buf.keys():
+			if tick_key < sim_tick:
+				buf.erase(tick_key)
+
+	return {
+		"inputs": inputs,
+		"ability_inputs": ability_inputs,
+		"moving_entities": moving_entities,
+		"kick_peers": kick_peers,
+	}
+
+
+func _get_state(player: Node) -> PlayerInputState:
+	return player.get_node_or_null("PlayerInputState") as PlayerInputState

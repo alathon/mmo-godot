@@ -4,6 +4,9 @@
 [ext_resource type="Script" uid="uid://bir8bjydalj26" path="res://src/game-server/combat/CombatManager.gd" id="3_45per"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="4_eu4nw"]
 [ext_resource type="Script" uid="uid://301khd73hpc5" path="res://src/game-server/zones/DebugCamera.gd" id="5_dbgcam"]
+[ext_resource type="Script" path="res://src/game-server/systems/InputSystem.gd" id="6_input"]
+[ext_resource type="Script" path="res://src/game-server/systems/MovementSystem.gd" id="7_move"]
+[ext_resource type="Script" path="res://src/game-server/systems/CombatSystem.gd" id="8_combat"]
 
 [node name="ServerZone" type="Node" unique_id=588403582]
 script = ExtResource("1_ljngd")
@@ -13,8 +16,21 @@ script = ExtResource("1_ljngd")
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=1899178943]
 script = ExtResource("4_eu4nw")
 
-[node name="CombatManager" type="Node" parent="." unique_id=1251288001]
+[node name="Systems" type="Node" parent="." unique_id=1002000001]
+
+[node name="InputSystem" type="Node" parent="Systems" unique_id=1002000002]
 unique_name_in_owner = true
+script = ExtResource("6_input")
+
+[node name="MovementSystem" type="Node" parent="Systems" unique_id=1002000003]
+unique_name_in_owner = true
+script = ExtResource("7_move")
+
+[node name="CombatSystem" type="Node" parent="Systems" unique_id=1002000004]
+unique_name_in_owner = true
+script = ExtResource("8_combat")
+
+[node name="CombatManager" type="Node" parent="Systems/CombatSystem" unique_id=1251288001]
 script = ExtResource("3_45per")
 metadata/_custom_type_script = "uid://bir8bjydalj26"
 

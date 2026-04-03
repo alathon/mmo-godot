@@ -30,6 +30,8 @@ func simulate(input: Dictionary, delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, SPEED)
 
 	# physics_factor is 1.0 when Engine.physics_ticks_per_second == TICK_RATE
-	velocity *= NetworkTime.physics_factor
+	if NetworkTime.physics_factor != 1.0:
+		velocity *= NetworkTime.physics_factor
 	move_and_slide()
-	velocity /= NetworkTime.physics_factor
+	if NetworkTime.physics_factor != 1.0:
+		velocity /= NetworkTime.physics_factor
