@@ -24,6 +24,8 @@ var _pending_arrivals: Dictionary[String, Dictionary] = {}
 @onready var _input_system: InputSystem = %InputSystem
 @onready var _movement_system: MovementSystem = %MovementSystem
 @onready var _combat_system: CombatSystem = %CombatSystem
+@onready var _world_state_system: WorldStateSystem = %WorldStateSystem
+@onready var _world_positions_system: WorldPositionsSystem = %WorldPositionsSystem
 @onready var _zone_container: Node3D = %ZoneContainer
 
 var _current_zone: Node = null
@@ -64,6 +66,12 @@ func _ready() -> void:
 		printerr("[SERVER] Invalid zone_id '%s'. Must be one of: %s" % [zone_id, Globals.ZONE_SCENES.keys()])
 		get_tree().quit(1)
 		return
+
+	_input_system.init(self)
+	_movement_system.init(self)
+	_combat_system.init(self)
+	_world_state_system.init(self, _combat_system)
+	_world_positions_system.init(self)
 
 	_load_zone(zone_id)
 	_connect_zone_borders()
@@ -193,36 +201,17 @@ func _handle_prepare_player(msg: Proto.PreparePlayer) -> void:
 
 func _tick(_delta: float, current_tick: int) -> void:
 	var sim_tick := current_tick - Globals.INPUT_BUFFER_SIZE
+	var ctx: Dictionary = {}
 
-	var tick_data := _input_system.tick(sim_tick, players, _frozen_peers)
+	_input_system.tick(sim_tick, ctx)
 
-	for peer_id in tick_data["kick_peers"]:
+	for peer_id in ctx["kick_peers"]:
 		multiplayer.multiplayer_peer.disconnect_peer(peer_id)
 
-	_movement_system.tick(players, tick_data["inputs"])
-
-	_combat_system.tick(sim_tick, current_tick, players,
-			tick_data["ability_inputs"], tick_data["moving_entities"], _frozen_peers)
-
-	# Unreliable broadcast: positions only
-	var upkt = Proto.Packet.new()
-	var wpos = upkt.new_world_positions()
-	wpos.set_tick(current_tick)
-	for peer_id in players:
-		var player: CommonPlayer = players[peer_id]
-		var ep = wpos.add_entities()
-		ep.set_entity_id(peer_id)
-		ep.set_pos_x(player.global_position.x)
-		ep.set_pos_y(player.global_position.y)
-		ep.set_pos_z(player.global_position.z)
-		ep.set_vel_x(player.velocity.x)
-		ep.set_vel_y(player.velocity.y)
-		ep.set_vel_z(player.velocity.z)
-		ep.set_rot_y(player.face_angle)
-	var ubytes = upkt.to_bytes()
-	for peer_id in players:
-		if not _frozen_peers.has(peer_id):
-			multiplayer.send_bytes(ubytes, peer_id, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
+	_movement_system.tick(sim_tick, ctx)
+	_combat_system.tick(sim_tick, ctx)
+	_world_state_system.tick(sim_tick, ctx)
+	_world_positions_system.tick(sim_tick, ctx)
 
 # ── Packet Handling ────────────────────────────────────────────────────────────
 
@@ -230,17 +219,17 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 	var pkt = Proto.Packet.new()
 	pkt.from_bytes(bytes)
 	if pkt.has_player_input():
-		_input_system.handle_packet(peer_id, pkt.get_player_input(), players, _frozen_peers)
+		_input_system.handle_packet(peer_id, pkt.get_player_input())
 	elif pkt.has_input_batch():
 		for input in pkt.get_input_batch().get_inputs():
-			_input_system.handle_packet(peer_id, input, players, _frozen_peers)
+			_input_system.handle_packet(peer_id, input)
 	elif pkt.has_clock_ping():
 		_handle_clock_ping(peer_id, pkt.get_clock_ping())
 	elif pkt.has_zone_arrival():
 		_handle_zone_arrival(peer_id, pkt.get_zone_arrival())
 	elif pkt.has_target_select():
 		_combat_system.handle_target_select(
-				peer_id, pkt.get_target_select().get_target_entity_id(), players)
+				peer_id, pkt.get_target_select().get_target_entity_id())
 
 func _handle_clock_ping(peer_id: int, ping: Proto.ClockPing) -> void:
 	var pkt = Proto.Packet.new()

@@ -41,8 +41,8 @@ func _on_before_tick_loop(tick: int) -> void:
 	if _pending_server_tick < 0:
 		return
 
-	# The server's WorldDiff at tick T reflects input processed through sim_tick.
-	var sim_tick := _pending_server_tick - Globals.INPUT_BUFFER_SIZE
+	# The server stamps WorldPositions with the sim_tick it was computed from.
+	var sim_tick := _pending_server_tick
 
 	# Check prediction accuracy at sim_tick.
 	var entry: Variant = _predictions_history.get(sim_tick, null)

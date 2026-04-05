@@ -21,7 +21,6 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 
 	# Gather input
 	var input = _input_source.getInput()
-	
 
 	# Apply ability use
 	# ...

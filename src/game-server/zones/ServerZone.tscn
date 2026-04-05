@@ -1,12 +1,13 @@
 [gd_scene format=3 uid="uid://btit4ocb6jg8x"]
 
 [ext_resource type="Script" uid="uid://bd4gjdm2vh75" path="res://src/game-server/zones/ServerZone.gd" id="1_ljngd"]
-[ext_resource type="Script" uid="uid://bir8bjydalj26" path="res://src/game-server/combat/CombatManager.gd" id="3_45per"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="4_eu4nw"]
 [ext_resource type="Script" uid="uid://301khd73hpc5" path="res://src/game-server/zones/DebugCamera.gd" id="5_dbgcam"]
-[ext_resource type="Script" path="res://src/game-server/systems/InputSystem.gd" id="6_input"]
-[ext_resource type="Script" path="res://src/game-server/systems/MovementSystem.gd" id="7_move"]
-[ext_resource type="Script" path="res://src/game-server/systems/CombatSystem.gd" id="8_combat"]
+[ext_resource type="Script" uid="uid://b5c000x04g3ob" path="res://src/game-server/systems/InputSystem.gd" id="6_input"]
+[ext_resource type="Script" uid="uid://ohbmon5y2upw" path="res://src/game-server/systems/MovementSystem.gd" id="7_move"]
+[ext_resource type="Script" uid="uid://50dhkeuh1uu8" path="res://src/game-server/systems/CombatSystem.gd" id="8_combat"]
+[ext_resource type="Script" uid="uid://cq5wdjrt01bt7" path="res://src/game-server/systems/WorldStateSystem.gd" id="9_worldstate"]
+[ext_resource type="Script" uid="uid://d11x7eutpd1mj" path="res://src/game-server/systems/WorldPositionsSystem.gd" id="10_worldpos"]
 
 [node name="ServerZone" type="Node" unique_id=588403582]
 script = ExtResource("1_ljngd")
@@ -30,9 +31,13 @@ script = ExtResource("7_move")
 unique_name_in_owner = true
 script = ExtResource("8_combat")
 
-[node name="CombatManager" type="Node" parent="Systems/CombatSystem" unique_id=1251288001]
-script = ExtResource("3_45per")
-metadata/_custom_type_script = "uid://bir8bjydalj26"
+[node name="WorldStateSystem" type="Node" parent="Systems" unique_id=1002000005]
+unique_name_in_owner = true
+script = ExtResource("9_worldstate")
+
+[node name="WorldPositionsSystem" type="Node" parent="Systems" unique_id=1002000006]
+unique_name_in_owner = true
+script = ExtResource("10_worldpos")
 
 [node name="ZoneContainer" type="Node3D" parent="." unique_id=1320743261]
 unique_name_in_owner = true

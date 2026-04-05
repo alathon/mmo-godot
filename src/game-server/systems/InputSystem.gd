@@ -12,6 +12,12 @@ const INPUT_TIMEOUT := 10.0
 ## peer_id -> { tick: int -> input_dict }
 var _input_buffers: Dictionary[int, Dictionary] = {}
 
+var _zone: Node
+
+
+func init(zone: Node) -> void:
+	_zone = zone
+
 
 func on_player_added(peer_id: int) -> void:
 	_input_buffers[peer_id] = {}
@@ -22,8 +28,9 @@ func on_player_removed(peer_id: int) -> void:
 
 
 ## Buffer a single PlayerInput packet. Call from ServerZone._on_packet().
-func handle_packet(peer_id: int, input: Proto.PlayerInput,
-		players: Dictionary, frozen_peers: Dictionary) -> void:
+func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
+	var players: Dictionary = _zone.players
+	var frozen_peers: Dictionary = _zone._frozen_peers
 	if not players.has(peer_id):
 		return
 	if frozen_peers.has(peer_id):
@@ -67,10 +74,11 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput,
 			state.first_input_tick = input_tick
 
 
-## Consume buffered inputs for sim_tick. Returns per-player input dicts plus
-## derived sets (ability_inputs, moving_entities) and peers to kick.
-func tick(sim_tick: int, players: Dictionary,
-		frozen_peers: Dictionary) -> Dictionary:
+## Consume buffered inputs for sim_tick. Writes inputs, ability_inputs,
+## moving_entities, and kick_peers into ctx.
+func tick(tick: int, ctx: Dictionary) -> void:
+	var players: Dictionary = _zone.players
+	var frozen_peers: Dictionary = _zone._frozen_peers
 	var inputs: Dictionary = {}
 	var ability_inputs: Dictionary = {}
 	var moving_entities: Dictionary = {}
@@ -86,22 +94,22 @@ func tick(sim_tick: int, players: Dictionary,
 		if state == null:
 			continue
 
-		if sim_tick - state.last_input_tick > timeout_ticks:
+		if tick - state.last_input_tick > timeout_ticks:
 			print("[INPUT] Kicking peer %d: no input for %.0fs" % [peer_id, INPUT_TIMEOUT])
 			kick_peers.append(peer_id)
 			continue
 
-		if state.first_input_tick < 0 or sim_tick < state.first_input_tick:
+		if state.first_input_tick < 0 or tick < state.first_input_tick:
 			continue
 
 		var buf: Dictionary = _input_buffers.get(peer_id, {})
 		var input: Dictionary
-		if buf.has(sim_tick):
-			input = buf[sim_tick]
-			buf.erase(sim_tick)
+		if buf.has(tick):
+			input = buf[tick]
+			buf.erase(tick)
 		else:
 			input = state.last_input
-			print("[INPUT] REPLAY input for peer %d at sim_tick=%d" % [peer_id, sim_tick])
+			print("[INPUT] REPLAY input for peer %d at sim_tick=%d" % [peer_id, tick])
 
 		if abs(input.get("input_x", 0.0)) > 0.01 or abs(input.get("input_z", 0.0)) > 0.01:
 			moving_entities[peer_id] = true
@@ -125,15 +133,13 @@ func tick(sim_tick: int, players: Dictionary,
 	for peer_id in _input_buffers:
 		var buf: Dictionary = _input_buffers[peer_id]
 		for tick_key in buf.keys():
-			if tick_key < sim_tick:
+			if tick_key < tick:
 				buf.erase(tick_key)
 
-	return {
-		"inputs": inputs,
-		"ability_inputs": ability_inputs,
-		"moving_entities": moving_entities,
-		"kick_peers": kick_peers,
-	}
+	ctx["inputs"] = inputs
+	ctx["ability_inputs"] = ability_inputs
+	ctx["moving_entities"] = moving_entities
+	ctx["kick_peers"] = kick_peers
 
 
 func _get_state(player: Node) -> PlayerInputState:

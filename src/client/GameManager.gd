@@ -19,6 +19,8 @@ var _local_player: Player
 var _remote_players: Dictionary[int, RemoteEntity]
 
 func _ready() -> void:
+	Engine.physics_ticks_per_second = Globals.TICK_RATE
+
 	_api.world_positions_received.connect(_on_world_positions)
 	_api.world_state_received.connect(_on_world_state)
 	_api.zone_redirect_received.connect(_on_zone_redirect)
