@@ -8,17 +8,11 @@ var zone_id: String = ""
 @export var MAX_CLIENTS: int = 32
 @export var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9000"
 
-## How many ticks a player is immune to zone borders after arriving.
-const BORDER_IMMUNITY_TICKS := 40  # 2 seconds at 20 tick/s
-
 ## peer_id -> ServerPlayer node
 var players: Dictionary[int, CommonPlayer] = {}
 
 ## Peers frozen during zone transfer (excluded from simulation and broadcast).
 var _frozen_peers: Dictionary[int, bool] = {}
-
-## Peers with zone border immunity after arrival: peer_id -> expiry tick.
-var _border_immunity: Dictionary[int, int] = {}
 
 ## transfer_token -> { peer_id, target_zone_id, target_address, target_port }
 var _pending_redirects: Dictionary[String, Dictionary] = {}
@@ -282,7 +276,6 @@ func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
 
 func _remove_player(id: int) -> void:
 	_frozen_peers.erase(id)
-	_border_immunity.erase(id)
 	if players.has(id):
 		players[id].queue_free()
 		players.erase(id)
@@ -358,7 +351,6 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 		var state := player.get_node("PlayerInputState") as PlayerInputState
 		state.first_input_tick = -1
 		_input_system.on_player_added(peer_id)  # reset input buffer
-	_border_immunity[peer_id] = NetworkTime.tick + BORDER_IMMUNITY_TICKS
 	print("[SERVER] peer=%d ARRIVED at pos=%s rot_y=%.2f spawn_path='%s'" % [peer_id, spawn_pos, spawn_rot, spawn_path])
 
 	var spawn_pkt := Proto.Packet.new()

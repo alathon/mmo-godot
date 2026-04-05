@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://ctnlygx574ksl" path="res://src/common/CommonPlayer.gd" id="1_ju8tq"]
 [ext_resource type="Script" uid="uid://bjdmsc7b2sykg" path="res://src/game-server/PlayerInputState.gd" id="2_state"]
-[ext_resource type="Script" path="res://src/common/MobStats.gd" id="3_mobstats"]
-[ext_resource type="Script" path="res://src/common/MobCooldowns.gd" id="4_mobcd"]
-[ext_resource type="Script" path="res://src/common/MobCombatState.gd" id="5_mobcs"]
+[ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/MobStats.gd" id="3_mobstats"]
+[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/MobCooldowns.gd" id="4_mobcd"]
+[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/MobCombatState.gd" id="5_mobcs"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 

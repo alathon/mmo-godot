@@ -45,6 +45,7 @@ func load_zone(zone_id: String) -> void:
 	print("[CLIENT] Zone loading: %s" % zone_id)
 	_zone_id = zone_id
 	_zone = (load(Globals.ZONE_SCENES[zone_id]) as PackedScene).instantiate()
+	_zone.name = zone_id
 	add_child(_zone)
 	_entities = _zone.get_node("Entities")
 

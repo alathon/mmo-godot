@@ -14,6 +14,10 @@ extends CharacterBody3D
 @export_range(4.5, 10.0) var JumpVelocity = 4.5
 @export_range(1.0, 30.0) var TurnSpeed = 10.0
 
+var face_angle: float:
+	get: return rotation.y
+	set(v): rotation.y = v
+
 func simulate(input: Dictionary, delta: float) -> void:
 	velocity += get_gravity() * delta  # always; move_and_slide zeroes it on floor contact
 
