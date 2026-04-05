@@ -11,7 +11,7 @@ extends Node3D
 var _mouse_position_when_hidden = Vector2.ZERO
 
 func _ready() -> void:
-	_zone_container.zone_before_unloading.connect(func(): _target = null)
+	_zone_container.zone_before_unloading.connect(func(_id): _target = null)
 	_game_manager.local_player_spawned.connect(func(p): _target = p.get_node("Visual"))
 
 func _unhandled_input(event: InputEvent) -> void:

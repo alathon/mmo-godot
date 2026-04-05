@@ -8,6 +8,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 var last_server_pos: Vector3
 var last_server_rot: float
 var last_server_tick: int
+var id: int
 
 func _ready() -> void:
 	set_physics_process(false)

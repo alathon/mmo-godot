@@ -43,6 +43,9 @@ func _on_zone_redirect(zone_id: String, address: String, port: int, token: Strin
 	_pending_transfer_token = token
 	_awaiting_initial_clock_sync = true
 
+	_remote_players.clear()
+	_local_player = null
+
 	if _zone_container:
 		_zone_container.unload_zone()
 		_zone_container.load_zone(zone_id)
@@ -58,12 +61,12 @@ func _on_connected_to_server() -> void:
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	_local_player = LocalPlayerScene.instantiate() as Player
+	_zone_container.add_entity(_local_player)
 	_local_player.name = "LocalPlayer"
 	_local_player.id = multiplayer.get_unique_id()
 	var body = _local_player.get_node("Body");
 	body.position = pos
 	body.rotation.y = rot_y
-	_zone_container.add_entity(_local_player)
 	local_player_spawned.emit(_local_player)
 
 func get_local_player_id() -> int:
@@ -77,16 +80,16 @@ func _on_world_state(diff: Proto.WorldState) -> void:
 # e.g., add to _entities and trigger a spawn event etc.
 func _spawn_remote_player(id: int, pos: Vector3, rot_y: float) -> void:
 	var node: RemoteEntity = RemoteEntityScene.instantiate()
+	_zone_container.add_entity(node)
 	node.name = "RemotePlayer_%d" % id
 	node.id = id
 	_remote_players[id] = node
 	node.global_position = pos
 	node.rotation.y = rot_y
-	_zone_container.add_entity(node)
 	remote_player_spawned.emit(node)
 
 func _despawn_remote_player(id: int) -> void:
-	_zone_container.remove_entity(_remote_players[id])
+	print("Despawn remote player %d called" % id)
 	_remote_players[id].queue_free()
 	_remote_players.erase(id)
 
@@ -114,4 +117,5 @@ func _on_world_positions(diff: Proto.WorldPositions) -> void:
 
 	for id in _remote_players.keys():
 		if not seen_ids.has(id):
+			print("Despawning remote player %d as they're no longer present in WorldPositions" % id)
 			_despawn_remote_player(id)
