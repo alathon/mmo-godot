@@ -2,92 +2,52 @@ class_name GameManager
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
-const RemotePlayerScene = preload("res://src/client/Player/RemotePlayer.tscn")
+const RemoteEntityScene = preload("res://src/client/RemoteEntity.tscn")
 const LocalPlayerScene = preload("res://src/client/Player/Player.tscn")
 
 const CORRECTION_THRESHOLD = 1.0
 
-signal zone_before_unloading
-signal zone_unloading
-signal zone_before_loading(zone_id: String)
-signal zone_loaded(zone_id: String)
-signal player_spawned(player: Player)
+signal local_player_spawned(player: Player)
+signal remote_player_spawned(player: RemoteEntity)
 
 @onready var _api: BackendAPI = %BackendAPI
+@onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
 
-var _zone_container: ZoneContainer = null
-var _local_player: Player = null
-var _remote_players: Dictionary[int, RemotePlayerController] = {}
 var _pending_transfer_token: String = ""
+var _awaiting_initial_clock_sync: bool = true
+var _local_player: Player
+var _remote_players: Dictionary[int, RemoteEntity]
 
 func _ready() -> void:
-	_api.world_positions_received.connect(on_world_positions)
-	_api.world_state_received.connect(on_world_state)
+	_api.world_positions_received.connect(_on_world_positions)
+	_api.world_state_received.connect(_on_world_state)
 	_api.zone_redirect_received.connect(_on_zone_redirect)
 	_api.player_spawn_received.connect(_on_player_spawn)
 	_api.connected_to_server.connect(_on_connected_to_server)
+	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
 	NetworkTime.after_sync.connect(_on_clock_synced)
-	_zone_container = $"../../ZoneContainer"
-	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
-
-func _swap_zone_container(zone_id: String) -> void:
-	# Completely destroy the local player — it will be re-created fresh by
-	# _on_player_spawn once the new server confirms the spawn position.
-	if _local_player:
-		_local_player.queue_free()
-		_local_player = null
-	zone_before_unloading.emit()
-	_zone_container.queue_free()
-	zone_unloading.emit.call_deferred()
-	_zone_container = ZoneContainer.new()
-	_zone_container.name = "ZoneContainer"
-	get_parent().add_child(_zone_container)
-	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
-	zone_before_loading.emit(zone_id)
-	_zone_container.load_zone(zone_id)
-	zone_loaded.emit(zone_id)
-
-func _on_zone_border_entered(body: Node3D) -> void:
-	if body == _local_player:
-		freeze_local_player()
-
-func freeze_local_player() -> void:
-	print("[CLIENT] Player frozen")
-	_local_player.frozen = true
-	_local_player.velocity = Vector3.ZERO
-	# Clear all prediction/reconciliation state so nothing stale leaks into the new zone.
-	_local_player._input_history.clear()
-	_local_player._pending_server_tick = -1
-	%InputBatcher.clear()
-	print("[CLIENT] Input history, pending server tick, and input batcher cleared")
-
-func unfreeze_local_player() -> void:
-	print("[CLIENT] Player unfrozen")
-	_local_player.frozen = false
-	#_local_player.set_physics_process(true)
-	# Don't clear _pending_server_tick here — any diff received from the new
-	# server while frozen should apply on the first reconcile after unfreeze.
 
 func _on_clock_synced() -> void:
-	# Fires after every successful clock sync (initial connect and zone transfers).
-	# Only unfreeze if there's a live player — on the very first sync the local
-	# player hasn't been spawned yet and the frozen flag isn't set.
-	if _local_player != null and _local_player.frozen:
-		unfreeze_local_player()
+	# If this is the first 'fresh' clock sync, unfreeze player
+	if _awaiting_initial_clock_sync and _local_player:
+		_local_player.unfreeze()
+		_awaiting_initial_clock_sync = false
+
+func _on_zone_border_entered(node: Variant):
+	var player := node.get_parent() as Player if node is PhysicsBody else null
+	if player:
+		player.freeze()
 
 func _on_zone_redirect(zone_id: String, address: String, port: int, token: String) -> void:
 	print("[CLIENT] Zone redirect → %s at %s:%d" % [zone_id, address, port])
 	_pending_transfer_token = token
+	_awaiting_initial_clock_sync = true
 
-	# Clear all remote players.
-	for id in _remote_players.keys():
-		_despawn_remote_player(id)
+	if _zone_container:
+		_zone_container.unload_zone()
+		_zone_container.load_zone(zone_id)
 
-	# Swap to a fresh ZoneContainer for the new zone.
-	_swap_zone_container(zone_id)
-
-	# Reconnect — this triggers a fresh clock sync on the new server.
-	# Player stays frozen until _on_clock_synced fires.
+	# Connect to new server.
 	_api.reconnect(address, port)
 
 func _on_connected_to_server() -> void:
@@ -95,55 +55,63 @@ func _on_connected_to_server() -> void:
 		print("[CLIENT] Sending ZoneArrival (token=%s)" % _pending_transfer_token)
 		_api.send_zone_arrival(_pending_transfer_token)
 		_pending_transfer_token = ""
-		# Do not unfreeze here — clock sync with the new server must complete
-		# first. Unfreeze happens in _on_clock_synced via NetworkTime.after_sync.
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
-	_spawn_local_player(pos, rot_y)
+	_local_player = LocalPlayerScene.instantiate() as Player
+	_local_player.name = "LocalPlayer"
+	_local_player.id = multiplayer.get_unique_id()
+	var body = _local_player.get_node("Body");
+	body.position = pos
+	body.rotation.y = rot_y
+	_zone_container.add_entity(_local_player)
+	local_player_spawned.emit(_local_player)
 
-func on_world_state(diff: Proto.WorldState) -> void:
+func get_local_player_id() -> int:
+	return multiplayer.get_unique_id()
+
+func _on_world_state(diff: Proto.WorldState) -> void:
 	return
 
-func on_world_positions(diff: Proto.WorldPositions) -> void:
-	if _local_player != null and _local_player.frozen:
-		return
-	var local_id := multiplayer.get_unique_id()
+# TODO: Move local player instantiation from variables somewhere more sensible.
+# This method should just get a RemoteEntity ref, which it'll then
+# e.g., add to _entities and trigger a spawn event etc.
+func _spawn_remote_player(id: int, pos: Vector3, rot_y: float) -> void:
+	var node: RemoteEntity = RemoteEntityScene.instantiate()
+	node.name = "RemotePlayer_%d" % id
+	node.id = id
+	_remote_players[id] = node
+	node.global_position = pos
+	node.rotation.y = rot_y
+	_zone_container.add_entity(node)
+	remote_player_spawned.emit(node)
+
+func _despawn_remote_player(id: int) -> void:
+	_zone_container.remove_entity(_remote_players[id])
+	_remote_players[id].queue_free()
+	_remote_players.erase(id)
+
+func _on_world_positions(diff: Proto.WorldPositions) -> void:
+	var local_id := multiplayer.get_unique_id() # TODO: Are we sure it should be the unique ID from this node?? Feels iffy.
 	var tick: int = diff.get_tick()
 	var seen_ids := {}
 
 	for entity in diff.get_entities():
 		var id := entity.get_entity_id()
-
+		var pos := Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
+		var rot := entity.get_rot_y()
 		seen_ids[id] = true
 		if id == local_id:
 			if _local_player != null:
+				# TODO: Change on_entity_position_diff to not take a Proto message but the resolved
+				# values?
 				_local_player.on_entity_position_diff(entity, tick)
 		elif not _remote_players.has(id):
-			_spawn_remote_player(entity, tick)
+			_spawn_remote_player(id, pos, rot)
 		else:
+			# TODO: Change on_entity_position_diff to not take a Proto message but the resolved
+			# values?
 			_remote_players[id].on_entity_position_diff(entity, tick)
 
 	for id in _remote_players.keys():
 		if not seen_ids.has(id):
 			_despawn_remote_player(id)
-
-func _spawn_local_player(pos: Vector3, rot_y: float) -> void:
-	var node := LocalPlayerScene.instantiate() as Player
-	node.name = "LocalPlayer"
-	var body = node.get_node("Body");
-	body.position = pos
-	body.rotation.y = rot_y
-	_local_player = node
-	_zone_container.entities.add_child(node)
-	player_spawned.emit(node)
-
-func _spawn_remote_player(entity: Proto.EntityPosition, tick: int) -> void:
-	var node := RemotePlayerScene.instantiate()
-	node.name = "RemotePlayer_%d" % entity.get_entity_id()
-	_zone_container.entities.add_child(node)
-	_remote_players[entity.get_entity_id()] = node
-	node.on_entity_position_diff(entity, tick)
-
-func _despawn_remote_player(id: int) -> void:
-	_remote_players[id].queue_free()
-	_remote_players.erase(id)

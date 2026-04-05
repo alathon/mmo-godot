@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bsj7uwoptk35d"]
+
+[ext_resource type="Script" uid="uid://dihdjnvj7ctd6" path="res://src/client/ZoneContainer.gd" id="1_ijwx1"]
+
+[node name="ZoneContainer" type="Node" unique_id=909017122]
+script = ExtResource("1_ijwx1")

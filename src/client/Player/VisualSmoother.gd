@@ -16,6 +16,7 @@ extends Node3D
 
 @export var Body: PhysicsBody
 @export var InputSource: LocalInput
+@export var PlayerNode: Player
 
 ## The smoothed position. External systems (e.g. camera) can read this.
 var smooth_position: Vector3 = Vector3.ZERO
@@ -41,7 +42,7 @@ func _process(delta: float) -> void:
 
 	var ix: float = InputSource.movement.x
 	var iz: float = InputSource.movement.z
-	var has_input := ix != 0.0 or iz != 0.0
+	var has_input := (ix != 0.0 or iz != 0.0) and not PlayerNode.frozen
 
 	if has_input:
 		smooth_position.x += ix * Body.Speed * delta

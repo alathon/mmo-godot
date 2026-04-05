@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://c7xws7v484fy6"]
+
+[ext_resource type="Script" uid="uid://dofw20g8w3wwh" path="res://src/client/RemoteEntity.gd" id="1_548v2"]
+[ext_resource type="Script" uid="uid://cocfhahrnkgmx" path="res://src/client/Player/RemoteInterpolator.gd" id="2_al5b1"]
+[ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/MobStats.gd" id="2_mflae"]
+[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/MobCooldowns.gd" id="3_fb5u3"]
+[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/MobCombatState.gd" id="4_d2d2f"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_0bete"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_txnpl"]
+
+[node name="RemoteEntity" type="Node3D" unique_id=128571049]
+script = ExtResource("1_548v2")
+
+[node name="Mob" type="Node" parent="." unique_id=1730442433]
+
+[node name="Stats" type="Node" parent="Mob" unique_id=259758511]
+unique_name_in_owner = true
+script = ExtResource("2_mflae")
+metadata/_custom_type_script = "uid://cenagcfbynsvi"
+
+[node name="Cooldowns" type="Node" parent="Mob" unique_id=816089517]
+unique_name_in_owner = true
+script = ExtResource("3_fb5u3")
+metadata/_custom_type_script = "uid://c0vciefuf5kvn"
+
+[node name="Combat" type="Node" parent="Mob" unique_id=1310626123]
+unique_name_in_owner = true
+script = ExtResource("4_d2d2f")
+metadata/_custom_type_script = "uid://cefh7khctl77p"
+
+[node name="Visual" type="MeshInstance3D" parent="." unique_id=1152758261]
+unique_name_in_owner = true
+mesh = SubResource("CapsuleMesh_0bete")
+
+[node name="Nose" type="MeshInstance3D" parent="Visual" unique_id=1147433610]
+transform = Transform3D(0.19999999, 0, 0, 0, 0.19999999, 0, 0, 0, 0.19999999, 0, 0.45133114, -0.5521852)
+mesh = SubResource("BoxMesh_txnpl")
+
+[node name="RemoteInterpolator" type="Node" parent="Visual" unique_id=600016612]
+unique_name_in_owner = true
+script = ExtResource("2_al5b1")

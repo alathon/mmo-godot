@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="17_debug"]
 [ext_resource type="Script" uid="uid://dihdjnvj7ctd6" path="res://src/client/ZoneContainer.gd" id="19_zc"]
 
-[node name="Root" type="Node3D" unique_id=145430831]
+[node name="Root" type="Node" unique_id=1549339425]
 
 [node name="Services" parent="." unique_id=1368178531 instance=ExtResource("1_56ghg")]
 
@@ -14,7 +14,10 @@ script = ExtResource("17_debug")
 
 [node name="CameraPivot" parent="." unique_id=1269300943 instance=ExtResource("3_56ghg")]
 
-[node name="ZoneContainer" type="Node3D" parent="." unique_id=1320743261]
+[node name="Camera" parent="CameraPivot/SpringArm3D" parent_id_path=PackedInt32Array(1269300943, 1298844576) index="0" unique_id=1263478501]
+current = true
+
+[node name="ZoneContainer" type="Node" parent="." unique_id=1742699100]
 unique_name_in_owner = true
 script = ExtResource("19_zc")
 

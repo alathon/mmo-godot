@@ -302,8 +302,8 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 		return
 	if _frozen_peers.has(peer_id):
 		return
-	if _border_immunity.has(peer_id) and NetworkTime.tick < _border_immunity[peer_id]:
-		return
+	#if _border_immunity.has(peer_id) and NetworkTime.tick < _border_immunity[peer_id]:
+	#	return
 
 	print("[SERVER] Peer %d entered zone border → %s (spawn_path='%s')" % [
 		peer_id, border.target_zone_id, border.target_spawn_path])

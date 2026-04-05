@@ -1,8 +1,6 @@
 class_name PhysicsBody
 extends CharacterBody3D
 
-const Proto = preload("res://src/common/proto/packets.gd")
-
 @onready var _physics_debug: MeshInstance3D = %PhysicsDebug
 
 ## Show a translucent red capsule at the physics body position.

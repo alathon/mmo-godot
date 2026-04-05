@@ -15,9 +15,6 @@ const Proto = preload("res://src/common/proto/packets.gd")
 var _current_batch: Array[Dictionary] = []
 var _previous_batch: Array[Dictionary] = []
 
-func _ready() -> void:
-	_game_manager.zone_before_unloading.connect(clear)
-
 func clear() -> void:
 	_current_batch.clear()
 	_previous_batch.clear()

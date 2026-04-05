@@ -5,14 +5,14 @@ extends Node3D
 @export var offset: Vector3 = Vector3(0, 2.0, 0)
 @export var _target: Node3D
 
+@onready var _zone_container: ZoneContainer = $/root/Root/ZoneContainer
 @onready var _game_manager: GameManager = $/root/Root/Services/GameManager
-
 
 var _mouse_position_when_hidden = Vector2.ZERO
 
 func _ready() -> void:
-	_game_manager.zone_before_unloading.connect(func(): _target = null)
-	_game_manager.player_spawned.connect(func(p): _target = p.get_node("Visual"))
+	_zone_container.zone_before_unloading.connect(func(): _target = null)
+	_game_manager.local_player_spawned.connect(func(p): _target = p.get_node("Visual"))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT):
@@ -29,7 +29,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotation.x = clampf(rotation.x, -tilt_limit, tilt_limit)
 		rotation.y += -event.screen_relative.x * mouse_sensitivity
 
-func _process(delta: float):
+func _process(_delta: float):
 	if _target != null:
 		# Follow visual_position (smoothed) when available, so the camera
 		# isn't affected by tick-rate jitter from clock stretching.
