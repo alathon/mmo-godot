@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://d0euetlf8pr7k"]
+
+[ext_resource type="Script" uid="uid://naetria54hrc" path="res://src/client/Player/Player.gd" id="1_fg3qq"]
+[ext_resource type="Script" uid="uid://bt4wkae1gvxgb" path="res://src/client/Bot/BotInput.gd" id="2_fg3qq"]
+[ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="3_pnqga"]
+[ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="4_xiffd"]
+[ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/MobStats.gd" id="5_pdq4c"]
+[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/MobCooldowns.gd" id="6_6d5tf"]
+[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/MobCombatState.gd" id="7_0i5rw"]
+[ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="8_842t5"]
+[ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="9_ph7ab"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ag42k"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_txxbj"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.2, 0.2, 0.3)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ymcag"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_0ciy7"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_fhs4s"]
+
+[node name="Player" type="Node" unique_id=725161409]
+script = ExtResource("1_fg3qq")
+
+[node name="LocalInput" type="Node" parent="." unique_id=621228239]
+unique_name_in_owner = true
+script = ExtResource("2_fg3qq")
+
+[node name="InputBatcher" type="Node" parent="." unique_id=785858822]
+unique_name_in_owner = true
+script = ExtResource("3_pnqga")
+metadata/_custom_type_script = "uid://cgpkux7vh2jsk"
+
+[node name="CSP" type="Node" parent="." unique_id=1481725419 node_paths=PackedStringArray("_body")]
+unique_name_in_owner = true
+script = ExtResource("4_xiffd")
+_body = NodePath("../Body")
+metadata/_custom_type_script = "uid://vp3i6edrewfe"
+
+[node name="Mob" type="Node" parent="." unique_id=2124211284]
+unique_name_in_owner = true
+
+[node name="Stats" type="Node" parent="Mob" unique_id=1928103712]
+unique_name_in_owner = true
+script = ExtResource("5_pdq4c")
+metadata/_custom_type_script = "uid://cenagcfbynsvi"
+
+[node name="Cooldowns" type="Node" parent="Mob" unique_id=1638668892]
+unique_name_in_owner = true
+script = ExtResource("6_6d5tf")
+metadata/_custom_type_script = "uid://c0vciefuf5kvn"
+
+[node name="Combat" type="Node" parent="Mob" unique_id=433276288]
+unique_name_in_owner = true
+script = ExtResource("7_0i5rw")
+metadata/_custom_type_script = "uid://cefh7khctl77p"
+
+[node name="Body" type="CharacterBody3D" parent="." unique_id=1777602489]
+unique_name_in_owner = true
+collision_mask = 2
+script = ExtResource("8_842t5")
+
+[node name="Collider" type="CollisionShape3D" parent="Body" unique_id=1118784669]
+unique_name_in_owner = true
+shape = SubResource("CapsuleShape3D_ag42k")
+
+[node name="PhysicsDebug" type="MeshInstance3D" parent="Body" unique_id=1505050172]
+unique_name_in_owner = true
+material_override = SubResource("StandardMaterial3D_txxbj")
+mesh = SubResource("CapsuleMesh_ymcag")
+
+[node name="Visual" type="MeshInstance3D" parent="." unique_id=1052407985 node_paths=PackedStringArray("Body", "InputSource", "PlayerNode")]
+unique_name_in_owner = true
+mesh = SubResource("CapsuleMesh_0ciy7")
+script = ExtResource("9_ph7ab")
+Body = NodePath("../Body")
+InputSource = NodePath("../LocalInput")
+PlayerNode = NodePath("..")
+
+[node name="Nose" type="MeshInstance3D" parent="Visual" unique_id=663002099]
+transform = Transform3D(0.19999999, 0, 0, 0, 0.19999999, 0, 0, 0, 0.19999999, 0, 0.45133114, -0.5521852)
+mesh = SubResource("BoxMesh_fhs4s")

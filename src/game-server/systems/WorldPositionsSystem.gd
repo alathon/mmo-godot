@@ -19,16 +19,16 @@ func tick(tick: int, ctx: Dictionary) -> void:
 	var wpos := upkt.new_world_positions()
 	wpos.set_tick(tick)
 	for peer_id in players:
-		var player: CommonPlayer = players[peer_id]
+		var body: PhysicsBody = players[peer_id].body
 		var ep := wpos.add_entities()
 		ep.set_entity_id(peer_id)
-		ep.set_pos_x(player.global_position.x)
-		ep.set_pos_y(player.global_position.y)
-		ep.set_pos_z(player.global_position.z)
-		ep.set_vel_x(player.velocity.x)
-		ep.set_vel_y(player.velocity.y)
-		ep.set_vel_z(player.velocity.z)
-		ep.set_rot_y(player.face_angle)
+		ep.set_pos_x(body.global_position.x)
+		ep.set_pos_y(body.global_position.y)
+		ep.set_pos_z(body.global_position.z)
+		ep.set_vel_x(body.velocity.x)
+		ep.set_vel_y(body.velocity.y)
+		ep.set_vel_z(body.velocity.z)
+		ep.set_rot_y(body.face_angle)
 	var ubytes := upkt.to_bytes()
 	for peer_id in players:
 		if not frozen_peers.has(peer_id):

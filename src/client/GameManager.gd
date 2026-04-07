@@ -13,6 +13,8 @@ signal remote_player_spawned(player: RemoteEntity)
 @onready var _api: BackendAPI = %BackendAPI
 @onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
 
+@export var BotMode: bool = false
+
 var _pending_transfer_token: String = ""
 var _awaiting_initial_clock_sync: bool = true
 var _local_player: Player
@@ -62,7 +64,11 @@ func _on_connected_to_server() -> void:
 		_pending_transfer_token = ""
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
-	_local_player = LocalPlayerScene.instantiate() as Player
+	if BotMode == true:
+		_local_player = (load("res://src/client/Player/BotPlayer.tscn")).instantiate() as Player
+	else:
+		_local_player = LocalPlayerScene.instantiate() as Player
+
 	_zone_container.add_entity(_local_player)
 	_local_player.name = "LocalPlayer"
 	_local_player.id = multiplayer.get_unique_id()

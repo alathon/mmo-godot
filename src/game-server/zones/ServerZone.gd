@@ -9,7 +9,7 @@ var zone_id: String = ""
 @export var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9000"
 
 ## peer_id -> ServerPlayer node
-var players: Dictionary[int, CommonPlayer] = {}
+var players: Dictionary[int, ServerPlayer] = {}
 
 ## Peers frozen during zone transfer (excluded from simulation and broadcast).
 var _frozen_peers: Dictionary[int, bool] = {}
@@ -253,11 +253,11 @@ func _on_peer_disconnected(id: int) -> void:
 
 func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
 	print("[SERVER] Spawning player %d at %s" % [id, position])
-	var player := ServerPlayerScene.instantiate() as CommonPlayer
+	var player := ServerPlayerScene.instantiate() as ServerPlayer
 	player.name = "ServerPlayer_%d" % id
 	_entities.add_child(player)
-	player.global_position = position
-	player.rotation.y = rot_y
+	player.body.global_position = position
+	player.body.rotation.y = rot_y
 	players[id] = player
 	var state := player.get_node("PlayerInputState") as PlayerInputState
 	state.last_input_tick = NetworkTime.tick
@@ -291,9 +291,9 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 		peer_id, border.target_zone_id, border.target_spawn_path])
 
 	_frozen_peers[peer_id] = true
-	print("[SERVER] peer=%d FROZEN for zone transfer at pos=%s" % [peer_id, players[peer_id].global_position])
-	var player: CommonPlayer = players[peer_id]
-	player.velocity = Vector3.ZERO
+	var player: ServerPlayer = players[peer_id]
+	print("[SERVER] peer=%d FROZEN for zone transfer at pos=%s" % [peer_id, player.body.global_position])
+	player.body.velocity = Vector3.ZERO
 	_input_system.on_player_added(peer_id)  # clear input buffer
 	var pkt := Proto.OrchestratorPacket.new()
 	var req := pkt.new_zone_transfer_request()
@@ -302,13 +302,13 @@ func _on_zone_border_entered(body: Node3D, border: ZoneBorder) -> void:
 	req.set_to_zone_id(border.target_zone_id)
 	req.set_entry_spawn_path(border.target_spawn_path)
 	var state := req.new_player_state()
-	state.set_pos_x(player.global_position.x)
-	state.set_pos_y(player.global_position.y)
-	state.set_pos_z(player.global_position.z)
-	state.set_vel_x(player.velocity.x)
-	state.set_vel_y(player.velocity.y)
-	state.set_vel_z(player.velocity.z)
-	state.set_rot_y(player.face_angle)
+	state.set_pos_x(player.body.global_position.x)
+	state.set_pos_y(player.body.global_position.y)
+	state.set_pos_z(player.body.global_position.z)
+	state.set_vel_x(player.body.velocity.x)
+	state.set_vel_y(player.body.velocity.y)
+	state.set_vel_z(player.body.velocity.z)
+	state.set_rot_y(player.body.face_angle)
 	_send_to_orchestrator(pkt)
 
 func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
@@ -333,10 +333,10 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 	if not players.has(peer_id):
 		_spawn_player(peer_id, spawn_pos, spawn_rot)
 	else:
-		var player: CommonPlayer = players[peer_id]
-		player.global_position = spawn_pos
-		player.rotation.y = spawn_rot
-		player.velocity = Vector3.ZERO
+		var player: ServerPlayer = players[peer_id]
+		player.body.global_position = spawn_pos
+		player.body.rotation.y = spawn_rot
+		player.body.velocity = Vector3.ZERO
 		var state := player.get_node("PlayerInputState") as PlayerInputState
 		state.first_input_tick = -1
 		_input_system.on_player_added(peer_id)  # reset input buffer
@@ -352,6 +352,6 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 
 func _find_peer_for_body(body: Node3D) -> int:
 	for peer_id in players:
-		if players[peer_id] == body:
+		if players[peer_id].body == body:
 			return peer_id
 	return -1

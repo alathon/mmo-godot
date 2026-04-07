@@ -23,7 +23,7 @@ func tick(tick: int, ctx: Dictionary) -> void:
 	wstate.set_tick(tick)
 
 	for peer_id in players:
-		var mob_stats := (players[peer_id] as Node).get_node_or_null("MobStats") as MobStats
+		var mob_stats := (players[peer_id] as ServerPlayer).get_node_or_null("Mob/Stats") as MobStats
 		if mob_stats:
 			var es := wstate.add_entities()
 			es.set_entity_id(peer_id)

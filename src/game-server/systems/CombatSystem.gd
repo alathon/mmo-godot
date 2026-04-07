@@ -24,9 +24,9 @@ func init(zone: Node) -> void:
 
 ## Called from ServerZone._on_packet() when a TargetSelect packet arrives.
 func handle_target_select(peer_id: int, target_entity_id: int) -> void:
-	var player := _zone.players.get(peer_id) as Node
+	var player: ServerPlayer = _zone.players.get(peer_id)
 	if player:
-		var cs := player.get_node_or_null("MobCombatState") as MobCombatState
+		var cs := player.get_node_or_null("Mob/Combat") as MobCombatState
 		if cs:
 			cs.target_entity_id = target_entity_id
 
@@ -445,18 +445,18 @@ func _enqueue_rejected(peer_id: int, ability_id: String,
 # ── Component accessors ────────────────────────────────────────────────────────
 
 func _stats(entity_id: int, zone_players: Dictionary) -> MobStats:
-	var node: Node = zone_players.get(entity_id)
-	return node.get_node_or_null("MobStats") as MobStats if node else null
+	var player: ServerPlayer = zone_players.get(entity_id)
+	return player.get_node_or_null("Mob/Stats") as MobStats if player else null
 
 
 func _cooldowns(entity_id: int, zone_players: Dictionary) -> MobCooldowns:
-	var node: Node = zone_players.get(entity_id)
-	return node.get_node_or_null("MobCooldowns") as MobCooldowns if node else null
+	var player: ServerPlayer = zone_players.get(entity_id)
+	return player.get_node_or_null("Mob/Cooldowns") as MobCooldowns if player else null
 
 
 func _combat(entity_id: int, zone_players: Dictionary) -> MobCombatState:
-	var node: Node = zone_players.get(entity_id)
-	return node.get_node_or_null("MobCombatState") as MobCombatState if node else null
+	var player: ServerPlayer = zone_players.get(entity_id)
+	return player.get_node_or_null("Mob/Combat") as MobCombatState if player else null
 
 
 func _in_cast_queue_window(combat: MobCombatState) -> bool:
@@ -469,5 +469,5 @@ func _in_gcd_queue_window(combat: MobCombatState) -> bool:
 
 
 func _pos(entity_id: int, zone_players: Dictionary) -> Vector3:
-	var node: Node3D = zone_players.get(entity_id) as Node3D
-	return node.global_position if node else Vector3.ZERO
+	var player: ServerPlayer = zone_players.get(entity_id)
+	return player.body.global_position if player else Vector3.ZERO
