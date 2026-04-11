@@ -28,8 +28,16 @@ func _ready() -> void:
 	set_physics_process(false)
 	set_process(false)
 	_visual.top_level = true
+	_interpolator._debug = true
 	_prev_position = global_position
 	NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
+
+func initialize_position(pos: Vector3, rot_y: float) -> void:
+	global_position = pos
+	rotation.y = rot_y
+	_visual.global_position = pos
+	_visual.face_angle = rot_y
+	_prev_position = pos
 
 func _process(delta: float) -> void:
 	if delta > 0:

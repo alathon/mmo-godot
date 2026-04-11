@@ -14,7 +14,7 @@ const PING_INTERVAL := 0.1      # seconds between pings in a burst
 const RESYNC_INTERVAL := 5.0    # seconds between re-sync bursts
 const NUDGE_RATE := 0.5         # seconds of offset correction per second
 const PANIC_THRESHOLD := 1.0    # seconds; snap if offset jumps more than this
-const JITTER_BUFFER_TICKS := 2  # extra ticks of lead beyond RTT/2
+const JITTER_BUFFER_TICKS := 1  # extra ticks of lead beyond RTT/2
 
 signal synchronized
 
