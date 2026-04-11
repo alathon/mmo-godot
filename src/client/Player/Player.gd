@@ -9,6 +9,9 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _input_batcher: InputBatcher = %InputBatcher
 @onready var _visual: VisualSmoother = %VisualSmoother
 
+var _animationTree: AnimationTree
+var _animationPlayer: AnimationPlayer
+
 var frozen: bool = true
 var id: int
 
@@ -77,4 +80,7 @@ func setCharacterModel(name) -> void:
 	# Connect the AnimationTree to the Body (must be relative path from the AnimationTree node)
 	var anim_tree: AnimationTree = model.get_node("%AnimationTree") as AnimationTree
 	anim_tree.advance_expression_base_node = anim_tree.get_path_to(_body)
+	anim_tree.active = true
 	
+	_animationTree = anim_tree
+	_animationPlayer = model.get_node("%AnimationPlayer") as AnimationPlayer

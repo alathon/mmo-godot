@@ -1,0 +1,72 @@
+[gd_scene format=3 uid="uid://bb7m6bvcggycj"]
+
+[ext_resource type="PackedScene" uid="uid://6nqpre2bkijq" path="res://assets/entities/character_models/Wizard.gltf" id="1_sivyc"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_sivyc"]
+
+[node name="BaseCharacter" unique_id=1600053189 instance=ExtResource("1_sivyc")]
+
+[node name="CharacterArmature" parent="." index="0" unique_id=434203895]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="GeneralSkeleton" parent="CharacterArmature" index="1" unique_id=590772060]
+bones/1/position = Vector3(0.20781448, 0.024662867, -0.045055524)
+bones/1/rotation = Quaternion(6.0594502e-06, 0.7029519, 0.71123743, 5.7513607e-06)
+bones/2/position = Vector3(0.0021530592, 1.1207981, 0.07522918)
+bones/2/rotation = Quaternion(1.745374e-33, -1.4210855e-14, 4.2351647e-22, 1)
+bones/3/position = Vector3(-0.0014799669, -0.11307926, -0.11569905)
+bones/3/rotation = Quaternion(2.4868996e-14, 2.6469775e-22, 8.881773e-15, 1)
+bones/4/rotation = Quaternion(8.4703295e-22, 4.241052e-14, -7.1054274e-15, 1)
+bones/5/rotation = Quaternion(-0.036450207, -1.234568e-13, 0, 0.9993355)
+bones/6/rotation = Quaternion(7.4505815e-09, 8.4599e-14, 1.0658143e-14, 1)
+bones/7/rotation = Quaternion(1.0020399e-18, 1.1513167e-10, 1.5683453e-11, 1)
+bones/9/rotation = Quaternion(-0.49171215, 0.036017057, 0.068246216, 0.86733186)
+bones/10/rotation = Quaternion(-0.25967032, 0.21711253, -0.1934207, 0.92088103)
+bones/11/rotation = Quaternion(0.019800346, 0.017442688, -0.008522051, 0.9996155)
+bones/12/rotation = Quaternion(-0.062641315, -0.018810427, -0.0011808682, 0.99785817)
+bones/13/rotation = Quaternion(-0.1457803, 2.2540007e-08, 2.5914472e-08, 0.989317)
+bones/14/rotation = Quaternion(-0.17105752, 0.08374465, -0.43297896, 0.88105357)
+bones/15/rotation = Quaternion(-0.07893175, -0.2979136, 0.14166273, 0.94071734)
+bones/17/rotation = Quaternion(-0.49171212, -0.03601712, -0.06824635, 0.86733174)
+bones/18/rotation = Quaternion(-0.2596704, -0.21711268, 0.19342075, 0.92088103)
+bones/19/rotation = Quaternion(0.01980031, -0.017442625, 0.008522017, 0.9996155)
+bones/20/rotation = Quaternion(-0.062641405, 0.018810425, 0.0011808404, 0.99785817)
+bones/21/rotation = Quaternion(-0.14578018, -8.1956394e-08, -2.9802326e-08, 0.989317)
+bones/22/position = Vector3(0.020979194, -0.018025348, -7.720791e-08)
+bones/22/rotation = Quaternion(1.10361725e-07, -5.1222738e-08, 3.725291e-08, 1)
+bones/23/rotation = Quaternion(-0.17105758, -0.08374457, 0.43297905, 0.8810535)
+bones/24/rotation = Quaternion(-0.07893172, 0.29791358, -0.14166285, 0.9407172)
+bones/25/position = Vector3(0.1954188, 0.018798038, -0.09142405)
+bones/25/rotation = Quaternion(0.9954725, 0.008558386, -0.00094112486, 0.09465933)
+bones/26/rotation = Quaternion(0.20197845, 0.0020951969, 0.007814433, 0.9793566)
+bones/27/position = Vector3(-0.20403652, 0.018798085, -0.09142405)
+bones/27/rotation = Quaternion(0.99547255, -0.00855841, 0.00094111793, 0.09465889)
+bones/28/rotation = Quaternion(0.20197763, -0.002095177, -0.007814434, 0.9793567)
+bones/29/position = Vector3(0.20438434, 0.72453266, 0.9631467)
+bones/30/position = Vector3(-0.21212608, 0.024662867, -0.045055524)
+bones/30/rotation = Quaternion(-5.974231e-06, 0.7029519, 0.71123743, -5.75136e-06)
+
+[node name="Head" parent="CharacterArmature/GeneralSkeleton" index="0" unique_id=1212893262]
+transform = Transform3D(1, -3.1386872e-11, 2.3024177e-10, 1.45299085e-11, 0.99734277, 0.07285195, -2.3191657e-10, -0.07285195, 0.99734277, -0.000638377, 2.1050332, 0.039717518)
+
+[node name="UpperArm_L" parent="CharacterArmature/GeneralSkeleton" index="1" unique_id=598471502]
+transform = Transform3D(0.08296416, 0.5071233, 0.85787094, -0.057263754, -0.8569904, 0.5121406, 0.9949059, -0.091614254, -0.042059712, 0.31953597, 1.8467078, 0.020563431)
+
+[node name="Weapon_R" parent="CharacterArmature/GeneralSkeleton" index="2" unique_id=350651211]
+transform = Transform3D(-0.4223872, 0.1463793, -0.89451784, -0.2184989, -0.974215, -0.056246836, -0.87968594, 0.1716933, 0.44347963, -0.49810404, 0.9593318, 0.07880159)
+
+[node name="UpperArm_R" parent="CharacterArmature/GeneralSkeleton" index="3" unique_id=1815884108]
+transform = Transform3D(0.08296435, -0.5071233, -0.85787123, 0.057264015, -0.85699064, 0.5121407, -0.994906, -0.09161456, -0.04205975, -0.31953627, 1.8467078, 0.020563401)
+
+[node name="Abdomen" parent="CharacterArmature/GeneralSkeleton" index="4" unique_id=1940800673]
+transform = Transform3D(1, -3.5526934e-15, 5.639933e-14, 3.5526934e-15, 1, -4.973799e-14, -5.639933e-14, 4.973799e-14, 1, -0.000638377, 1.2212756, -0.090982355)
+
+[node name="AnimationPlayer" parent="." index="1" unique_id=595267079]
+unique_name_in_owner = true
+
+[node name="AnimationTree" type="AnimationTree" parent="." index="2" unique_id=2106885785]
+unique_name_in_owner = true
+root_node = NodePath("%AnimationTree/..")
+tree_root = SubResource("AnimationNodeBlendTree_sivyc")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../AnimationPlayer")

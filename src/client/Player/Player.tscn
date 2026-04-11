@@ -71,8 +71,7 @@ unique_name_in_owner = true
 material_override = SubResource("StandardMaterial3D_txxbj")
 mesh = SubResource("CapsuleMesh_ymcag")
 
-[node name="VisualSmoother" type="Node3D" parent="." unique_id=2096185140 node_paths=PackedStringArray("Body", "InputSource")]
+[node name="VisualSmoother" type="Node3D" parent="." unique_id=2096185140 node_paths=PackedStringArray("Body")]
 unique_name_in_owner = true
 script = ExtResource("2_y04i8")
 Body = NodePath("../Body")
-InputSource = NodePath("../LocalInput")
