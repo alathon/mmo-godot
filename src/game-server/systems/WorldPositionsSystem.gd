@@ -29,6 +29,7 @@ func tick(tick: int, ctx: Dictionary) -> void:
 		ep.set_vel_y(body.velocity.y)
 		ep.set_vel_z(body.velocity.z)
 		ep.set_rot_y(body.face_angle)
+		ep.set_is_on_floor(body.is_on_floor())
 	var ubytes := upkt.to_bytes()
 	for peer_id in players:
 		if not frozen_peers.has(peer_id):

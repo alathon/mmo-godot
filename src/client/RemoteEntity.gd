@@ -14,22 +14,23 @@ var last_server_rot: float
 
 var id: int
 
-# Animation-related state derived from interpolated position
+# Animation-related state
 var velocity: Vector3 = Vector3.ZERO
-var _prev_position: Vector3
+#var _prev_position: Vector3  # Used by position-delta velocity approach
+var _is_on_floor: bool = true
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
 
 func is_on_floor() -> bool:
-	return true  # Remote entities are always "on floor" for animation purposes
+	return _is_on_floor
 
 func _ready() -> void:
 	set_physics_process(false)
 	set_process(false)
 	_visual.top_level = true
 	_interpolator._debug = true
-	_prev_position = global_position
+	#_prev_position = global_position  # Used by position-delta velocity approach
 	NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
 
 func initialize_position(pos: Vector3, rot_y: float) -> void:
@@ -37,12 +38,18 @@ func initialize_position(pos: Vector3, rot_y: float) -> void:
 	rotation.y = rot_y
 	_visual.global_position = pos
 	_visual.face_angle = rot_y
-	_prev_position = pos
+	#_prev_position = pos  # Used by position-delta velocity approach
 
-func _process(delta: float) -> void:
-	if delta > 0:
-		velocity = (_visual.global_position - _prev_position) / delta
-		_prev_position = _visual.global_position
+func _process(_delta: float) -> void:
+	# Server velocity approach: read interpolated velocity from the visual smoother
+	velocity = _visual.server_velocity
+
+	## Position-delta velocity approach (commented out):
+	#if delta > 0:
+	#	velocity = (_visual.global_position - _prev_position) / delta
+	#	if _is_on_floor:
+	#		velocity.y = 0.0
+	#	_prev_position = _visual.global_position
 
 func setCharacterModel(model_name: String) -> void:
 	var model = (load("res://assets/entities/character_models/%s.tscn" % model_name)).instantiate()
@@ -65,10 +72,14 @@ func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 
 	last_server_pos = Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
 	last_server_rot = entity.get_rot_y()
+	_is_on_floor = entity.get_is_on_floor()
+
+	var server_vel = Vector3(entity.get_vel_x(), entity.get_vel_y(), entity.get_vel_z())
 
 	_interpolator.push_snapshot(tick, {
 		"global_position": last_server_pos,
 		"face_angle": last_server_rot,
+		"server_velocity": server_vel,
 	})
 
 func _on_before_tick_loop(tick: int) -> void:

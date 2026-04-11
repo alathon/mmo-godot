@@ -2799,6 +2799,11 @@ class EntityPosition:
 		service.func_ref = Callable(self, "new_active_impulse")
 		data[__active_impulse.tag] = service
 		
+		__is_on_floor = PBField.new("is_on_floor", PB_DATA_TYPE.BOOL, PB_RULE.OPTIONAL, 10, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL])
+		service = PBServiceField.new()
+		service.field = __is_on_floor
+		data[__is_on_floor.tag] = service
+		
 	var data = {}
 	
 	var __entity_id: PBField
@@ -2918,6 +2923,19 @@ class EntityPosition:
 	func new_active_impulse() -> Impulse:
 		__active_impulse.value = Impulse.new()
 		return __active_impulse.value
+	
+	var __is_on_floor: PBField
+	func has_is_on_floor() -> bool:
+		if __is_on_floor.value != null:
+			return true
+		return false
+	func get_is_on_floor() -> bool:
+		return __is_on_floor.value
+	func clear_is_on_floor() -> void:
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		__is_on_floor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL]
+	func set_is_on_floor(value : bool) -> void:
+		__is_on_floor.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

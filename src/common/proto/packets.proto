@@ -168,6 +168,7 @@ message EntityPosition {
   float vel_z = 7;
   float rot_y = 8;
   Impulse active_impulse = 9;
+  bool is_on_floor = 10;
 }
 
 message WorldPositions {

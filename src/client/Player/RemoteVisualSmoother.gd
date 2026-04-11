@@ -10,5 +10,7 @@ var face_angle: float:
 		face_angle = value
 		rotation.y = value
 
+var server_velocity: Vector3 = Vector3.ZERO
+
 func _ready() -> void:
 	top_level = true
