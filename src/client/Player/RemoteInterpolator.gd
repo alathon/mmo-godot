@@ -32,10 +32,10 @@ func set_paused(paused: bool) -> void:
 
 func push_snapshot(tick: int, props: Dictionary) -> void:
 	var now := Time.get_ticks_msec()
-	if _debug and _last_push_msec >= 0:
-		var gap_ms := now - _last_push_msec
-		var tick_gap := tick - _last_snapshot_tick
-		print("[RI:%s] PUSH tick=%d | gap_ms=%d | tick_gap=%d" % [get_parent().name, tick, gap_ms, tick_gap])
+	#if _debug and _last_push_msec >= 0:
+		#var gap_ms := now - _last_push_msec
+		#var tick_gap := tick - _last_snapshot_tick
+		#print("[RI:%s] PUSH tick=%d | gap_ms=%d | tick_gap=%d" % [get_parent().name, tick, gap_ms, tick_gap])
 	_last_push_msec = now
 	_last_snapshot_tick = tick
 
@@ -85,14 +85,14 @@ func _process(delta: float) -> void:
 		return
 	var to: Dictionary = from if to_idx < 0 else (_history.get_at(to_idx) if _history.get_at(to_idx) != null else from)
 
-	if _debug:
-		var from_pos = from.get("global_position", null)
-		var to_pos = to.get("global_position", null)
-		if from_pos != null and to_pos != null and not from_pos.is_equal_approx(to_pos) and _debug:
-			print("[RI:%s] tick %d->%d idx %d->%d a=%.3f | from=%s to=%s" % [
-				get_parent().name, from_tick, to_tick, from_idx, to_idx, alpha,
-				from_pos, to_pos
-			])
+	#if _debug:
+		#var from_pos = from.get("global_position", null)
+		#var to_pos = to.get("global_position", null)
+		#if from_pos != null and to_pos != null and not from_pos.is_equal_approx(to_pos):
+			#print("[RI:%s] tick %d->%d idx %d->%d a=%.3f | from=%s to=%s" % [
+				#get_parent().name, from_tick, to_tick, from_idx, to_idx, alpha,
+				#from_pos, to_pos
+			#])
 
 	var parent := get_parent()
 	for key in to:
