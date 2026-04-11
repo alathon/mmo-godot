@@ -26,7 +26,7 @@ func init(zone: Node) -> void:
 func handle_target_select(peer_id: int, target_entity_id: int) -> void:
 	var player: ServerPlayer = _zone.players.get(peer_id)
 	if player:
-		var cs := player.get_node_or_null("Mob/Combat") as MobCombatState
+		var cs := player.get_node_or_null("Mob/Combat") as CombatState
 		if cs:
 			cs.target_entity_id = target_entity_id
 
@@ -124,8 +124,8 @@ func build_combat_events_proto(combat_events_msg, sim_tick: int) -> void:
 
 # ── Ability input processing ───────────────────────────────────────────────────
 
-func _process_ability_input(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
-		stats: MobStats, ai: Dictionary, sim_tick: int, zone_players: Dictionary) -> void:
+func _process_ability_input(entity_id: int, combat: CombatState, cds: Cooldowns,
+		stats: Stats, ai: Dictionary, sim_tick: int, zone_players: Dictionary) -> void:
 	var ability_id: String = ai["ability_id"]
 	var target_id: int = ai["target_entity_id"]
 	var ground_pos := Vector3(ai["ground_x"], ai["ground_y"], ai["ground_z"])
@@ -179,8 +179,8 @@ func _process_ability_input(entity_id: int, combat: MobCombatState, cds: MobCool
 
 # ── Timer advancement and cast resolution ─────────────────────────────────────
 
-func _advance_and_resolve(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
-		stats: MobStats, sim_tick: int, zone_players: Dictionary) -> void:
+func _advance_and_resolve(entity_id: int, combat: CombatState, cds: Cooldowns,
+		stats: Stats, sim_tick: int, zone_players: Dictionary) -> void:
 	var prev_gcd := combat.gcd_remaining
 	combat.gcd_remaining = maxf(0.0, combat.gcd_remaining - Globals.TICK_INTERVAL)
 	combat.anim_lock_remaining = maxf(0.0, combat.anim_lock_remaining - Globals.TICK_INTERVAL)
@@ -198,7 +198,7 @@ func _advance_and_resolve(entity_id: int, combat: MobCombatState, cds: MobCooldo
 
 # ── Cast lifecycle ─────────────────────────────────────────────────────────────
 
-func _start_cast(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
+func _start_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 		ability: AbilityDef, target_id: int, ground_pos: Vector3, sim_tick: int) -> void:
 	combat.cast_ability_id = ability.id
 	combat.cast_target_entity_id = target_id
@@ -226,8 +226,8 @@ func _start_cast(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
 	})
 
 
-func _resolve_cast(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
-		stats: MobStats, sim_tick: int, zone_players: Dictionary) -> void:
+func _resolve_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
+		stats: Stats, sim_tick: int, zone_players: Dictionary) -> void:
 	var ability_id := combat.cast_ability_id
 	var ability: AbilityDef = _db.get_ability(ability_id)
 	var target_id := combat.cast_target_entity_id
@@ -280,7 +280,7 @@ func _resolve_cast(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
 	# Apply effects to all resolved targets
 	var targets := _get_targets(entity_id, ability, target_id, ground_pos, zone_players)
 	for t_id in targets:
-		var t_stats := _stats(t_id, zone_players)
+		var t_stats: Stats = _stats(t_id, zone_players)
 		if t_stats == null:
 			continue
 		for effect in ability.effects:
@@ -288,7 +288,7 @@ func _resolve_cast(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
 
 	# Death check
 	for t_id in targets:
-		var t_stats := _stats(t_id, zone_players)
+		var t_stats: Stats = _stats(t_id, zone_players)
 		if t_stats and t_stats.is_dead():
 			_pending_events.append({
 				"type": "combatant_died",
@@ -300,8 +300,8 @@ func _resolve_cast(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
 		_dequeue_ability(entity_id, combat, cds, stats, sim_tick, zone_players)
 
 
-func _cancel_cast(entity_id: int, combat: MobCombatState,
-		cds: MobCooldowns, reason: int) -> void:
+func _cancel_cast(entity_id: int, combat: CombatState,
+		cds: Cooldowns, reason: int) -> void:
 	var ability_id := combat.cast_ability_id
 	var ability: AbilityDef = _db.get_ability(ability_id)
 	# Per spec: canceling a cast also cancels the GCD, anim lock, and ability cooldown
@@ -318,8 +318,8 @@ func _cancel_cast(entity_id: int, combat: MobCombatState,
 	})
 
 
-func _dequeue_ability(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
-		stats: MobStats, sim_tick: int, zone_players: Dictionary) -> void:
+func _dequeue_ability(entity_id: int, combat: CombatState, cds: Cooldowns,
+		stats: Stats, sim_tick: int, zone_players: Dictionary) -> void:
 	var ability_id := combat.queued_ability_id
 	var target_id := combat.queued_target_entity_id
 	var ground_pos := combat.queued_ground_pos
@@ -338,7 +338,7 @@ func _dequeue_ability(entity_id: int, combat: MobCombatState, cds: MobCooldowns,
 # ── Effect application ─────────────────────────────────────────────────────────
 
 func _apply_effect(source_id: int, ability_id: String,
-		target_id: int, t_stats: MobStats, effect: EffectDef) -> void:
+		target_id: int, t_stats: Stats, effect: EffectDef) -> void:
 	match effect.type:
 		EffectDef.TYPE_DAMAGE:
 			var amount := int(effect.base_value)
@@ -367,7 +367,7 @@ func _apply_effect(source_id: int, ability_id: String,
 
 # ── Validation ────────────────────────────────────────────────────────────────
 
-func _validate(entity_id: int, combat: MobCombatState, cds: MobCooldowns, stats: MobStats,
+func _validate(entity_id: int, combat: CombatState, cds: Cooldowns, stats: Stats,
 		ability: AbilityDef, target_id: int, ground_pos: Vector3,
 		zone_players: Dictionary, is_queuing: bool) -> String:
 	if not is_queuing:
@@ -444,27 +444,27 @@ func _enqueue_rejected(peer_id: int, ability_id: String,
 
 # ── Component accessors ────────────────────────────────────────────────────────
 
-func _stats(entity_id: int, zone_players: Dictionary) -> MobStats:
+func _stats(entity_id: int, zone_players: Dictionary) -> Stats:
 	var player: ServerPlayer = zone_players.get(entity_id)
-	return player.get_node_or_null("Mob/Stats") as MobStats if player else null
+	return player.get_node_or_null("Mob/Stats") as Stats if player else null
 
 
-func _cooldowns(entity_id: int, zone_players: Dictionary) -> MobCooldowns:
+func _cooldowns(entity_id: int, zone_players: Dictionary) -> Cooldowns:
 	var player: ServerPlayer = zone_players.get(entity_id)
-	return player.get_node_or_null("Mob/Cooldowns") as MobCooldowns if player else null
+	return player.get_node_or_null("Mob/Cooldowns") as Cooldowns if player else null
 
 
-func _combat(entity_id: int, zone_players: Dictionary) -> MobCombatState:
+func _combat(entity_id: int, zone_players: Dictionary) -> CombatState:
 	var player: ServerPlayer = zone_players.get(entity_id)
-	return player.get_node_or_null("Mob/Combat") as MobCombatState if player else null
+	return player.get_node_or_null("Mob/Combat") as CombatState if player else null
 
 
-func _in_cast_queue_window(combat: MobCombatState) -> bool:
+func _in_cast_queue_window(combat: CombatState) -> bool:
 	return combat.cast_total > 0.0 and \
 		combat.cast_remaining <= combat.cast_total * CombatConstants.ABILITY_QUEUE_WINDOW
 
 
-func _in_gcd_queue_window(combat: MobCombatState) -> bool:
+func _in_gcd_queue_window(combat: CombatState) -> bool:
 	return combat.gcd_remaining <= CombatConstants.GCD_DURATION * CombatConstants.ABILITY_QUEUE_WINDOW
 
 

@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://dofw20g8w3wwh" path="res://src/client/RemoteEntity.gd" id="1_548v2"]
 [ext_resource type="Script" uid="uid://cocfhahrnkgmx" path="res://src/client/Player/RemoteInterpolator.gd" id="2_al5b1"]
-[ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/MobStats.gd" id="2_mflae"]
-[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/MobCooldowns.gd" id="3_fb5u3"]
-[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/MobCombatState.gd" id="4_d2d2f"]
+[ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_mflae"]
+[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/Cooldowns.gd" id="3_fb5u3"]
+[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/CombatState.gd" id="4_d2d2f"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_0bete"]
 

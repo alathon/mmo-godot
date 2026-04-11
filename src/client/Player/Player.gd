@@ -7,7 +7,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _csp: CSP = %CSP
 @onready var _input_source: LocalInput = %LocalInput
 @onready var _input_batcher: InputBatcher = %InputBatcher
-@onready var _visual: VisualSmoother = %Visual
+@onready var _visual: VisualSmoother = %VisualSmoother
 
 var frozen: bool = true
 var id: int
@@ -58,3 +58,23 @@ func unfreeze() -> void:
 	print("[CLIENT] Player unfrozen")
 	frozen = false
 	_visual.Body = _body # Re-enable the visual smoother.
+
+func setCharacterModel(name) -> void:
+	var model = (load("res://assets/entities/character_models/%s.tscn" % name)).instantiate()
+	
+	# Check for existing model
+	var currentModel = _visual.get_child(0)
+	if currentModel:
+		currentModel.queue_free()
+	
+	print("Setting character model to res://assets/entities/character_models/%s.tscn" % name)
+	_visual.add_child(model)
+
+	# These models start at 0,0,0 and grow upward, while the collision capsule is *centered* at
+	# 0,0,0. So offset the y position accordingly so we're not floating in the air.
+	model.position.y = -1 
+
+	# Connect the AnimationTree to the Body (must be relative path from the AnimationTree node)
+	var anim_tree: AnimationTree = model.get_node("%AnimationTree") as AnimationTree
+	anim_tree.advance_expression_base_node = anim_tree.get_path_to(_body)
+	

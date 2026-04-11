@@ -9,7 +9,6 @@ const CORRECTION_THRESHOLD = 1.0
 
 signal local_player_spawned(player: Player)
 signal remote_player_spawned(player: RemoteEntity)
-
 @onready var _api: BackendAPI = %BackendAPI
 @onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
 
@@ -68,8 +67,9 @@ func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 		_local_player = (load("res://src/client/Player/BotPlayer.tscn")).instantiate() as Player
 	else:
 		_local_player = LocalPlayerScene.instantiate() as Player
-
+	
 	_zone_container.add_entity(_local_player)
+	_local_player.setCharacterModel("Wizard")
 	_local_player.name = "LocalPlayer"
 	_local_player.id = multiplayer.get_unique_id()
 	var body = _local_player.get_node("Body");

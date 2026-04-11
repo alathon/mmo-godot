@@ -1,4 +1,4 @@
-class_name MobCooldowns
+class_name Cooldowns
 extends Node
 
 ## Tracks per-ability and per-group cooldowns for one entity.

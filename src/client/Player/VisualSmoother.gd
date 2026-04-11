@@ -4,7 +4,7 @@ extends Node3D
 ## Smooths the visual representation of the local player so that clock-stretch
 ## induced tick-rate jitter doesn't cause visible speed changes.
 ##
-## Attach to the Visual mesh node (child of the CharacterBody3D).
+## This node MUST be a direct child of the Player node.
 ## The visual node will have top_level = true set so it can be positioned independently.
 ##
 ## Reads physics position, input, and speed from the parent Player node.
@@ -16,7 +16,10 @@ extends Node3D
 
 @export var Body: PhysicsBody
 @export var InputSource: LocalInput
-@export var PlayerNode: Player
+
+# TODO: Need a better system for 'freeze' than needing this ref..probably
+# put 'frozen' on GameManager, and/or emit freeze/unfreeze signals from game manager.
+@onready var _player: Player = get_parent() 
 
 ## The smoothed position. External systems (e.g. camera) can read this.
 var smooth_position: Vector3 = Vector3.ZERO
@@ -42,7 +45,7 @@ func _process(delta: float) -> void:
 
 	var ix: float = InputSource.movement.x
 	var iz: float = InputSource.movement.z
-	var has_input := (ix != 0.0 or iz != 0.0) and not PlayerNode.frozen
+	var has_input := (ix != 0.0 or iz != 0.0) and not _player.frozen
 
 	if has_input:
 		smooth_position.x += ix * Body.Speed * delta

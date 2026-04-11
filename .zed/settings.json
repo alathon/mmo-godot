@@ -12,13 +12,6 @@
     "**/*.gd.uid",
   ],
   "context_servers": {
-    "godot-mcp": {
-      "command": "node",
-      "args": [
-        "/Users/alathon/Workspace/experiments/mmo-godot/mcp_server/dist/index.js",
-      ],
-      "env": {},
-    },
     "godot-mcp-win": {
       "command": "node",
       "args": ["C:/Workspace/experiments/mmo-godot/mcp_server/dist/index.js"],

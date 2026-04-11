@@ -1,4 +1,4 @@
-class_name MobStats
+class_name Stats
 extends Node
 
 @export var max_hp: int = 100

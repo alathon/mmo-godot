@@ -16,7 +16,8 @@ and server reconciliation to ensure gameplay feels smooth and stays up-to-date w
 - Use GDScript over C# whenever possible.
 - Godobuf / Protobuf for client/server communication, using Godots existing reliable/unreliable peer messaging system (ENet)
 - Globals needed across client/servers are set in the Globals.gd script which is set to Autoload.
+- Use the godot-mcp-win MCP to create/edit Godot things like scenes, nodes, etc.
 
 # Important commands
 
-- To generate Godobuf/protobuf: godot-mono --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd
+- To generate Godobuf/protobuf: godot --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd

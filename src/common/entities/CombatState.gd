@@ -1,4 +1,4 @@
-class_name MobCombatState
+class_name CombatState
 extends Node
 
 ## Per-entity combat timing state — shared between server and client.

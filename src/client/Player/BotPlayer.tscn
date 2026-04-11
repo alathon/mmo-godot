@@ -4,9 +4,9 @@
 [ext_resource type="Script" uid="uid://bt4wkae1gvxgb" path="res://src/client/Bot/BotInput.gd" id="2_fg3qq"]
 [ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="3_pnqga"]
 [ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="4_xiffd"]
-[ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/MobStats.gd" id="5_pdq4c"]
-[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/MobCooldowns.gd" id="6_6d5tf"]
-[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/MobCombatState.gd" id="7_0i5rw"]
+[ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="5_pdq4c"]
+[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/Cooldowns.gd" id="6_6d5tf"]
+[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/CombatState.gd" id="7_0i5rw"]
 [ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="8_842t5"]
 [ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="9_ph7ab"]
 
