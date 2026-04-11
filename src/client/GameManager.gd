@@ -94,6 +94,7 @@ func _spawn_remote_player(id: int, pos: Vector3, rot_y: float) -> void:
 	_remote_players[id] = node
 	node.global_position = pos
 	node.rotation.y = rot_y
+	node.setCharacterModel("Wizard")  # TODO: Get model name from server
 	remote_player_spawned.emit(node)
 
 func _despawn_remote_player(id: int) -> void:

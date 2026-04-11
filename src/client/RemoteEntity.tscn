@@ -5,10 +5,7 @@
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_mflae"]
 [ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/Cooldowns.gd" id="3_fb5u3"]
 [ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/CombatState.gd" id="4_d2d2f"]
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_0bete"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_txnpl"]
+[ext_resource type="Script" path="res://src/client/Player/RemoteVisualSmoother.gd" id="5_rvs"]
 
 [node name="RemoteEntity" type="Node3D" unique_id=128571049]
 script = ExtResource("1_548v2")
@@ -30,14 +27,10 @@ unique_name_in_owner = true
 script = ExtResource("4_d2d2f")
 metadata/_custom_type_script = "uid://cefh7khctl77p"
 
-[node name="Visual" type="MeshInstance3D" parent="." unique_id=1152758261]
+[node name="VisualSmoother" type="Node3D" parent="." unique_id=1152758261]
 unique_name_in_owner = true
-mesh = SubResource("CapsuleMesh_0bete")
+script = ExtResource("5_rvs")
 
-[node name="Nose" type="MeshInstance3D" parent="Visual" unique_id=1147433610]
-transform = Transform3D(0.19999999, 0, 0, 0, 0.19999999, 0, 0, 0, 0.19999999, 0, 0.45133114, -0.5521852)
-mesh = SubResource("BoxMesh_txnpl")
-
-[node name="RemoteInterpolator" type="Node" parent="Visual" unique_id=600016612]
+[node name="RemoteInterpolator" type="Node" parent="VisualSmoother" unique_id=600016612]
 unique_name_in_owner = true
 script = ExtResource("2_al5b1")
