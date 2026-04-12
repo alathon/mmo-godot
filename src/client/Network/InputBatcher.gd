@@ -14,6 +14,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 var _current_batch: Array[Dictionary] = []
 var _previous_batch: Array[Dictionary] = []
+var _debug: bool = false
 
 func clear() -> void:
 	_current_batch.clear()
@@ -46,6 +47,10 @@ func _flush() -> void:
 	for entry in _current_batch:
 		_add_input(batch, entry)
 
+	var has_movement := _current_batch.any(func(e): return e["input_x"] != 0.0 or e["input_z"] != 0.0 or e["jump_pressed"])
+	if has_movement and _debug:
+		var ticks := _current_batch.map(func(e): return e["tick"])
+		print("[TRACE:InputBatcher] t=%s sending batch ticks=%s" % [Globals.ts(), ticks])
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
 	_previous_batch = _current_batch.duplicate()

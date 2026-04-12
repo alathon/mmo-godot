@@ -29,7 +29,7 @@ func _ready() -> void:
 	set_physics_process(false)
 	set_process(false)
 	_visual.top_level = true
-	_interpolator._debug = true
+	#_interpolator._debug = true
 	#_prev_position = global_position  # Used by position-delta velocity approach
 	NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
 
@@ -43,6 +43,7 @@ func initialize_position(pos: Vector3, rot_y: float) -> void:
 func _process(_delta: float) -> void:
 	# Server velocity approach: read interpolated velocity from the visual smoother
 	velocity = _visual.server_velocity
+	_is_on_floor = _visual.is_on_floor
 
 	## Position-delta velocity approach (commented out):
 	#if delta > 0:
@@ -72,7 +73,6 @@ func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 
 	last_server_pos = Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
 	last_server_rot = entity.get_rot_y()
-	_is_on_floor = entity.get_is_on_floor()
 
 	var server_vel = Vector3(entity.get_vel_x(), entity.get_vel_y(), entity.get_vel_z())
 
@@ -80,6 +80,7 @@ func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 		"global_position": last_server_pos,
 		"face_angle": last_server_rot,
 		"server_velocity": server_vel,
+		"is_on_floor": entity.get_is_on_floor(),
 	})
 
 func _on_before_tick_loop(tick: int) -> void:

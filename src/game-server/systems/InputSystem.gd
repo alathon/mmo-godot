@@ -14,6 +14,7 @@ var _input_buffers: Dictionary[int, Dictionary] = {}
 
 var _zone: Node
 
+var _debug: bool = false
 
 func init(zone: Node) -> void:
 	_zone = zone
@@ -41,8 +42,16 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 	var sim_tick := current_tick - Globals.INPUT_BUFFER_SIZE
 
 	if input_tick < sim_tick:
-		print("[INPUT] LATE input from peer %d: input_tick=%d sim_tick=%d (dropped)" % [peer_id, input_tick, sim_tick])
-		return
+		var diff = sim_tick - input_tick
+		# Allow slight lateness to still process the input. This may lead to some correctional drift,
+		# but prevents dropped input sprees due to slightly late tick alignment.
+		if diff <= 3:
+			print("[INPUT] LATE input from peer %d: input_tick=%d sim_tick=%d (moved up %d ticks)" % [peer_id, input_tick, sim_tick, diff])
+			input_tick = sim_tick # Lets try this...
+		else:
+			print("[INPUT] LATE input from peer %d: input_tick=%d sim_tick=%d (dropped)" % [peer_id, input_tick, sim_tick])
+			return
+
 	if input_tick > current_tick + INPUT_FUTURE_LIMIT:
 		print("[INPUT] FUTURE input from peer %d: input_tick=%d current=%d (dropped)" % [peer_id, input_tick, current_tick])
 		return
@@ -66,6 +75,9 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 		buf_entry["ground_y"] = ai.get_ground_y()
 		buf_entry["ground_z"] = ai.get_ground_z()
 	_input_buffers[peer_id][input_tick] = buf_entry
+	if _debug and (abs(input.get_input_x()) > 0.01 or abs(input.get_input_z()) > 0.01 or input.get_jump_pressed()):
+		print("[TRACE:InputSystem] t=%s tick=%d peer=%d input_received" % [
+			Globals.ts(), input_tick, peer_id])
 
 	var state := _get_state(players[peer_id])
 	if state:

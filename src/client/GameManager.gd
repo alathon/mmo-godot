@@ -18,6 +18,7 @@ var _pending_transfer_token: String = ""
 var _awaiting_initial_clock_sync: bool = true
 var _local_player: Player
 var _remote_players: Dictionary[int, RemoteEntity]
+var _debug: bool = false
 
 func _ready() -> void:
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
@@ -122,6 +123,10 @@ func _on_world_positions(diff: Proto.WorldPositions) -> void:
 			# TODO: Change on_entity_position_diff to not take a Proto message but the resolved
 			# values?
 			_remote_players[id].on_entity_position_diff(entity, tick)
+			var vel := Vector3(entity.get_vel_x(), entity.get_vel_y(), entity.get_vel_z())
+			if _debug and vel.length_squared() > 0.0001:
+				print("[TRACE:GameManager] t=%s tick=%d remote_entity=%d position_received vel=(%.2f,%.2f,%.2f)" % [
+					Globals.ts(), tick, id, vel.x, vel.y, vel.z])
 
 	for id in _remote_players.keys():
 		if not seen_ids.has(id):

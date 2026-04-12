@@ -11,6 +11,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
+var _debug: bool = false
 
 var frozen: bool = true
 var id: int
@@ -36,6 +37,10 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 	_csp.setPredictionAt(current_tick, { "global_position" = _body.global_position })
 
 	# Batch input for server send.
+	if _debug and (input["input_x"] != 0.0 or input["input_z"] != 0.0 or input["jump_pressed"]):
+		print("[TRACE:Player %d] t=%s tick=%d input_gathered x=%.2f z=%.2f jump=%s" % [id,
+			Globals.ts(), current_tick,
+			input["input_x"], input["input_z"], input["jump_pressed"]])
 	_input_batcher.queue_input(input["input_x"], input["input_z"], input["jump_pressed"], _body.rotation.y, current_tick)
 
 func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:

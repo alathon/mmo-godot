@@ -11,6 +11,7 @@ var face_angle: float:
 		rotation.y = value
 
 var server_velocity: Vector3 = Vector3.ZERO
+var is_on_floor: bool = true
 
 func _ready() -> void:
 	top_level = true

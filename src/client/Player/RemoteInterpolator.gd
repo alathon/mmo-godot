@@ -27,15 +27,14 @@ func set_paused(paused: bool) -> void:
 		return
 	_paused = paused
 	if not _paused and not _history.is_empty():
-		# Jump render_tick to latest so we don't replay old positions
 		_render_tick = float(_history.get_latest_index() - RENDER_DELAY)
 
 func push_snapshot(tick: int, props: Dictionary) -> void:
 	var now := Time.get_ticks_msec()
-	#if _debug and _last_push_msec >= 0:
-		#var gap_ms := now - _last_push_msec
-		#var tick_gap := tick - _last_snapshot_tick
-		#print("[RI:%s] PUSH tick=%d | gap_ms=%d | tick_gap=%d" % [get_parent().name, tick, gap_ms, tick_gap])
+	if _debug and _last_push_msec >= 0:
+		var gap_ms := now - _last_push_msec
+		var tick_gap := tick - _last_snapshot_tick
+		print("[RI:%s] PUSH tick=%d | gap_ms=%d | tick_gap=%d" % [get_parent().name, tick, gap_ms, tick_gap])
 	_last_push_msec = now
 	_last_snapshot_tick = tick
 
@@ -85,20 +84,13 @@ func _process(delta: float) -> void:
 		return
 	var to: Dictionary = from if to_idx < 0 else (_history.get_at(to_idx) if _history.get_at(to_idx) != null else from)
 
-	#if _debug:
-		#var from_pos = from.get("global_position", null)
-		#var to_pos = to.get("global_position", null)
-		#if from_pos != null and to_pos != null and not from_pos.is_equal_approx(to_pos):
-			#print("[RI:%s] tick %d->%d idx %d->%d a=%.3f | from=%s to=%s" % [
-				#get_parent().name, from_tick, to_tick, from_idx, to_idx, alpha,
-				#from_pos, to_pos
-			#])
-
 	var parent := get_parent()
 	for key in to:
 		parent.set(key, _lerp(from.get(key, to[key]), to[key], alpha))
 
 static func _lerp(a: Variant, b: Variant, t: float) -> Variant:
+	if a is bool:
+		return a and b  # on floor only if both snapshots agree; snaps false eagerly, true conservatively
 	if a is Quaternion:
 		return (a as Quaternion).slerp(b, t)
 	if a is float:

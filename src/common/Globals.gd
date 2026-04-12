@@ -1,5 +1,10 @@
 extends Node
 
+static func ts() -> String:
+	var t := Time.get_unix_time_from_system()
+	var d := Time.get_time_dict_from_system()
+	return "%02d:%02d:%02d.%03d" % [d["hour"], d["minute"], d["second"], int(fmod(t, 1.0) * 1000)]
+
 const TICK_INTERVAL: float = 1.0 / 20
 const TICK_RATE: int = 20
 
