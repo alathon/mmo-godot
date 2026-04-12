@@ -1,8 +1,8 @@
 class_name AbilityDatabase
 
-const ABILITIES_DIR: String = "res://src/common/data/abilities/"
+const ABILITIES_DIR: String = "res://resources/abilities/"
 
-var _abilities: Dictionary = {} # id -> AbilityDef
+var _abilities: Dictionary = {} # StringName -> AbilityResource
 
 
 func load_all() -> void:
@@ -14,34 +14,31 @@ func load_all() -> void:
 	dir.list_dir_begin()
 	var file_name := dir.get_next()
 	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".json"):
+		if not dir.current_is_dir() and file_name.ends_with(".tres"):
 			_load_file(ABILITIES_DIR + file_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
 
-func get_ability(id: String) -> AbilityDef:
+func get_ability(id: StringName) -> AbilityResource:
 	return _abilities.get(id, null)
 
 
-func get_all() -> Array: # Array[AbilityDef]
+func get_all() -> Array: # Array[AbilityResource]
 	return _abilities.values()
 
 
 func _load_file(path: String) -> void:
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		push_error("AbilityDatabase: could not read %s" % path)
+	var res := ResourceLoader.load(path)
+	if res == null:
+		push_error("AbilityDatabase: could not load %s" % path)
 		return
-	var json := JSON.new()
-	var err := json.parse(file.get_as_text())
-	file.close()
-	if err != OK:
-		push_error("AbilityDatabase: JSON parse error in %s: %s" % [path, json.get_error_message()])
+	if not res is AbilityResource:
+		push_error("AbilityDatabase: resource at %s is not an AbilityResource" % path)
 		return
-	var d: Dictionary = json.data
-	var ability := AbilityDef.from_dict(d)
-	if ability.id == "":
-		push_error("AbilityDatabase: ability in %s is missing 'id'" % path)
+	var ability := res as AbilityResource
+	var id := ability.get_ability_id()
+	if id == &"":
+		push_error("AbilityDatabase: ability at %s has no filename-derived ID" % path)
 		return
-	_abilities[ability.id] = ability
+	_abilities[id] = ability
