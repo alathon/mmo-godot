@@ -59,6 +59,7 @@ const HEARTBEAT_INTERVAL := 5.0
 const HEARTBEAT_TIMEOUT := 15.0
 
 func _ready() -> void:
+	_parse_cmdline_args()
 	_tcp_server = TCPServer.new()
 	var error := _tcp_server.listen(PORT)
 	if error != OK:
@@ -72,6 +73,14 @@ func _ready() -> void:
 		printerr("[ORCHESTRATOR] Failed to listen on client port %d: %s" % [CLIENT_PORT, error])
 		return
 	print("[ORCHESTRATOR] Listening on port %d (clients)" % CLIENT_PORT)
+
+func _parse_cmdline_args() -> void:
+	var args := OS.get_cmdline_user_args()
+	for i in args.size():
+		if args[i] == "--port" and i + 1 < args.size():
+			PORT = int(args[i + 1])
+		elif args[i] == "--client-port" and i + 1 < args.size():
+			CLIENT_PORT = int(args[i + 1])
 
 func _process(delta: float) -> void:
 	_accept_new_connections()

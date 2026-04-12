@@ -3,9 +3,9 @@ extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
 
-@export var PORT = 7000
+@export var PORT = 9002
 @export var DEFAULT_SERVER_IP = "127.0.0.1"
-@export var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9001"
+var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9001"
 
 signal connected_to_server
 signal disconnected_from_server
@@ -18,13 +18,37 @@ var _orch_ws: WebSocketPeer = null
 var _orch_connected: bool = false
 
 func _ready() -> void:
+	_load_config()
+	_parse_cmdline_args()  # CLI args override config file
 	multiplayer.connected_to_server.connect(_on_connected)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_disconnected)
 	multiplayer.peer_packet.connect(_on_packet)
 	_connect_to_orchestrator()
 
+func _load_config() -> void:
+	var config := ConfigFile.new()
+	# Look next to the executable first, then fall back to res://
+	var exe_dir := OS.get_executable_path().get_base_dir()
+	var path := exe_dir.path_join("client_config.cfg")
+	print("[CLIENT] Looking for config at: %s" % path)
+	if config.load(path) != OK:
+		print("[CLIENT] Not found, trying res://client_config.cfg")
+		path = "res://client_config.cfg"
+		if config.load(path) != OK:
+			print("[CLIENT] No config file found, using defaults")
+			return
+	print("[CLIENT] Loaded config from %s" % path)
+	ORCHESTRATOR_URL = config.get_value("network", "orchestrator_url", ORCHESTRATOR_URL)
+
+func _parse_cmdline_args() -> void:
+	var args := OS.get_cmdline_user_args()
+	for i in args.size():
+		if args[i] == "--orchestrator" and i + 1 < args.size():
+			ORCHESTRATOR_URL = args[i + 1]
+
 func _connect_to_orchestrator() -> void:
+	print("[CLIENT] Connecting to orchestrator at: %s" % ORCHESTRATOR_URL)
 	_orch_ws = WebSocketPeer.new()
 	var error := _orch_ws.connect_to_url(ORCHESTRATOR_URL)
 	if error != OK:
@@ -47,6 +71,9 @@ func _process(_delta: float) -> void:
 		while _orch_ws.get_available_packet_count() > 0:
 			_on_orchestrator_packet(_orch_ws.get_packet())
 	elif state == WebSocketPeer.STATE_CLOSED:
+		var code := _orch_ws.get_close_code()
+		var reason := _orch_ws.get_close_reason()
+		print("[CLIENT] Orchestrator WebSocket closed (code=%d, reason='%s')" % [code, reason])
 		_orch_ws = null
 		_orch_connected = false
 

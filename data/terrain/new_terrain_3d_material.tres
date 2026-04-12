@@ -23,9 +23,9 @@ seamless = true
 
 [resource]
 _shader_parameters = {
-&"auto_base_texture": 2,
+&"auto_base_texture": 0,
 &"auto_height_reduction": 0.1,
-&"auto_overlay_texture": 0,
+&"auto_overlay_texture": 1,
 &"auto_slope": 1.0,
 &"bias_distance": 512.0,
 &"blend_sharpness": 0.5,

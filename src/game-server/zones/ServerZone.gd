@@ -4,9 +4,14 @@ const Proto = preload("res://src/common/proto/packets.gd")
 const ServerPlayerScene = preload("res://src/game-server/ServerPlayer.tscn")
 
 var zone_id: String = ""
-@export var PORT: int = 7000
+@export var PORT: int = 9002
 @export var MAX_CLIENTS: int = 32
 @export var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9000"
+## Public address that clients will connect to. Set via --address CLI arg.
+var PUBLIC_ADDRESS: String = "127.0.0.1"
+## Public port advertised to clients. Defaults to PORT if not set (e.g. when
+## using a tunnel that maps a different external port to the local listen port).
+var PUBLIC_PORT: int = -1
 
 ## peer_id -> ServerPlayer node
 var players: Dictionary[int, ServerPlayer] = {}
@@ -43,6 +48,12 @@ func _parse_cmdline_args() -> void:
 			PORT = int(args[i + 1])
 		elif args[i] == "--zone" and i + 1 < args.size():
 			zone_id = args[i + 1]
+		elif args[i] == "--address" and i + 1 < args.size():
+			PUBLIC_ADDRESS = args[i + 1]
+		elif args[i] == "--public-port" and i + 1 < args.size():
+			PUBLIC_PORT = int(args[i + 1])
+		elif args[i] == "--orchestrator" and i + 1 < args.size():
+			ORCHESTRATOR_URL = args[i + 1]
 
 func _ready() -> void:
 	# Disable MCP editor services when running headless — they share the same
@@ -136,8 +147,8 @@ func _register_with_orchestrator() -> void:
 	var pkt := Proto.OrchestratorPacket.new()
 	var reg := pkt.new_zone_register()
 	reg.set_zone_id(zone_id)
-	reg.set_address("127.0.0.1")
-	reg.set_port(PORT)
+	reg.set_address(PUBLIC_ADDRESS)
+	reg.set_port(PUBLIC_PORT if PUBLIC_PORT > 0 else PORT)
 	reg.set_max_players(MAX_CLIENTS)
 	reg.set_current_players(players.size())
 	_send_to_orchestrator(pkt)
@@ -269,7 +280,10 @@ func _remove_player(id: int) -> void:
 		players[id].queue_free()
 		players.erase(id)
 		_input_system.on_player_removed(id)
-	_pending_redirects.erase(id)
+	for token in _pending_redirects.keys():
+		if _pending_redirects[token].get("peer_id") == id:
+			_pending_redirects.erase(token)
+			break
 
 # ── Zone Borders ───────────────────────────────────────────────────────────────
 

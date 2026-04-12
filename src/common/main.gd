@@ -5,15 +5,17 @@ extends Node
 @export var CLIENT_MAIN = "res://src/client/Game.tscn"
 @export var GAME_SERVER_MAIN = "res://src/game-server/zones/ServerZone.tscn"
 @export var BOT_MAIN = "res://src/client/Bot/BotGame.tscn"
+@export var ORCHESTRATOR_MAIN = "res://src/orchestrator/Orchestrator.tscn"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	var features: Dictionary[String, Callable] = {
 		"client": start_client,
 		"game-server": start_game_server,
-		"bot": start_bot_client
+		"bot": start_bot_client,
+		"orchestrator": start_orchestrator
 	}
-	
+
 	for feature in features:
 		if OS.has_feature(feature):
 			features[feature].call()
@@ -29,3 +31,6 @@ func start_game_server() -> void:
 
 func start_bot_client() -> void:
 	get_tree().change_scene_to_file.call_deferred(BOT_MAIN)
+
+func start_orchestrator() -> void:
+	get_tree().change_scene_to_file.call_deferred(ORCHESTRATOR_MAIN)
