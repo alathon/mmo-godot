@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://h4wdp2a37w5p"]
 
 [ext_resource type="Script" uid="uid://vvo7ggrbjgrw" path="res://src/client/Network/BackendAPI.gd" id="1_4po38"]
-[ext_resource type="Script" uid="uid://lyn3t2l3rqx5" path="res://src/client/Network/NetworkClock.gd" id="2_t2esl"]
+[ext_resource type="Script" uid="uid://dp86opdmyy36x" path="res://src/client/Network/NetworkClockNew.gd" id="3_bg4vv"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="6_mfuft"]
 
 [node name="Services" type="Node" unique_id=1368178531]
@@ -16,7 +16,7 @@ unique_name_in_owner = true
 script = ExtResource("6_mfuft")
 metadata/_custom_type_script = "uid://dyjg3a1a48cwy"
 
-[node name="NetworkClock" type="Node" parent="." unique_id=633439119]
+[node name="NetworkClock" type="Node" parent="." unique_id=1889349879]
 unique_name_in_owner = true
-script = ExtResource("2_t2esl")
-metadata/_custom_type_script = "uid://lyn3t2l3rqx5"
+script = ExtResource("3_bg4vv")
+metadata/_custom_type_script = "uid://dp86opdmyy36x"

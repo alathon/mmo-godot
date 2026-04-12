@@ -72,5 +72,5 @@ func _process(_delta: float) -> void:
 	lines.append("FPS:         %d" % Engine.get_frames_per_second())
 	_label.text = "\n".join(lines)
 
-func _get_clock() -> NetworkClock:
-	return NetworkTime._clock as NetworkClock
+func _get_clock() -> NetworkClockNew:
+	return NetworkTime._clock

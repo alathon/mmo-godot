@@ -11,6 +11,7 @@ signal local_player_spawned(player: Player)
 signal remote_player_spawned(player: RemoteEntity)
 @onready var _api: BackendAPI = %BackendAPI
 @onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
+@onready var _clock_new: NetworkClockNew = $"/root/Root/Services/NetworkClock"
 
 @export var BotMode: bool = false
 
@@ -105,8 +106,9 @@ func _despawn_remote_player(id: int) -> void:
 func _on_world_positions(diff: Proto.WorldPositions) -> void:
 	var local_id := multiplayer.get_unique_id() # TODO: Are we sure it should be the unique ID from this node?? Feels iffy.
 	var tick: int = diff.get_tick()
+	_clock_new.on_world_positions_tick(tick)
+	
 	var seen_ids := {}
-
 	for entity in diff.get_entities():
 		var id := entity.get_entity_id()
 		var pos := Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
