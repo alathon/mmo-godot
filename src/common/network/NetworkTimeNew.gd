@@ -77,6 +77,10 @@ func reset_tick(new_tick: int) -> void:
 	_process_time = 0.0
 	_tick_time = 0.0
 	_next_tick_time = Globals.TICK_INTERVAL
+	# Clear the clock's smoothed drift so the next _tick_loop doesn't
+	# immediately see stale drift and panic again.
+	if _clock != null:
+		_clock._smoothed_drift = 0.0
 	print("[%s] Tick hard-reset: %d -> %d (drift was %d)" % [_role, old_tick, new_tick, new_tick - old_tick])
 	on_tick_reset.emit()
 

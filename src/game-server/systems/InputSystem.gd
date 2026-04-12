@@ -116,9 +116,11 @@ func tick(tick: int, ctx: Dictionary) -> void:
 
 		var buf: Dictionary = _input_buffers.get(peer_id, {})
 		var input: Dictionary
+		var is_real_input := false
 		if buf.has(tick):
 			input = buf[tick]
 			buf.erase(tick)
+			is_real_input = true
 		else:
 			input = state.last_input
 			print("[INPUT] REPLAY input for peer %d at sim_tick=%d" % [peer_id, tick])
@@ -137,9 +139,12 @@ func tick(tick: int, ctx: Dictionary) -> void:
 				"ground_z": input.get("ground_z", 0.0),
 			}
 
-		state.last_input = input.duplicate()
-		state.last_input["jump_pressed"] = false
-		state.last_input["ability_id"] = ""
+		# Only update last_input from real inputs so that replays preserve
+		# the player's last actual intent instead of feeding back into themselves.
+		if is_real_input:
+			state.last_input = input.duplicate()
+			state.last_input["jump_pressed"] = false
+			state.last_input["ability_id"] = ""
 
 	# Prune inputs older than sim_tick
 	for peer_id in _input_buffers:
