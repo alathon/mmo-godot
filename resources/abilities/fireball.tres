@@ -1,36 +1,31 @@
 [gd_resource type="Resource" script_class="AbilityResource" format=3 uid="uid://c0nbe2upav5cw"]
 
-[ext_resource type="Script" uid="uid://dh4ns7wox4m5s" path="res://src/common/combat/AbilityEffect.gd" id="1_6sfer"]
-[ext_resource type="Script" uid="uid://dlobaqcf0cmru" path="res://src/common/combat/AbilityResource.gd" id="2_546e4"]
-[ext_resource type="Script" uid="uid://dn45bp34f1hv1" path="res://src/common/combat/DamageEffect.gd" id="2_vwgc1"]
-[ext_resource type="Script" uid="uid://currxkbtxe2xr" path="res://src/common/combat/ApplyStatusEffect.gd" id="3_vwgc1"]
-[ext_resource type="Script" uid="uid://cebd4h5i68j47" path="res://src/common/combat/StatusEffectDef.gd" id="4_j1m57"]
+[ext_resource type="Script" uid="uid://dh4ns7wox4m5s" path="res://src/common/combat/abilities/effects/AbilityEffect.gd" id="1_6sfer"]
+[ext_resource type="Script" uid="uid://1kt8qok880pp" path="res://src/common/combat/abilities/ConditionalEffect.gd" id="1_sosh0"]
+[ext_resource type="Script" uid="uid://dlobaqcf0cmru" path="res://src/common/combat/abilities/AbilityResource.gd" id="2_546e4"]
+[ext_resource type="Script" uid="uid://dn45bp34f1hv1" path="res://src/common/combat/abilities/effects/DamageEffect.gd" id="2_vwgc1"]
+[ext_resource type="Script" uid="uid://btwk3jl7m60fc" path="res://src/common/combat/abilities/conditions/ConditionResource.gd" id="3_bj8ij"]
+[ext_resource type="Script" uid="uid://b3q0o4drbc13f" path="res://src/common/combat/abilities/StatComponent.gd" id="4_x5uhx"]
+[ext_resource type="Script" uid="uid://bjo3ueuo52uk1" path="res://src/common/combat/abilities/ValueFormula.gd" id="5_cdij5"]
+
+[sub_resource type="Resource" id="Resource_tvv5y"]
+script = ExtResource("3_bj8ij")
+metadata/_custom_type_script = "uid://btwk3jl7m60fc"
+
+[sub_resource type="Resource" id="Resource_8aqol"]
+script = ExtResource("1_sosh0")
+condition = SubResource("Resource_tvv5y")
+metadata/_custom_type_script = "uid://1kt8qok880pp"
+
+[sub_resource type="Resource" id="Resource_qbf3x"]
+script = ExtResource("5_cdij5")
+base = 120.0
+metadata/_custom_type_script = "uid://bjo3ueuo52uk1"
 
 [sub_resource type="Resource" id="Resource_j1m57"]
 script = ExtResource("2_vwgc1")
-base_value = 120.0
+base_value = SubResource("Resource_qbf3x")
 target_narrower = 1
-
-[sub_resource type="Resource" id="Resource_oufh6"]
-script = ExtResource("2_vwgc1")
-base_value = 20.0
-target_narrower = 1
-metadata/_custom_type_script = "uid://dn45bp34f1hv1"
-
-[sub_resource type="Resource" id="Resource_sosh0"]
-script = ExtResource("4_j1m57")
-status_id = &"Burning"
-display_name = "Burning"
-is_debuff = true
-duration = 10.0
-dispel_category = "fire"
-tick_effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_oufh6")])
-metadata/_custom_type_script = "uid://cebd4h5i68j47"
-
-[sub_resource type="Resource" id="Resource_bj8ij"]
-script = ExtResource("3_vwgc1")
-status_def = SubResource("Resource_sosh0")
-metadata/_custom_type_script = "uid://currxkbtxe2xr"
 
 [resource]
 script = ExtResource("2_546e4")
@@ -39,4 +34,5 @@ tags = ["magic", "fire"]
 cast_time = 2.5
 range = 30.0
 mana_cost = 40
-effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_j1m57"), SubResource("Resource_bj8ij")])
+effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_j1m57")])
+conditional_effects = Array[ExtResource("1_sosh0")]([SubResource("Resource_8aqol")])
