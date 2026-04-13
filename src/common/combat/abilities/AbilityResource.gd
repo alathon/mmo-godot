@@ -15,9 +15,15 @@ enum AoeShape {
 	CONE,
 }
 
+enum HitType {
+	PHYSICAL,
+	MAGICAL,
+}
+
 @export var display_name: String = ""
 @export var group_tag: StringName = &""     # e.g. "fire_spell", "melee_attack"; used by AbilityModifier targeting
 @export var tags: PackedStringArray = []
+@export var hit_type: HitType = HitType.MAGICAL
 @export var target_type: TargetType = TargetType.OTHER_ENEMY
 @export var cast_time: float = 0.0
 @export var range: float = 0.0
