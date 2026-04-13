@@ -21,7 +21,7 @@ enum HitType {
 }
 
 @export var display_name: String = ""
-@export var group_tag: StringName = &""     # e.g. "fire_spell", "melee_attack"; used by AbilityModifier targeting
+@export var group_tags: PackedStringArray = []  # e.g. ["fire_spell", "aoe_spell"]; used by AbilityModifier targeting
 @export var tags: PackedStringArray = []
 @export var hit_type: HitType = HitType.MAGICAL
 @export var target_type: TargetType = TargetType.OTHER_ENEMY
@@ -35,6 +35,7 @@ enum HitType {
 @export var energy_cost: int = 0
 @export var effects: Array[AbilityEffect] = []
 @export var conditional_effects: Array[ConditionalEffect] = []
+@export var target_selectors: Array[TargetSelector] = []
 
 @export_group("AOE")
 @export var aoe_shape: AoeShape = AoeShape.NONE
