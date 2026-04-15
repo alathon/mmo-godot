@@ -28,7 +28,8 @@ enum HitType {
 @export var cast_time: float = 0.0
 @export var range: float = 0.0
 @export var uses_gcd: bool = true
-@export var cooldown: float = 0.0
+@export var cooldown: float = 0.0          # recharge time per charge
+@export var max_charges: int = 1           # 1 = normal cooldown; >1 = charge-based cooldown
 @export var cooldown_group: String = ""     # "" = no group
 @export var mana_cost: int = 0
 @export var stamina_cost: int = 0

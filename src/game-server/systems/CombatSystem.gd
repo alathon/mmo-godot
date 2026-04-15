@@ -130,7 +130,7 @@ func _process_ability_input(entity_id: int, combat: CombatState, cds: Cooldowns,
 	var target_id: int = ai["target_entity_id"]
 	var ground_pos := Vector3(ai["ground_x"], ai["ground_y"], ai["ground_z"])
 
-	var ability: AbilityDef = _db.get_ability(ability_id)
+	var ability: AbilityResource = _db.get_ability(ability_id)
 	if ability == null:
 		_enqueue_rejected(entity_id, ability_id, sim_tick, CombatConstants.CANCEL_INVALID)
 		return
@@ -153,7 +153,7 @@ func _process_ability_input(entity_id: int, combat: CombatState, cds: Cooldowns,
 
 	# No active cast — allow queuing during the last 50% of GCD
 	if combat.gcd_remaining > 0.0:
-		if ability.gcd and _in_gcd_queue_window(combat):
+		if ability.uses_gcd and _in_gcd_queue_window(combat):
 			var err := _validate(entity_id, combat, cds, stats, ability,
 					target_id, ground_pos, zone_players, true)
 			if err != "":
@@ -199,8 +199,9 @@ func _advance_and_resolve(entity_id: int, combat: CombatState, cds: Cooldowns,
 # ── Cast lifecycle ─────────────────────────────────────────────────────────────
 
 func _start_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
-		ability: AbilityDef, target_id: int, ground_pos: Vector3, sim_tick: int) -> void:
-	combat.cast_ability_id = ability.id
+		ability: AbilityResource, target_id: int, ground_pos: Vector3, sim_tick: int) -> void:
+	var ability_id: String = ability.get_ability_id()
+	combat.cast_ability_id = ability_id
 	combat.cast_target_entity_id = target_id
 	combat.cast_ground_pos = ground_pos
 	combat.cast_total = ability.cast_time
@@ -208,18 +209,18 @@ func _start_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 	combat.cast_requested_tick = sim_tick
 	combat.cast_start_tick = sim_tick
 
-	if ability.gcd:
+	if ability.uses_gcd:
 		combat.gcd_remaining = CombatConstants.GCD_DURATION
 	combat.anim_lock_remaining = CombatConstants.ANIMATION_LOCK_DURATION
 
-	cds.start(ability.id, ability.cooldown, ability.cooldown_group)
+	cds.start(ability_id, ability.cooldown, ability.cooldown_group)
 
-	_enqueue_accepted(entity_id, ability.id, sim_tick, sim_tick)
+	_enqueue_accepted(entity_id, ability_id, sim_tick, sim_tick)
 
 	_pending_events.append({
 		"type": "ability_use_started",
 		"source_entity_id": entity_id,
-		"ability_id": ability.id,
+		"ability_id": ability_id,
 		"target_entity_id": target_id,
 		"ground_pos": ground_pos,
 		"cast_time": ability.cast_time,
@@ -229,7 +230,7 @@ func _start_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 func _resolve_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 		stats: Stats, sim_tick: int, zone_players: Dictionary) -> void:
 	var ability_id := combat.cast_ability_id
-	var ability: AbilityDef = _db.get_ability(ability_id)
+	var ability: AbilityResource = _db.get_ability(ability_id)
 	var target_id := combat.cast_target_entity_id
 	var ground_pos := combat.cast_ground_pos
 	combat.clear_cast()
@@ -238,23 +239,22 @@ func _resolve_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 		return
 
 	# Re-validate resources at completion
-	for resource in ability.resource_cost:
-		if not stats.has_resource(resource, ability.resource_cost[resource]):
-			_pending_events.append({
-				"type": "ability_use_canceled",
-				"source_entity_id": entity_id,
-				"ability_id": ability_id,
-				"cancel_reason": CombatConstants.CANCEL_INVALID,
-			})
-			if combat.has_queued():
-				_dequeue_ability(entity_id, combat, cds, stats, sim_tick, zone_players)
-			return
+	if not _has_resources(stats, ability):
+		_pending_events.append({
+			"type": "ability_use_canceled",
+			"source_entity_id": entity_id,
+			"ability_id": ability_id,
+			"cancel_reason": CombatConstants.CANCEL_INVALID,
+		})
+		if combat.has_queued():
+			_dequeue_ability(entity_id, combat, cds, stats, sim_tick, zone_players)
+		return
 
 	# Re-validate range at completion (only for non-instant abilities)
-	if ability.cast_time > 0.0 and ability.target_type != AbilityDef.TARGET_SELF:
+	if ability.cast_time > 0.0 and ability.target_type != AbilityResource.TargetType.SELF:
 		var range_err := _check_range(entity_id, ability, target_id, ground_pos, zone_players)
 		if range_err != "":
-			var reason := CombatConstants.CANCEL_TARGET_DIED \
+			var reason: int = CombatConstants.CANCEL_TARGET_DIED \
 					if range_err == "target_gone" else CombatConstants.CANCEL_INVALID
 			_pending_events.append({
 				"type": "ability_use_canceled",
@@ -267,8 +267,7 @@ func _resolve_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 			return
 
 	# Spend resources
-	for resource in ability.resource_cost:
-		stats.spend_resource(resource, ability.resource_cost[resource])
+	_spend_resources(stats, ability)
 
 	_pending_events.append({
 		"type": "ability_use_completed",
@@ -278,13 +277,14 @@ func _resolve_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 	})
 
 	# Apply effects to all resolved targets
+	var caster_stats: Dictionary = stats.get_combat_stats()
 	var targets := _get_targets(entity_id, ability, target_id, ground_pos, zone_players)
 	for t_id in targets:
 		var t_stats: Stats = _stats(t_id, zone_players)
 		if t_stats == null:
 			continue
 		for effect in ability.effects:
-			_apply_effect(entity_id, ability_id, t_id, t_stats, effect)
+			_apply_effect(entity_id, ability_id, t_id, t_stats, effect, caster_stats)
 
 	# Death check
 	for t_id in targets:
@@ -303,7 +303,7 @@ func _resolve_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 func _cancel_cast(entity_id: int, combat: CombatState,
 		cds: Cooldowns, reason: int) -> void:
 	var ability_id := combat.cast_ability_id
-	var ability: AbilityDef = _db.get_ability(ability_id)
+	var ability: AbilityResource = _db.get_ability(ability_id)
 	# Per spec: canceling a cast also cancels the GCD, anim lock, and ability cooldown
 	cds.cancel(ability_id, ability.cooldown_group if ability else "")
 	combat.gcd_remaining = 0.0
@@ -325,7 +325,7 @@ func _dequeue_ability(entity_id: int, combat: CombatState, cds: Cooldowns,
 	var ground_pos := combat.queued_ground_pos
 	combat.clear_queued()
 
-	var ability: AbilityDef = _db.get_ability(ability_id)
+	var ability: AbilityResource = _db.get_ability(ability_id)
 	if ability == null:
 		return
 	if _validate(entity_id, combat, cds, stats, ability,
@@ -337,62 +337,58 @@ func _dequeue_ability(entity_id: int, combat: CombatState, cds: Cooldowns,
 
 # ── Effect application ─────────────────────────────────────────────────────────
 
-func _apply_effect(source_id: int, ability_id: String,
-		target_id: int, t_stats: Stats, effect: EffectDef) -> void:
-	match effect.type:
-		EffectDef.TYPE_DAMAGE:
-			var amount := int(effect.base_value)
-			t_stats.take_damage(amount)
-			_pending_events.append({
-				"type": "damage_taken",
-				"source_entity_id": source_id,
-				"target_entity_id": target_id,
-				"ability_id": ability_id,
-				"amount": float(amount),
-			})
-		EffectDef.TYPE_HEAL:
-			var amount := int(effect.base_value)
-			t_stats.restore_hp(amount)
-			_pending_events.append({
-				"type": "healing_received",
-				"source_entity_id": source_id,
-				"target_entity_id": target_id,
-				"ability_id": ability_id,
-				"amount": float(amount),
-			})
-		# Status effects, displacement, dispel, consume_stacks: deferred
-		_:
-			pass
+func _apply_effect(source_id: int, ability_id: String, target_id: int,
+		t_stats: Stats, effect: AbilityEffect, caster_stats: Dictionary) -> void:
+	if effect is DamageEffect:
+		var amount := int(effect.base_value.evaluate(caster_stats))
+		t_stats.take_damage(amount)
+		_pending_events.append({
+			"type": "damage_taken",
+			"source_entity_id": source_id,
+			"target_entity_id": target_id,
+			"ability_id": ability_id,
+			"amount": float(amount),
+		})
+	elif effect is HealEffect:
+		var amount := int(effect.base_value.evaluate(caster_stats))
+		t_stats.restore_hp(amount)
+		_pending_events.append({
+			"type": "healing_received",
+			"source_entity_id": source_id,
+			"target_entity_id": target_id,
+			"ability_id": ability_id,
+			"amount": float(amount),
+		})
+	# ApplyStatusEffect, DisplacementEffect, DispelEffect, ConsumeStacksEffect: deferred
 
 
 # ── Validation ────────────────────────────────────────────────────────────────
 
 func _validate(entity_id: int, combat: CombatState, cds: Cooldowns, stats: Stats,
-		ability: AbilityDef, target_id: int, ground_pos: Vector3,
+		ability: AbilityResource, target_id: int, ground_pos: Vector3,
 		zone_players: Dictionary, is_queuing: bool) -> String:
 	if not is_queuing:
 		if combat.anim_lock_remaining > 0.0:
 			return "anim_lock"
-		if ability.gcd and combat.gcd_remaining > 0.0:
+		if ability.uses_gcd and combat.gcd_remaining > 0.0:
 			return "gcd"
 
-	if not cds.is_ready(ability.id, ability.cooldown_group):
+	if not cds.is_ready(ability.get_ability_id(), ability.cooldown_group):
 		return "on_cooldown"
 
-	for resource in ability.resource_cost:
-		if not stats.has_resource(resource, ability.resource_cost[resource]):
-			return "insufficient_" + resource
+	if not _has_resources(stats, ability):
+		return "insufficient_resources"
 
-	if ability.target_type == AbilityDef.TARGET_SELF:
+	if ability.target_type == AbilityResource.TargetType.SELF:
 		return ""
 
 	return _check_range(entity_id, ability, target_id, ground_pos, zone_players)
 
 
-func _check_range(entity_id: int, ability: AbilityDef, target_id: int,
+func _check_range(entity_id: int, ability: AbilityResource, target_id: int,
 		ground_pos: Vector3, zone_players: Dictionary) -> String:
 	var caster_pos := _pos(entity_id, zone_players)
-	if ability.target_type == AbilityDef.TARGET_GROUND:
+	if ability.target_type == AbilityResource.TargetType.GROUND:
 		if ability.range > 0.0 and caster_pos.distance_to(ground_pos) > ability.range:
 			return "out_of_range"
 	else:
@@ -405,11 +401,11 @@ func _check_range(entity_id: int, ability: AbilityDef, target_id: int,
 
 # ── Target resolution ─────────────────────────────────────────────────────────
 
-func _get_targets(caster_id: int, ability: AbilityDef,
+func _get_targets(caster_id: int, ability: AbilityResource,
 		target_id: int, ground_pos: Vector3, zone_players: Dictionary) -> Array:
-	if ability.target_type == AbilityDef.TARGET_SELF:
+	if ability.target_type == AbilityResource.TargetType.SELF:
 		return [caster_id]
-	if ability.aoe_shape != "":
+	if ability.aoe_shape != AbilityResource.AoeShape.NONE:
 		var result: Array = []
 		for eid in zone_players:
 			if ground_pos.distance_to(_pos(eid, zone_players)) <= ability.aoe_radius:
@@ -418,6 +414,27 @@ func _get_targets(caster_id: int, ability: AbilityDef,
 	if zone_players.has(target_id):
 		return [target_id]
 	return []
+
+
+# ── Resource cost helpers ──────────────────────────────────────────────────────
+
+func _has_resources(stats: Stats, ability: AbilityResource) -> bool:
+	if ability.mana_cost > 0 and not stats.has_resource("mana", ability.mana_cost):
+		return false
+	if ability.stamina_cost > 0 and not stats.has_resource("stamina", ability.stamina_cost):
+		return false
+	if ability.energy_cost > 0 and not stats.has_resource("energy", ability.energy_cost):
+		return false
+	return true
+
+
+func _spend_resources(stats: Stats, ability: AbilityResource) -> void:
+	if ability.mana_cost > 0:
+		stats.spend_resource("mana", ability.mana_cost)
+	if ability.stamina_cost > 0:
+		stats.spend_resource("stamina", ability.stamina_cost)
+	if ability.energy_cost > 0:
+		stats.spend_resource("energy", ability.energy_cost)
 
 
 # ── Packet helpers ────────────────────────────────────────────────────────────
