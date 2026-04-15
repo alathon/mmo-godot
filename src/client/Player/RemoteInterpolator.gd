@@ -8,7 +8,7 @@ extends Node
 #
 # Usage: call push_snapshot(tick, {"global_position": vec3, ...}) on each server update.
 
-const RENDER_DELAY := 1  # ticks to lag behind latest received
+const RENDER_DELAY := 0  # ticks to lag behind latest received
 
 var _debug: bool = false
 var _paused: bool = false

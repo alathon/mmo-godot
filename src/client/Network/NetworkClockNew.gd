@@ -27,7 +27,7 @@ const DRIFT_CLAMP_TICKS := 15.0
 const PANIC_THRESHOLD := 1.0
 
 ## Extra ticks of lead beyond RTT/2.
-const JITTER_BUFFER_TICKS := 1
+const JITTER_BUFFER_TICKS := 3
 
 signal synchronized
 
@@ -184,9 +184,9 @@ func on_world_positions_tick(sim_tick: int) -> void:
 	_last_sim_tick_local_time = _local_time
 
 	# Estimate where the server is *now*.
-	# sim_tick = server_tick - INPUT_BUFFER_SIZE, and the packet took rtt/2 to arrive.
+	# sim_tick is the server tick when the packet was processed; add rtt/2 to get current.
 	var one_way_ticks: float = (rtt / 2.0) * Globals.TICK_RATE
-	var estimated_server_tick_now: float = float(sim_tick) + Globals.INPUT_BUFFER_SIZE + one_way_ticks
+	var estimated_server_tick_now: float = float(sim_tick) + one_way_ticks
 
 	# Where we *want* to be: server tick + lead (so our inputs arrive on time).
 	var desired_client_tick: float = estimated_server_tick_now + lead_time * Globals.TICK_RATE

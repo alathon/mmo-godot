@@ -39,7 +39,7 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 
 	var input_tick: int = input.get_tick()
 	var current_tick: int = NetworkTime.tick
-	var sim_tick := current_tick - Globals.INPUT_BUFFER_SIZE
+	var sim_tick := current_tick
 
 	if input_tick < sim_tick:
 		var diff = sim_tick - input_tick

@@ -63,7 +63,7 @@ func _process(_delta: float) -> void:
 		lines.append("Synced:      %s" % clock.is_synced)
 	else:
 		# Server mode
-		var sim_tick: int = NetworkTime.tick - Globals.INPUT_BUFFER_SIZE
+		var sim_tick: int = NetworkTime.tick
 		lines.append("=== SERVER ===")
 		lines.append("Tick:        %d" % NetworkTime.tick)
 		lines.append("Sim tick:    %d" % sim_tick)

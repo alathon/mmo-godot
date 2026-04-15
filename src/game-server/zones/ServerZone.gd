@@ -211,7 +211,7 @@ func _handle_prepare_player(msg: Proto.PreparePlayer) -> void:
 # ── Tick Loop ─────────────────────────────────────────────────────────────────
 
 func _tick(_delta: float, current_tick: int) -> void:
-	var sim_tick := current_tick - Globals.INPUT_BUFFER_SIZE
+	var sim_tick := current_tick
 	var ctx: Dictionary = {}
 
 	_input_system.tick(sim_tick, ctx)
