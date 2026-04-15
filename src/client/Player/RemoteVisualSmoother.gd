@@ -5,10 +5,7 @@ extends Node3D
 ## Positioned by RemoteInterpolator via interpolated snapshots.
 ## top_level = true so the parent's transform doesn't affect us.
 
-var face_angle: float:
-	set(value):
-		face_angle = value
-		rotation.y = value
+
 
 var server_velocity: Vector3 = Vector3.ZERO
 var is_on_floor: bool = true

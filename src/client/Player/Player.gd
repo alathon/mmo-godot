@@ -71,7 +71,7 @@ func setCharacterModel(name) -> void:
 	var model = (load("res://assets/entities/character_models/%s.tscn" % name)).instantiate()
 	
 	# Check for existing model
-	var currentModel = _visual.get_node("BaseCharacter")
+	var currentModel = _visual.get_node_or_null("BaseCharacter")
 	if currentModel:
 		currentModel.queue_free()
 	

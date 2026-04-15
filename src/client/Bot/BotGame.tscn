@@ -4,13 +4,8 @@
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="2_jgm3v"]
 [ext_resource type="PackedScene" uid="uid://dki07avh0fjld" path="res://src/client/Player/CameraPivot.tscn" id="3_3kn3b"]
 [ext_resource type="Script" uid="uid://dihdjnvj7ctd6" path="res://src/client/ZoneContainer.gd" id="4_1kqgw"]
-[ext_resource type="Script" uid="uid://bt4wkae1gvxgb" path="res://src/client/Bot/BotInput.gd" id="4_ahsyx"]
 
 [node name="Root" type="Node" unique_id=1549339425]
-
-[node name="BotInput" type="Node" parent="." unique_id=235983835]
-unique_name_in_owner = true
-script = ExtResource("4_ahsyx")
 
 [node name="Services" parent="." unique_id=1368178531 instance=ExtResource("1_s25cv")]
 

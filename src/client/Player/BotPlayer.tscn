@@ -19,10 +19,6 @@ albedo_color = Color(1, 0.2, 0.2, 0.3)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ymcag"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_0ciy7"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_fhs4s"]
-
 [node name="Player" type="Node" unique_id=725161409]
 script = ExtResource("1_fg3qq")
 
@@ -73,14 +69,7 @@ unique_name_in_owner = true
 material_override = SubResource("StandardMaterial3D_txxbj")
 mesh = SubResource("CapsuleMesh_ymcag")
 
-[node name="Visual" type="MeshInstance3D" parent="." unique_id=1052407985 node_paths=PackedStringArray("Body", "InputSource", "PlayerNode")]
+[node name="VisualSmoother" type="Node3D" parent="." unique_id=1052407985]
 unique_name_in_owner = true
-mesh = SubResource("CapsuleMesh_0ciy7")
 script = ExtResource("9_ph7ab")
 Body = NodePath("../Body")
-InputSource = NodePath("../LocalInput")
-PlayerNode = NodePath("..")
-
-[node name="Nose" type="MeshInstance3D" parent="Visual" unique_id=663002099]
-transform = Transform3D(0.19999999, 0, 0, 0, 0.19999999, 0, 0, 0, 0.19999999, 0, 0.45133114, -0.5521852)
-mesh = SubResource("BoxMesh_fhs4s")

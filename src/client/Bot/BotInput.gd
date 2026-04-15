@@ -11,8 +11,11 @@ func _on_before_tick_loop(tick: int) -> void:
 	_timer -= Globals.TICK_INTERVAL
 	if _timer <= 0.0:
 		_timer = randf_range(1.0, _direction_hold)
-		var angle := randf() * TAU
-		movement = Vector3(cos(angle), 0, sin(angle))
+		if randf() < 0.3:
+			movement = Vector3.ZERO
+		else:
+			var angle := randf() * TAU
+			movement = Vector3(cos(angle), 0, sin(angle))
 
 func getInput() -> Dictionary:
 	return {

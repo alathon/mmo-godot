@@ -5,9 +5,8 @@
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_mflae"]
 [ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/Cooldowns.gd" id="3_fb5u3"]
 [ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/CombatState.gd" id="4_d2d2f"]
-[ext_resource type="Script" uid="uid://1cvx777p44x3" path="res://src/client/Player/RemoteVisualSmoother.gd" id="5_rvs"]
 
-[node name="RemoteEntity" type="Node3D" unique_id=128571049]
+[node name="RemoteEntity" type="Node3D" unique_id=751671690]
 script = ExtResource("1_548v2")
 
 [node name="Mob" type="Node" parent="." unique_id=1730442433]
@@ -27,10 +26,6 @@ unique_name_in_owner = true
 script = ExtResource("4_d2d2f")
 metadata/_custom_type_script = "uid://cefh7khctl77p"
 
-[node name="VisualSmoother" type="Node3D" parent="." unique_id=1152758261]
-unique_name_in_owner = true
-script = ExtResource("5_rvs")
-
-[node name="RemoteInterpolator" type="Node" parent="VisualSmoother" unique_id=600016612]
+[node name="RemoteInterpolator" type="Node" parent="." unique_id=600016612]
 unique_name_in_owner = true
 script = ExtResource("2_al5b1")

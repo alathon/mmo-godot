@@ -16,8 +16,8 @@ const TOKEN_TIMEOUT := 30.0
 
 ## Default login spawn positions per zone: zone_id -> { pos: Vector3, rot_y: float }
 const ZONE_LOGIN_SPAWNS := {
-	"forest": { "pos": Vector3(41.17052, 1.7646443, -28.533752), "rot_y": 0.0 },
-	"other":  { "pos": Vector3(0.0, 1.0, 0.0), "rot_y": 0.0 },
+	"forest": { "pos": Vector3(31.3, 1.5, -60.0), "rot_y": 180.0 },
+	"other":  { "pos": Vector3(127.54, 1.5, -13.3), "rot_y": 0.0 },
 }
 
 ## Registered zone servers: zone_id -> { peer_id, address, port, max_players, current_players }
