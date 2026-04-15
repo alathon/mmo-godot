@@ -8,11 +8,6 @@ extends Node3D
 ##
 ## Reads physics position, input, and speed from the parent Player node.
 
-## How fast the visual corrects toward the physics position (per second).
-## Higher = snappier but lets more tick-rate jitter through.
-## Lower = smoother but visual can drift further from physics.
-@export_range(1.0, 30.0) var correction_rate: float = 20.0
-
 @export var Body: PhysicsBody
 
 ## The smoothed position. External systems (e.g. camera) can read this.
@@ -34,21 +29,13 @@ func _physics_process(_delta: float) -> void:
 func _ready() -> void:
 	top_level = true
 
-#func _process(delta: float) -> void:
-	#if Body == null:
-		#return
-#
-	#smooth_position = smooth_position.lerp(Body.global_position, correction_rate * delta)
-#
-	#_sync()
-
 func _process(_delta: float) -> void:
 	if Body == null:
 		return
 	var fraction: float = Engine.get_physics_interpolation_fraction()
 	smooth_position = _prev_position.lerp(_curr_position, fraction)
-	_sync()
+	_sync(fraction)
 
-func _sync() -> void:
+func _sync(fraction: float) -> void:
 	global_position = smooth_position
-	global_rotation.y = lerp_angle(_prev_rotation_y, _curr_rotation_y, Engine.get_physics_interpolation_fraction())
+	global_rotation.y = lerp_angle(_prev_rotation_y, _curr_rotation_y, fraction)
