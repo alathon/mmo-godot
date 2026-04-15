@@ -22,6 +22,8 @@ var _remote_players: Dictionary[int, RemoteEntity]
 var _debug: bool = false
 
 func _ready() -> void:
+	if "--bot" in OS.get_cmdline_user_args():
+		BotMode = true
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
 
 	_api.world_positions_received.connect(_on_world_positions)
