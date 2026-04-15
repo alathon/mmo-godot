@@ -24,7 +24,7 @@ metadata/_custom_type_script = "uid://bjo3ueuo52uk1"
 
 [sub_resource type="Resource" id="Resource_j1m57"]
 script = ExtResource("2_vwgc1")
-base_value = SubResource("Resource_qbf3x")
+formula = SubResource("Resource_qbf3x")
 target_narrower = 1
 
 [resource]

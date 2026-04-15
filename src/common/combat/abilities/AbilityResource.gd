@@ -20,10 +20,17 @@ enum HitType {
 	MAGICAL,
 }
 
+enum VarianceProfile {
+	NONE,
+	PLUS_MINUS_10_PCT,
+	WEIGHTED_LOW_HIGH,
+}
+
 @export var display_name: String = ""
 @export var group_tags: PackedStringArray = []  # e.g. ["fire_spell", "aoe_spell"]; used by AbilityModifier targeting
 @export var tags: PackedStringArray = []
 @export var hit_type: HitType = HitType.MAGICAL
+@export var variance_profile: VarianceProfile = VarianceProfile.NONE
 @export var target_type: TargetType = TargetType.OTHER_ENEMY
 @export var cast_time: float = 0.0
 @export var range: float = 0.0

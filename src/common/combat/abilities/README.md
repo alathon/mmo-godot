@@ -28,6 +28,7 @@ The top-level resource that defines a single ability. One `.tres` file per abili
 | `group_tags` | PackedStringArray | Grouping labels for this ability (e.g. `["fire_spell", "aoe_spell"]`). Used by AbilityModifiers to target groups of abilities at once. |
 | `tags` | PackedStringArray | Descriptive tags for the ability itself (e.g. `["magic", "fire"]`). |
 | `hit_type` | PHYSICAL / MAGICAL | Determines whether the ability uses the physical hit/miss system or the magical resist system. Must be set explicitly. |
+| `variance_profile` | NONE / PLUS_MINUS_10_PCT / WEIGHTED_LOW_HIGH | Optional random spread applied by DamageResolver after formula evaluation. |
 | `target_type` | SELF / OTHER_ENEMY / OTHER_FRIEND / OTHER_ANY / GROUND | Who or what the caster must target to use this ability. |
 | `cast_time` | float | Seconds of casting before the ability fires. 0 = instant cast. |
 | `range` | float | Maximum distance to the target. |
@@ -73,7 +74,7 @@ Deals damage to the target.
 
 | Field | Type | Description |
 |---|---|---|
-| `base_value` | ValueFormula | The damage value. Can scale with caster stats. See **ValueFormula**. |
+| `formula` | ValueFormula | The damage value. Can scale with caster stats. See **ValueFormula**. |
 | `aggro_modifier` | float | Multiplier on threat generated. 1.0 = normal threat. 2.0 = double threat. |
 
 #### HealEffect
@@ -82,7 +83,7 @@ Restores health to the target.
 
 | Field | Type | Description |
 |---|---|---|
-| `base_value` | ValueFormula | The heal value. Can scale with caster stats. |
+| `formula` | ValueFormula | The heal value. Can scale with caster stats. |
 | `aggro_modifier` | float | Threat multiplier. Heals typically use a lower value (e.g. 0.5) since healing threat is split across all enemies. |
 
 #### ApplyStatusEffect
@@ -328,7 +329,7 @@ AbilityResource (chain_lightning.tres)
         damage_falloff: 0.7
   effects:
     - DamageEffect
-        base_value: ValueFormula { base: 100 }
+        formula: ValueFormula { base: 100 }
         target_selector_id: "chain"
 ```
 
@@ -347,7 +348,7 @@ AbilityResource (prayer_of_mending.tres)
         allow_caster: false
   effects:
     - HealEffect
-        base_value: ValueFormula { base: 80 }
+        formula: ValueFormula { base: 80 }
         target_selector_id: "weakest"
 ```
 
@@ -364,9 +365,9 @@ AbilityResource (life_drain.tres)
         allow_caster: true
   effects:
     - DamageEffect
-        base_value: ValueFormula { base: 60 }
+        formula: ValueFormula { base: 60 }
     - HealEffect
-        base_value: ValueFormula { base: 40 }
+        formula: ValueFormula { base: 40 }
         target_selector_id: "ally_heal"
 ```
 

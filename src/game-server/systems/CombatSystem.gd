@@ -5,6 +5,8 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 var _zone: Node
 var _db: AbilityDatabase
+var _damage_resolver: DamageResolver
+var _hit_resolver: HitResolver
 
 ## Event descriptors accumulated this tick, flushed into CombatTickEvents at the end.
 var _pending_events: Array = []
@@ -15,6 +17,10 @@ var _ack_queue: Array = []  # Array[{peer_id, bytes}]
 func _ready() -> void:
 	_db = AbilityDatabase.new()
 	_db.load_all()
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	_damage_resolver = DamageResolver.new(rng)
+	_hit_resolver = HitResolver.new()
 	print("[COMBAT] AbilityDatabase loaded %d abilities" % _db.get_all().size())
 
 
@@ -269,22 +275,27 @@ func _resolve_cast(entity_id: int, combat: CombatState, cds: Cooldowns,
 	# Spend resources
 	_spend_resources(stats, ability)
 
+	var caster_stats: Dictionary = stats.get_combat_stats()
+	var hit_result := _hit_resolver.resolve_hit(ability, caster_stats, null)
 	_pending_events.append({
 		"type": "ability_use_completed",
 		"source_entity_id": entity_id,
 		"ability_id": ability_id,
-		"hit_type": 0,  # HIT — no miss/crit system yet
+		"hit_type": hit_result,
 	})
+	if not _hit_resolver.did_land(hit_result):
+		if combat.has_queued():
+			_dequeue_ability(entity_id, combat, cds, stats, sim_tick, zone_players)
+		return
 
 	# Apply effects to all resolved targets
-	var caster_stats: Dictionary = stats.get_combat_stats()
 	var targets := _get_targets(entity_id, ability, target_id, ground_pos, zone_players)
 	for t_id in targets:
 		var t_stats: Stats = _stats(t_id, zone_players)
 		if t_stats == null:
 			continue
 		for effect in ability.effects:
-			_apply_effect(entity_id, ability_id, t_id, t_stats, effect, caster_stats)
+			_apply_effect(entity_id, ability_id, t_id, t_stats, ability, effect, caster_stats)
 
 	# Death check
 	for t_id in targets:
@@ -338,9 +349,9 @@ func _dequeue_ability(entity_id: int, combat: CombatState, cds: Cooldowns,
 # ── Effect application ─────────────────────────────────────────────────────────
 
 func _apply_effect(source_id: int, ability_id: String, target_id: int,
-		t_stats: Stats, effect: AbilityEffect, caster_stats: Dictionary) -> void:
+		t_stats: Stats, ability: AbilityResource, effect: AbilityEffect, caster_stats: Dictionary) -> void:
 	if effect is DamageEffect:
-		var amount := int(effect.base_value.evaluate(caster_stats))
+		var amount := _damage_resolver.resolve_damage(effect, ability, caster_stats)
 		t_stats.take_damage(amount)
 		_pending_events.append({
 			"type": "damage_taken",
@@ -350,7 +361,7 @@ func _apply_effect(source_id: int, ability_id: String, target_id: int,
 			"amount": float(amount),
 		})
 	elif effect is HealEffect:
-		var amount := int(effect.base_value.evaluate(caster_stats))
+		var amount := _damage_resolver.resolve_heal(effect, ability, caster_stats)
 		t_stats.restore_hp(amount)
 		_pending_events.append({
 			"type": "healing_received",
