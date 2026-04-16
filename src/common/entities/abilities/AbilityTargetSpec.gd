@@ -15,16 +15,26 @@ var ground_position: Vector3 = Vector3.ZERO
 
 
 static func self_target():
-	return null
+	var target := AbilityTargetSpec.new()
+	target.kind = Kind.SELF
+	return target
 
 
 static func current_target():
-	return null
+	var target := AbilityTargetSpec.new()
+	target.kind = Kind.CURRENT_TARGET
+	return target
 
 
 static func entity(entity_id: int):
-	return null
+	var target := AbilityTargetSpec.new()
+	target.kind = Kind.ENTITY
+	target.entity_id = entity_id
+	return target
 
 
 static func ground(position: Vector3):
-	return null
+	var target := AbilityTargetSpec.new()
+	target.kind = Kind.GROUND
+	target.ground_position = position
+	return target

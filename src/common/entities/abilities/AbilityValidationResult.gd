@@ -7,8 +7,14 @@ var cancel_reason: int = AbilityConstants.CANCEL_INVALID
 
 
 static func accepted():
-	return null
+	var result := AbilityValidationResult.new()
+	result.ok = true
+	return result
 
 
 static func rejected(reason: StringName, cancel_reason: int):
-	return null
+	var result := AbilityValidationResult.new()
+	result.ok = false
+	result.reason = reason
+	result.cancel_reason = cancel_reason
+	return result

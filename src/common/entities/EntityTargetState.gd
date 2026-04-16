@@ -5,16 +5,16 @@ var target_entity_id: int = 0
 
 
 func set_target_entity_id(entity_id: int) -> void:
-	pass
+	target_entity_id = entity_id
 
 
 func get_target_entity_id() -> int:
-	return 0
+	return target_entity_id
 
 
 func has_target() -> bool:
-	return false
+	return target_entity_id > 0
 
 
 func clear_target() -> void:
-	pass
+	target_entity_id = 0
