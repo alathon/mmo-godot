@@ -40,23 +40,23 @@ func spend_resources_for(ability: AbilityResource) -> void:
 
 
 func is_casting() -> bool:
-	return false
+	return state.is_casting()
 
 
 func is_on_gcd() -> bool:
-	return false
+	return state.gcd_remaining > 0.0
 
 
 func is_animation_locked() -> bool:
-	return false
+	return state.anim_lock_remaining > 0.0
 
 
 func get_gcd_remaining() -> float:
-	return 0.0
+	return state.gcd_remaining
 
 
 func get_cooldown_remaining(ability_id: StringName) -> float:
-	return 0.0
+	return cooldowns.get_ability_remaining(ability_id)
 
 
 func cancel_casting(reason: int, context: AbilityExecutionContext) -> Array[EntityEvents]:
@@ -64,7 +64,7 @@ func cancel_casting(reason: int, context: AbilityExecutionContext) -> Array[Enti
 
 
 func clear_queued_ability() -> void:
-	pass
+	state.clear_queued()
 
 
 func _start_cast(request: AbilityUseRequest, ability: AbilityResource, sim_tick: int) -> Array[EntityEvents]:
