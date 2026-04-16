@@ -17,16 +17,23 @@ var queued_requested_tick: int = 0
 
 
 func is_casting() -> bool:
-	return false
+	return cast_ability_id != &""
 
 
 func has_queued() -> bool:
-	return false
+	return queued_ability_id != &""
 
 
 func clear_cast() -> void:
-	pass
+	cast_ability_id = &""
+	cast_target = null
+	cast_total = 0.0
+	cast_remaining = 0.0
+	cast_requested_tick = 0
+	cast_start_tick = 0
 
 
 func clear_queued() -> void:
-	pass
+	queued_ability_id = &""
+	queued_target = null
+	queued_requested_tick = 0
