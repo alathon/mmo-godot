@@ -358,7 +358,13 @@ Private methods:
 ```gdscript
 func _start_cast(request: AbilityUseRequest, ability: AbilityResource, sim_tick: int) -> Array[EntityEvents]
 func _complete_cast(sim_tick: int, context: AbilityExecutionContext) -> Array[EntityEvents]
-func _resolve_ability(request: AbilityUseRequest, ability: AbilityResource, context: AbilityExecutionContext) -> Array[EntityEvents]
+func _resolve_ability(
+	source_entity_id: int,
+	ability_id: StringName,
+	target: AbilityTargetSpec,
+	requested_tick: int,
+	context: AbilityExecutionContext
+) -> Array[EntityEvents]
 
 func _queue_ability(request: AbilityUseRequest) -> void
 func _try_dequeue_ability(sim_tick: int, context: AbilityExecutionContext) -> Array[EntityEvents]
