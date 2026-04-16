@@ -1,12 +1,12 @@
 [gd_resource type="Resource" script_class="AbilityResource" format=3 uid="uid://c0nbe2upav5cw"]
 
-[ext_resource type="Script" uid="uid://dh4ns7wox4m5s" path="res://src/common/combat/abilities/effects/AbilityEffect.gd" id="1_6sfer"]
-[ext_resource type="Script" uid="uid://1kt8qok880pp" path="res://src/common/combat/abilities/ConditionalEffect.gd" id="1_sosh0"]
-[ext_resource type="Script" uid="uid://dlobaqcf0cmru" path="res://src/common/combat/abilities/AbilityResource.gd" id="2_546e4"]
-[ext_resource type="Script" uid="uid://dn45bp34f1hv1" path="res://src/common/combat/abilities/effects/DamageEffect.gd" id="2_vwgc1"]
-[ext_resource type="Script" uid="uid://btwk3jl7m60fc" path="res://src/common/combat/abilities/conditions/ConditionResource.gd" id="3_bj8ij"]
-[ext_resource type="Script" uid="uid://b3q0o4drbc13f" path="res://src/common/combat/abilities/StatComponent.gd" id="4_x5uhx"]
-[ext_resource type="Script" uid="uid://bjo3ueuo52uk1" path="res://src/common/combat/abilities/ValueFormula.gd" id="5_cdij5"]
+[ext_resource type="Script" uid="uid://dh4ns7wox4m5s" path="res://src/common/ability_definitions/effects/AbilityEffect.gd" id="1_6sfer"]
+[ext_resource type="Script" uid="uid://1kt8qok880pp" path="res://src/common/ability_definitions/ConditionalEffect.gd" id="1_sosh0"]
+[ext_resource type="Script" uid="uid://dlobaqcf0cmru" path="res://src/common/ability_definitions/AbilityResource.gd" id="2_546e4"]
+[ext_resource type="Script" uid="uid://dn45bp34f1hv1" path="res://src/common/ability_definitions/effects/DamageEffect.gd" id="2_vwgc1"]
+[ext_resource type="Script" uid="uid://btwk3jl7m60fc" path="res://src/common/ability_definitions/conditions/ConditionResource.gd" id="3_bj8ij"]
+[ext_resource type="Script" uid="uid://b3q0o4drbc13f" path="res://src/common/ability_definitions/StatComponent.gd" id="4_x5uhx"]
+[ext_resource type="Script" uid="uid://bjo3ueuo52uk1" path="res://src/common/ability_definitions/ValueFormula.gd" id="5_cdij5"]
 
 [sub_resource type="Resource" id="Resource_tvv5y"]
 script = ExtResource("3_bj8ij")

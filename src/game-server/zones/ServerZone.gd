@@ -1,3 +1,4 @@
+class_name ServerZone
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
@@ -27,6 +28,7 @@ var _pending_redirects: Dictionary[String, Dictionary] = {}
 var _pending_arrivals: Dictionary[String, Dictionary] = {}
 
 @onready var _input_system: InputSystem = %InputSystem
+@onready var _ability_system: AbilitySystem = %AbilitySystem
 @onready var _movement_system: MovementSystem = %MovementSystem
 @onready var _combat_system: CombatSystem = %CombatSystem
 @onready var _world_state_system: WorldStateSystem = %WorldStateSystem
@@ -220,6 +222,7 @@ func _tick(_delta: float, current_tick: int) -> void:
 		multiplayer.multiplayer_peer.disconnect_peer(peer_id)
 
 	_movement_system.tick(sim_tick, ctx)
+	_ability_system.tick(sim_tick, ctx)
 	_combat_system.tick(sim_tick, ctx)
 	_world_state_system.tick(sim_tick, ctx)
 	_world_positions_system.tick(sim_tick, ctx)
@@ -239,8 +242,15 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 	elif pkt.has_zone_arrival():
 		_handle_zone_arrival(peer_id, pkt.get_zone_arrival())
 	elif pkt.has_target_select():
-		_combat_system.handle_target_select(
+		_handle_target_select(
 				peer_id, pkt.get_target_select().get_target_entity_id())
+
+func _handle_target_select(peer_id: int, target_entity_id: int) -> void:
+	var player: ServerPlayer = players.get(peer_id)
+	if player == null:
+		return
+
+	player.set_target_entity_id(target_entity_id)
 
 func _handle_clock_ping(peer_id: int, ping: Proto.ClockPing) -> void:
 	var pkt = Proto.Packet.new()

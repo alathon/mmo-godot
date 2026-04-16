@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bd4gjdm2vh75" path="res://src/game-server/zones/ServerZone.gd" id="1_ljngd"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="4_eu4nw"]
 [ext_resource type="Script" uid="uid://301khd73hpc5" path="res://src/game-server/zones/DebugCamera.gd" id="5_dbgcam"]
+[ext_resource type="Script" uid="uid://dx7p8486ceppk" path="res://src/game-server/systems/AbilitySystem.gd" id="5_jlcr2"]
 [ext_resource type="Script" uid="uid://b5c000x04g3ob" path="res://src/game-server/systems/InputSystem.gd" id="6_input"]
 [ext_resource type="Script" uid="uid://ohbmon5y2upw" path="res://src/game-server/systems/MovementSystem.gd" id="7_move"]
 [ext_resource type="Script" uid="uid://50dhkeuh1uu8" path="res://src/game-server/systems/CombatSystem.gd" id="8_combat"]
@@ -26,6 +27,10 @@ script = ExtResource("6_input")
 [node name="MovementSystem" type="Node" parent="Systems" unique_id=1002000003]
 unique_name_in_owner = true
 script = ExtResource("7_move")
+
+[node name="AbilitySystem" type="Node" parent="Systems" unique_id=1475029774]
+unique_name_in_owner = true
+script = ExtResource("5_jlcr2")
 
 [node name="CombatSystem" type="Node" parent="Systems" unique_id=1002000004]
 unique_name_in_owner = true

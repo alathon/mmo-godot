@@ -8,6 +8,9 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _input_source: LocalInput = %LocalInput
 @onready var _input_batcher: InputBatcher = %InputBatcher
 @onready var _visual: VisualSmoother = %VisualSmoother
+@onready var _target_state: EntityTargetState = %EntityTarget
+@onready var _combat_manager: CombatManager = %CombatManager
+@onready var _ability_manager: AbilityManager = %AbilityManager
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
@@ -15,6 +18,15 @@ var _debug: bool = false
 
 var frozen: bool = true
 var id: int
+
+func set_target_entity_id(entity_id: int) -> void:
+	_target_state.set_target_entity_id(entity_id)
+
+func get_target_entity_id() -> int:
+	return _target_state.get_target_entity_id()
+
+func clear_target() -> void:
+	_target_state.clear_target()
 
 func _ready() -> void:
 	NetworkTime.on_tick.connect(_on_network_tick)

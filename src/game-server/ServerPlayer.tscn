@@ -3,9 +3,12 @@
 [ext_resource type="Script" uid="uid://dty0ed1o3wrtm" path="res://src/game-server/ServerPlayer.gd" id="0_root"]
 [ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="1_ju8tq"]
 [ext_resource type="Script" uid="uid://bjdmsc7b2sykg" path="res://src/game-server/PlayerInputState.gd" id="2_state"]
+[ext_resource type="Script" uid="uid://cxfc7mmvov22x" path="res://src/common/entities/EntityTargetState.gd" id="3_fbx3t"]
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="3_mobstats"]
-[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/Cooldowns.gd" id="4_mobcd"]
-[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/CombatState.gd" id="5_mobcs"]
+[ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="3_v5fr3"]
+[ext_resource type="Script" uid="uid://1r8f5frqejnq" path="res://src/common/entities/CombatManager.gd" id="4_hednv"]
+[ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="7_vb6v5"]
+[ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="8_63a3n"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 
@@ -17,16 +20,34 @@ script = ExtResource("0_root")
 [node name="PlayerInputState" type="Node" parent="." unique_id=1001000001]
 script = ExtResource("2_state")
 
+[node name="AbilityManager" type="Node" parent="." unique_id=819693680]
+unique_name_in_owner = true
+script = ExtResource("3_v5fr3")
+metadata/_custom_type_script = "uid://ch0i48lswewgc"
+
+[node name="CombatManager" type="Node" parent="." unique_id=1892574334]
+unique_name_in_owner = true
+script = ExtResource("4_hednv")
+metadata/_custom_type_script = "uid://1r8f5frqejnq"
+
+[node name="EntityTarget" type="Node" parent="." unique_id=383263366]
+unique_name_in_owner = true
+script = ExtResource("3_fbx3t")
+metadata/_custom_type_script = "uid://cxfc7mmvov22x"
+
 [node name="Mob" type="Node" parent="." unique_id=2123775848]
 
 [node name="Stats" type="Node" parent="Mob" unique_id=1001000002]
+unique_name_in_owner = true
 script = ExtResource("3_mobstats")
 
-[node name="Cooldowns" type="Node" parent="Mob" unique_id=1001000003]
-script = ExtResource("4_mobcd")
+[node name="AbilityState" type="Node" parent="Mob" unique_id=926957810]
+script = ExtResource("7_vb6v5")
+metadata/_custom_type_script = "uid://b0rxo4gkxgadv"
 
-[node name="Combat" type="Node" parent="Mob" unique_id=1001000004]
-script = ExtResource("5_mobcs")
+[node name="AbilityCooldowns" type="Node" parent="Mob" unique_id=1764139261]
+script = ExtResource("8_63a3n")
+metadata/_custom_type_script = "uid://vp2733m2uoyk"
 
 [node name="Body" type="CharacterBody3D" parent="." unique_id=855485212]
 unique_name_in_owner = true

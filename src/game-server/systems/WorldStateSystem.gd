@@ -3,8 +3,9 @@ extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
 
-var _zone: Node
-var _combat_system: CombatSystem
+@onready var _zone: Node = get_owner()
+@onready var _combat_system: CombatSystem = %CombatSystem
+@onready var _ability_system: AbilitySystem = %AbilitySystem
 
 
 func init(zone: Node, combat_system: CombatSystem) -> void:

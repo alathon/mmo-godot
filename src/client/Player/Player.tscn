@@ -6,9 +6,12 @@
 [ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="2_fhs4s"]
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_nx6lr"]
 [ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="2_y04i8"]
-[ext_resource type="Script" uid="uid://c0vciefuf5kvn" path="res://src/common/entities/Cooldowns.gd" id="3_2n468"]
 [ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="3_txxbj"]
-[ext_resource type="Script" uid="uid://cefh7khctl77p" path="res://src/common/entities/CombatState.gd" id="4_8cp3o"]
+[ext_resource type="Script" uid="uid://cxfc7mmvov22x" path="res://src/common/entities/EntityTargetState.gd" id="6_2n468"]
+[ext_resource type="Script" uid="uid://1r8f5frqejnq" path="res://src/common/entities/CombatManager.gd" id="6_8cp3o"]
+[ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="6_nx6lr"]
+[ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="7_2n468"]
+[ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="8_8cp3o"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ag42k"]
 radius = 0.2
@@ -39,6 +42,20 @@ script = ExtResource("2_fhs4s")
 _body = NodePath("../Body")
 metadata/_custom_type_script = "uid://vp3i6edrewfe"
 
+[node name="AbilityManager" type="Node" parent="." unique_id=1344493174]
+unique_name_in_owner = true
+script = ExtResource("8_8cp3o")
+
+[node name="CombatManager" type="Node" parent="." unique_id=1103717583]
+unique_name_in_owner = true
+script = ExtResource("6_8cp3o")
+metadata/_custom_type_script = "uid://1r8f5frqejnq"
+
+[node name="EntityTarget" type="Node" parent="." unique_id=1679356008]
+unique_name_in_owner = true
+script = ExtResource("6_2n468")
+metadata/_custom_type_script = "uid://cxfc7mmvov22x"
+
 [node name="Mob" type="Node" parent="." unique_id=2124211284]
 unique_name_in_owner = true
 
@@ -47,15 +64,13 @@ unique_name_in_owner = true
 script = ExtResource("2_nx6lr")
 metadata/_custom_type_script = "uid://cenagcfbynsvi"
 
-[node name="Cooldowns" type="Node" parent="Mob" unique_id=1638668892]
+[node name="AbilityState" type="Node" parent="Mob" unique_id=1043311331]
 unique_name_in_owner = true
-script = ExtResource("3_2n468")
-metadata/_custom_type_script = "uid://c0vciefuf5kvn"
+script = ExtResource("6_nx6lr")
 
-[node name="Combat" type="Node" parent="Mob" unique_id=433276288]
+[node name="AbilityCooldowns" type="Node" parent="Mob" unique_id=1507218976]
 unique_name_in_owner = true
-script = ExtResource("4_8cp3o")
-metadata/_custom_type_script = "uid://cefh7khctl77p"
+script = ExtResource("7_2n468")
 
 [node name="Body" type="CharacterBody3D" parent="." unique_id=1777602489]
 unique_name_in_owner = true
