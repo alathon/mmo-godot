@@ -53,8 +53,12 @@ func has_events() -> bool:
 	return _pending_events.size() > 0 or _ack_queue.size() > 0
 
 
-func build_ability_events_proto(ability_events_msg, sim_tick: int) -> void:
-	EntityEventCodec.write_tick_events(ability_events_msg, _pending_events, sim_tick)
+func has_entity_events() -> bool:
+	return _pending_events.size() > 0
+
+
+func build_entity_events_proto(world_state_msg, sim_tick: int) -> void:
+	EntityEventCodec.write_events(world_state_msg, _pending_events, sim_tick)
 	_pending_events.clear()
 
 

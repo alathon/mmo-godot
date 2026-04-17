@@ -45,11 +45,14 @@ func _process(_delta: float) -> void:
 
 	if clock != null:
 		# Client mode
-		var srv_tick: int = clock.get_server_tick()
+		var estimated_server_tick: int = clock.get_estimated_server_tick()
+		var lead_adjusted_tick: int = clock.get_lead_adjusted_tick()
 		lines.append("=== CLIENT ===")
 		lines.append("Tick:        %d" % NetworkTime.tick)
-		lines.append("Clock tick:  %d" % srv_tick)
-		lines.append("Tick delta:  %d" % (srv_tick - NetworkTime.tick))
+		lines.append("Server est:  %d" % estimated_server_tick)
+		lines.append("Lead tick:   %d" % lead_adjusted_tick)
+		lines.append("Vs server:   %d" % (NetworkTime.tick - estimated_server_tick))
+		lines.append("Vs lead:     %d" % (NetworkTime.tick - lead_adjusted_tick))
 		lines.append("")
 		lines.append("RTT:         %.0fms" % (clock.rtt * 1000.0))
 		lines.append("Lead:        %.0fms (%.1f ticks)" % [

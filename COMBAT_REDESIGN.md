@@ -20,7 +20,7 @@ AbilityManager
 
 CombatSystem
   World-level combat orchestration only.
-  Tracks combat engagement, combat event buffering, combat event protobuf
+  Tracks combat engagement, entity event buffering, entity event protobuf
   translation, combat target validity, death/combatant lifecycle, and later
   threat/aggro.
 
@@ -206,7 +206,8 @@ func tick(sim_tick: int, ctx: Dictionary) -> void
 func handle_ability_input(entity_id: int, input: Dictionary, sim_tick: int) -> void
 
 func has_events() -> bool
-func build_ability_events_proto(ability_events_msg, sim_tick: int) -> void
+func has_entity_events() -> bool
+func build_entity_events_proto(world_state_msg, sim_tick: int) -> void
 
 func get_entity(entity_id: int) -> Node
 func get_ability_manager(entity_id: int) -> AbilityManager
@@ -281,7 +282,7 @@ CombatSystem._has_resources              -> AbilityManager.has_resources_for(...
 CombatSystem._spend_resources            -> AbilityManager.spend_resources_for(...)
 CombatSystem._apply_effect               -> CombatManager._apply_effect(...)
 CombatSystem._check_range / _get_targets -> AbilitySystem / AbilityTargeting
-CombatSystem.build_combat_events_proto   -> EntityEventCodec
+CombatSystem.build_entity_events_proto   -> EntityEventCodec
 ```
 
 Tick order in `ServerZone` becomes:
@@ -450,7 +451,7 @@ func resolve_hit(ability: AbilityResource, source_stats: Dictionary, target_stat
 func did_hit(hit_result: int) -> bool
 
 func has_events() -> bool
-func build_combat_events_proto(combat_events_msg, sim_tick: int) -> void
+func build_entity_events_proto(world_state_msg, sim_tick: int) -> void
 ```
 
 Suggested private methods:
@@ -723,7 +724,7 @@ Then:
 class_name EntityEventCodec
 extends RefCounted
 
-static func write_tick_events(msg, events: Array[EntityEvents], sim_tick: int) -> void
+static func write_events(msg, events: Array[EntityEvents], sim_tick: int) -> void
 static func write_event(msg, event: EntityEvents, sim_tick: int) -> void
 ```
 
@@ -733,7 +734,7 @@ static func write_event(msg, event: EntityEvents, sim_tick: int) -> void
 AbilitySystem
   Owns tick order for ability use, input translation, world lookup,
   generic target/range queries, ability event buffering, ACK sending,
-  and ability protobuf translation.
+  and ability event serialization into `WorldState.events`.
 
 AbilityManager
   Owns one entity's ability-use state: GCD, animation lock, cooldowns,
@@ -756,7 +757,7 @@ timeout-based combat drop; aggro persists until explicit combat clear, death
 cleanup, or the target entity disappears.
 
 CombatSystem
-  Owns combat event buffering, combat event protobuf translation,
+  Owns combat event buffering, combat event serialization into `WorldState.events`,
   combat engagement/death lifecycle, and combat-only target rules.
 
 CombatManager

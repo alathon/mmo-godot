@@ -13,8 +13,8 @@ func init(zone: Node, combat_system: CombatSystem) -> void:
 	_combat_system = combat_system
 
 
-## Builds and broadcasts the reliable WorldState packet (vitals + combat events).
-## Must run after CombatSystem.tick() so combat events are populated.
+## Builds and broadcasts the reliable WorldState packet (vitals + entity events).
+## Must run after AbilitySystem.tick() and CombatSystem.tick() so events are populated.
 func tick(tick: int, ctx: Dictionary) -> void:
 	var players: Dictionary = _zone.players
 	var frozen_peers: Dictionary = _zone._frozen_peers
@@ -35,12 +35,10 @@ func tick(tick: int, ctx: Dictionary) -> void:
 		es.set_stamina(mob_stats.stamina)
 		es.set_max_stamina(mob_stats.max_stamina)
 
-	if _ability_system.has_events() or _combat_system.has_events():
-		var combat_events = wstate.new_combat_events()
-		if _ability_system.has_events():
-			_ability_system.build_ability_events_proto(combat_events, tick)
-		if _combat_system.has_events():
-			_combat_system.build_combat_events_proto(combat_events, tick)
+	if _ability_system.has_entity_events():
+		_ability_system.build_entity_events_proto(wstate, tick)
+	if _combat_system.has_events():
+		_combat_system.build_entity_events_proto(wstate, tick)
 
 	var rbytes := rpkt.to_bytes()
 	for peer_id in players:

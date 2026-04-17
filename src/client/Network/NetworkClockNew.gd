@@ -49,7 +49,7 @@ var _resync_timer: float = 0.0
 
 # --- Continuous clock state ---
 var _local_time: float = 0.0
-var _offset: float = 0.0          # get_time() = _local_time + _offset
+var _offset: float = 0.0          # get_lead_adjusted_time() = _local_time + _offset
 var _target_offset: float = 0.0
 
 ## Smoothed drift in ticks: positive = client ahead, negative = client behind.
@@ -148,7 +148,7 @@ func _finalize_sync() -> void:
 		_smoothed_drift = 0.0
 		is_synced = true
 		_resync_timer = RESYNC_INTERVAL
-		NetworkTime.start_client(get_server_tick(), self)
+		NetworkTime.start_client(get_lead_adjusted_tick(), self)
 		synchronized.emit()
 		print("[CLIENT] NetworkClockNew: clock synced (rtt=%.3fs, lead=%.3fs)" % [rtt, lead_time])
 		return
@@ -164,7 +164,7 @@ func _finalize_sync() -> void:
 		_offset = new_offset
 		_target_offset = new_offset
 		_smoothed_drift = 0.0
-		NetworkTime.reset_tick(get_server_tick())
+		NetworkTime.reset_tick(get_lead_adjusted_tick())
 		return
 
 	print("[CLIENT] NetworkClockNew: RTT updated (rtt=%.3fs, lead=%.3fs)" % [rtt, lead_time])
@@ -208,10 +208,21 @@ func get_drift() -> float:
 	return _smoothed_drift
 
 
-## Returns estimated server time in seconds.
-func get_time() -> float:
+## Returns estimated server time in seconds, without client lead.
+func get_estimated_server_time() -> float:
+	return get_lead_adjusted_time() - lead_time
+
+
+## Returns estimated server tick, without client lead.
+func get_estimated_server_tick() -> int:
+	return roundi(get_estimated_server_time() * Globals.TICK_RATE)
+
+
+## Returns the lead-adjusted client target time in seconds.
+func get_lead_adjusted_time() -> float:
 	return _local_time + _offset
 
-## Returns estimated server tick.
-func get_server_tick() -> int:
-	return roundi(get_time() * Globals.TICK_RATE)
+
+## Returns the lead-adjusted client target tick.
+func get_lead_adjusted_tick() -> int:
+	return roundi(get_lead_adjusted_time() * Globals.TICK_RATE)

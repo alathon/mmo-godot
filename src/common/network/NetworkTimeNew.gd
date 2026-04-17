@@ -2,9 +2,7 @@ extends Node
 
 ## Tick loop driven by continuous drift feedback from NetworkClockNew.
 ##
-## Instead of computing drift from NetworkClock.get_server_tick() (which is
-## NTP-derived and only updates every ~5s), stretch is driven by
-## NetworkClockNew.get_drift() — a smoothed EMA fed by every WorldPositions
+## Stretch is driven by NetworkClockNew.get_drift() — a smoothed EMA fed by every WorldPositions
 ## packet (~20/s). This makes clock discipline continuous and responsive.
 ##
 ## Server: identical to NetworkTime — no clock reference, stretch = 1.0.
@@ -58,9 +56,9 @@ func start_server() -> void:
 	after_sync.emit()
 
 
-func start_client(estimated_server_tick: int, clock: NetworkClockNew) -> void:
+func start_client(lead_adjusted_tick: int, clock: NetworkClockNew) -> void:
 	_role = "CLI"
-	tick = estimated_server_tick
+	tick = lead_adjusted_tick
 	_clock = clock
 	_stretch = 1.0
 	_process_time = 0.0
@@ -108,7 +106,7 @@ func _tick_loop(delta: float) -> void:
 
 		# Hard-reset if drift is beyond what stretch can fix.
 		if absf(drift) > DRIFT_PANIC_TICKS:
-			reset_tick(_clock.get_server_tick())
+			reset_tick(_clock.get_lead_adjusted_tick())
 			return
 
 		# drift > 0 means client is ahead -> slow down (stretch < 1)

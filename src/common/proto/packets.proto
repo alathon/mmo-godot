@@ -44,7 +44,7 @@ message AbilityUseRejected {
   uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
 }
 
-// ─── Combat Events (server → all clients in zone, per tick) ─────────────────
+// ─── Entity Events (server → all clients in zone, per tick) ─────────────────
 
 enum HitType {
   HIT = 0;
@@ -55,7 +55,7 @@ enum HitType {
   CRIT_BLOCK = 5;
 }
 
-message CombatEvent_AbilityUseStarted {
+message EntityEvent_AbilityUseStarted {
   uint32 source_entity_id = 1;
   string ability_id = 2;
   uint32 target_entity_id = 3;
@@ -65,33 +65,33 @@ message CombatEvent_AbilityUseStarted {
   float cast_time = 7;
 }
 
-message CombatEvent_AbilityUseCanceled {
+message EntityEvent_AbilityUseCanceled {
   uint32 source_entity_id = 1;
   string ability_id = 2;
   uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
 }
 
-message CombatEvent_AbilityUseCompleted {
+message EntityEvent_AbilityUseCompleted {
   uint32 source_entity_id = 1;
   string ability_id = 2;
   HitType hit_type = 3;
 }
 
-message CombatEvent_DamageTaken {
+message EntityEvent_DamageTaken {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
   string ability_id = 3;
   float amount = 4;
 }
 
-message CombatEvent_HealingReceived {
+message EntityEvent_HealingReceived {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
   string ability_id = 3;
   float amount = 4;
 }
 
-message CombatEvent_BuffApplied {
+message EntityEvent_BuffApplied {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
   string ability_id = 3;
@@ -100,7 +100,7 @@ message CombatEvent_BuffApplied {
   float remaining_duration = 6; // 0 = permanent
 }
 
-message CombatEvent_DebuffApplied {
+message EntityEvent_DebuffApplied {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
   string ability_id = 3;
@@ -109,35 +109,41 @@ message CombatEvent_DebuffApplied {
   float remaining_duration = 6;
 }
 
-message CombatEvent_StatusEffectRemoved {
+message EntityEvent_StatusEffectRemoved {
   uint32 entity_id = 1;
   string status_id = 2;
   uint32 remove_reason = 3; // 0=expired, 1=dispelled, 2=consumed
 }
 
-message CombatEvent_CombatantDied {
+message EntityEvent_CombatStarted {
+  uint32 entity_id = 1;
+  uint32 source_entity_id = 2;
+}
+
+message EntityEvent_CombatEnded {
+  uint32 entity_id = 1;
+}
+
+message EntityEvent_CombatantDied {
   uint32 entity_id = 1;
   uint32 killer_entity_id = 2;
 }
 
-message CombatEvent {
+message EntityEvent {
   uint32 tick = 1;
   oneof event {
-    CombatEvent_AbilityUseStarted   ability_use_started   = 2;
-    CombatEvent_AbilityUseCanceled  ability_use_canceled  = 3;
-    CombatEvent_AbilityUseCompleted ability_use_completed = 4;
-    CombatEvent_DamageTaken         damage_taken          = 5;
-    CombatEvent_HealingReceived     healing_received      = 6;
-    CombatEvent_BuffApplied         buff_applied          = 7;
-    CombatEvent_DebuffApplied       debuff_applied        = 8;
-    CombatEvent_StatusEffectRemoved status_effect_removed = 9;
-    CombatEvent_CombatantDied       combatant_died        = 10;
+    EntityEvent_AbilityUseStarted   ability_use_started   = 2;
+    EntityEvent_AbilityUseCanceled  ability_use_canceled  = 3;
+    EntityEvent_AbilityUseCompleted ability_use_completed = 4;
+    EntityEvent_DamageTaken         damage_taken          = 5;
+    EntityEvent_HealingReceived     healing_received      = 6;
+    EntityEvent_BuffApplied         buff_applied          = 7;
+    EntityEvent_DebuffApplied       debuff_applied        = 8;
+    EntityEvent_StatusEffectRemoved status_effect_removed = 9;
+    EntityEvent_CombatantDied       combatant_died        = 10;
+    EntityEvent_CombatStarted       combat_started        = 11;
+    EntityEvent_CombatEnded         combat_ended          = 12;
   }
-}
-
-message CombatTickEvents {
-  uint32 tick = 1;
-  repeated CombatEvent events = 2;
 }
 
 message StatusEffectState {
@@ -187,11 +193,11 @@ message EntityState {
   uint32 max_stamina = 7;
 }
 
-// Reliable per-tick broadcast: vitals + any combat events.
+// Reliable per-tick broadcast: vitals + any entity events.
 message WorldState {
   uint32 tick = 1;
   repeated EntityState entities = 2;
-  CombatTickEvents combat_events = 3;
+  repeated EntityEvent events = 3;
 }
 
 message ClockPing {

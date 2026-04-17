@@ -11,10 +11,12 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @export var batch_size: int = 1
 
 @onready var _game_manager: GameManager = $/root/Root/Services/GameManager
+@onready var _network_clock: NetworkClockNew = $/root/Root/Services/NetworkClock
 
 var _current_batch: Array[Dictionary] = []
 var _previous_batch: Array[Dictionary] = []
 var _debug: bool = false
+var _timing_debug: bool = false
 
 func clear() -> void:
 	_current_batch.clear()
@@ -48,9 +50,24 @@ func _flush() -> void:
 		_add_input(batch, entry)
 
 	var has_movement := _current_batch.any(func(e): return e["input_x"] != 0.0 or e["input_z"] != 0.0 or e["jump_pressed"])
-	if has_movement and _debug:
+	if has_movement and (_debug or _timing_debug):
 		var ticks := _current_batch.map(func(e): return e["tick"])
-		print("[TRACE:InputBatcher] t=%s sending batch ticks=%s" % [Globals.ts(), ticks])
+		var estimated_server_tick := -1
+		var lead_adjusted_tick := -1
+		var lead_ticks := 0.0
+		var drift := 0.0
+		if _network_clock != null and _network_clock.is_synced:
+			estimated_server_tick = _network_clock.get_estimated_server_tick()
+			lead_adjusted_tick = _network_clock.get_lead_adjusted_tick()
+			lead_ticks = _network_clock.lead_time * Globals.TICK_RATE
+			drift = _network_clock.get_drift()
+		var first_tick: int = ticks[0] if ticks.size() > 0 else -1
+		var last_tick: int = ticks[ticks.size() - 1] if ticks.size() > 0 else -1
+		print("[INPUT_TIMING:client_send] ms=%d peer=%d ticks=%s first_vs_server=%d last_vs_server=%d first_vs_lead=%d last_vs_lead=%d server_est=%d lead_tick=%d lead_ticks=%.2f drift=%.2f" % [
+			Time.get_ticks_msec(), multiplayer.get_unique_id(), ticks,
+			first_tick - estimated_server_tick, last_tick - estimated_server_tick,
+			first_tick - lead_adjusted_tick, last_tick - lead_adjusted_tick,
+			estimated_server_tick, lead_adjusted_tick, lead_ticks, drift])
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
 	_previous_batch = _current_batch.duplicate()

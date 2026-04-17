@@ -107,7 +107,7 @@ This is the remaining work to turn the current ability/combat scaffold into real
 
 - [ ] Verify `AbilityUseAccepted` client handling.
 - [ ] Verify `AbilityUseRejected` client handling.
-- [ ] Verify `CombatTickEvents` client handling.
+- [ ] Verify `WorldState.events` client handling.
 - [ ] Verify client handling for:
   - ability started,
   - ability canceled,
@@ -118,7 +118,10 @@ This is the remaining work to turn the current ability/combat scaffold into real
   - debuff applied,
   - status removed,
   - combatant died.
-- [ ] Decide whether generic ability lifecycle events should stay in `WorldState.combat_events` or move to a separate ability-events stream.
+- [x] Use one ordered `WorldState.events` stream with typed `EntityEvent` payloads:
+  - ability lifecycle, combat results, status changes, death, and combat state events share one tick-local ordered stream,
+  - event production remains domain-owned (`AbilitySystem` emits ability lifecycle, `CombatSystem` emits combat results/state/death, status code emits status events),
+  - avoid separate `combat_events`/`ability_events` arrays so clients do not need to merge cross-stream ordering.
 - [ ] Implement any missing proto fields before client behavior depends on them.
 - [ ] Confirm event buffers clear only after successful serialization/broadcast.
 

@@ -15,6 +15,8 @@ var _input_buffers: Dictionary[int, Dictionary] = {}
 var _zone: Node
 
 var _debug: bool = false
+var _timing_debug: bool = false
+var _last_consumed_tick: int = -1
 
 func init(zone: Node) -> void:
 	_zone = zone
@@ -39,17 +41,25 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 
 	var input_tick: int = input.get_tick()
 	var current_tick: int = NetworkTime.tick
-	var sim_tick := current_tick
+	var original_input_tick := input_tick
 
-	if input_tick < sim_tick:
-		var diff = sim_tick - input_tick
+	if input_tick <= _last_consumed_tick:
+		if _timing_debug and (abs(input.get_input_x()) > 0.01 or abs(input.get_input_z()) > 0.01 or input.get_jump_pressed()):
+			print("[INPUT_TIMING:server_drop_stale] ms=%d peer=%d input_tick=%d current_tick=%d last_consumed=%d consumed_delta=%d" % [
+				Time.get_ticks_msec(), peer_id, input_tick, current_tick, _last_consumed_tick, input_tick - _last_consumed_tick])
+		return
+
+	if input_tick < current_tick:
+		var diff = current_tick - input_tick
 		# Allow slight lateness to still process the input. This may lead to some correctional drift,
 		# but prevents dropped input sprees due to slightly late tick alignment.
 		if diff <= 3:
-			print("[INPUT] LATE input from peer %d: input_tick=%d sim_tick=%d (moved up %d ticks)" % [peer_id, input_tick, sim_tick, diff])
-			input_tick = sim_tick # Lets try this...
+			print("[INPUT] LATE input from peer %d: input_tick=%d current_tick=%d last_consumed=%d tick_delta=%d (moved up %d ticks)" % [
+				peer_id, input_tick, current_tick, _last_consumed_tick, input_tick - current_tick, diff])
+			input_tick = current_tick # Lets try this...
 		else:
-			print("[INPUT] LATE input from peer %d: input_tick=%d sim_tick=%d (dropped)" % [peer_id, input_tick, sim_tick])
+			print("[INPUT] LATE input from peer %d: input_tick=%d current_tick=%d last_consumed=%d tick_delta=%d (dropped)" % [
+				peer_id, input_tick, current_tick, _last_consumed_tick, input_tick - current_tick])
 			return
 
 	if input_tick > current_tick + INPUT_FUTURE_LIMIT:
@@ -75,9 +85,10 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 		buf_entry["ground_y"] = ai.get_ground_y()
 		buf_entry["ground_z"] = ai.get_ground_z()
 	_input_buffers[peer_id][input_tick] = buf_entry
-	if _debug and (abs(input.get_input_x()) > 0.01 or abs(input.get_input_z()) > 0.01 or input.get_jump_pressed()):
-		print("[TRACE:InputSystem] t=%s tick=%d peer=%d input_received" % [
-			Globals.ts(), input_tick, peer_id])
+	if (_debug or _timing_debug) and (abs(input.get_input_x()) > 0.01 or abs(input.get_input_z()) > 0.01 or input.get_jump_pressed()):
+		print("[INPUT_TIMING:server_recv] ms=%d peer=%d input_tick=%d stored_tick=%d current_tick=%d last_consumed=%d input_delta=%d consumed_delta=%d" % [
+			Time.get_ticks_msec(), peer_id, original_input_tick, input_tick, current_tick, _last_consumed_tick,
+			original_input_tick - current_tick, original_input_tick - _last_consumed_tick])
 
 	var state := _get_state(players[peer_id])
 	if state:
@@ -89,6 +100,7 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 ## Consume buffered inputs for sim_tick. Writes inputs, ability_inputs,
 ## moving_entities, and kick_peers into ctx.
 func tick(tick: int, ctx: Dictionary) -> void:
+	_last_consumed_tick = tick
 	var players: Dictionary = _zone.players
 	var frozen_peers: Dictionary = _zone._frozen_peers
 	var inputs: Dictionary = {}
@@ -123,7 +135,19 @@ func tick(tick: int, ctx: Dictionary) -> void:
 			is_real_input = true
 		else:
 			input = state.last_input
-			print("[INPUT] REPLAY input for peer %d at sim_tick=%d" % [peer_id, tick])
+			var is_idle_replay: bool = (
+				abs(input.get("input_x", 0.0)) <= 0.01
+				and abs(input.get("input_z", 0.0)) <= 0.01
+				and not input.get("jump_pressed", false)
+				and input.get("ability_id", "") == ""
+			)
+			if _timing_debug and not is_idle_replay:
+				var buffered_ticks := buf.keys()
+				buffered_ticks.sort()
+				print("[INPUT] REPLAY input for peer %d at sim_tick=%d idle=%s buffered_ticks=%s" % [
+					peer_id, tick, is_idle_replay, buffered_ticks])
+			elif not _timing_debug:
+				print("[INPUT] REPLAY input for peer %d at sim_tick=%d idle=%s" % [peer_id, tick, is_idle_replay])
 
 		if abs(input.get("input_x", 0.0)) > 0.01 or abs(input.get("input_z", 0.0)) > 0.01:
 			moving_entities[peer_id] = true

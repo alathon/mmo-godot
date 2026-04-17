@@ -4,10 +4,9 @@ extends RefCounted
 const EntityEvents = preload("res://src/common/EntityEvents.gd")
 
 
-static func write_tick_events(msg, events: Array[EntityEvents], sim_tick: int) -> void:
+static func write_events(msg, events: Array[EntityEvents], sim_tick: int) -> void:
 	if msg == null:
 		return
-	msg.set_tick(sim_tick)
 	for event in events:
 		write_event(msg.add_events(), event, sim_tick)
 
@@ -48,6 +47,13 @@ static func write_event(msg, event: EntityEvents, sim_tick: int) -> void:
 			healing.set_target_entity_id(event.target_entity_id)
 			healing.set_ability_id(String(event.ability_id))
 			healing.set_amount(event.amount)
+		EntityEvents.Type.COMBAT_STARTED:
+			var started = msg.new_combat_started()
+			started.set_entity_id(event.entity_id)
+			started.set_source_entity_id(event.source_entity_id)
+		EntityEvents.Type.COMBAT_ENDED:
+			var ended = msg.new_combat_ended()
+			ended.set_entity_id(event.entity_id)
 		EntityEvents.Type.BUFF_APPLIED:
 			var buff = msg.new_buff_applied()
 			buff.set_source_entity_id(event.source_entity_id)

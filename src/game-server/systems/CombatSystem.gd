@@ -127,8 +127,8 @@ func has_events() -> bool:
 	return _pending_events.size() > 0
 
 
-func build_combat_events_proto(combat_events_msg, sim_tick: int) -> void:
-	EntityEventCodec.write_tick_events(combat_events_msg, _pending_events, sim_tick)
+func build_entity_events_proto(world_state_msg, sim_tick: int) -> void:
+	EntityEventCodec.write_events(world_state_msg, _pending_events, sim_tick)
 	_pending_events.clear()
 
 
