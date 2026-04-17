@@ -37,10 +37,10 @@ This is the remaining work to turn the current ability/combat scaffold into real
   - `DetermineHostility` owns a temporary aggro list,
   - `DetermineHostility.clear_combat()` clears temporary hostility and aggro.
 - [ ] Define real faction/team/group/reputation target rules.
-- [ ] Implement combat target validation in `CombatTargeting` using those rules.
-- [ ] Implement selected-target resolution through entity target state, not combat state.
-- [ ] Implement ground-target materialization.
-- [ ] Implement area target materialization:
+- [x] Implement combat target validation in `CombatTargeting` using those rules.
+- [x] Implement selected-target resolution through entity target state, not combat state.
+- [x] Implement ground-target materialization.
+- [x] Implement area target materialization:
   - circle,
   - cone,
   - future shapes if needed.

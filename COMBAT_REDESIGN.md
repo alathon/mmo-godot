@@ -551,6 +551,8 @@ func get_entity_position(entity: Node) -> Vector3
 func get_entity_by_id(entity_id: int) -> Node
 ```
 
+`CURRENT_TARGET` resolves through the source entity's `EntityTargetState`, not through combat state. Ground-targeted abilities can materialize entity targets through AOE rules. Circle AOE uses the ground/entity/self center and `ability.aoe_radius`; cone AOE currently uses the source-to-ground direction or the source facing with a fixed 90-degree cone until the ability data has an explicit cone angle field.
+
 Combat-specific target validity can be delegated:
 
 ```gdscript
