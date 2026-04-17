@@ -474,7 +474,6 @@ extends Node
 @onready var entity: Node = get_parent()
 
 var combat_started_tick: int = 0
-var last_combat_event_tick: int = 0
 
 func init(owner_entity: Node) -> void
 
@@ -744,11 +743,17 @@ EntityTargetState
   Owns selected target for the entity, independent of combat.
 
 DetermineHostility
-  Owns entity-specific hostility overrides. Entities are friendly by default
-  until `attacked_by(...)` marks a specific attacker as hostile and adds it
-  to the aggro list. `clear_combat()` clears temporary hostility and aggro.
-  Future faction, team, party, and reputation rules should live behind this
-  surface.
+  Owns entity-specific hostility overrides. Unknown relationships are hostile
+  until real faction data exists; `attacked_by(...)` marks a specific attacker
+  as hostile and adds it to the aggro list. `clear_combat()` clears temporary
+  hostility and aggro. Future faction, team, party, and reputation rules
+  should live behind this surface.
+
+Threat is intentionally simple for now. Damage adds `damage * aggro_modifier`
+to the target's aggro list against the source. Healing adds threat to every
+entity that already has the healed target on its aggro list. There is no
+timeout-based combat drop; aggro persists until explicit combat clear, death
+cleanup, or the target entity disappears.
 
 CombatSystem
   Owns combat event buffering, combat event protobuf translation,

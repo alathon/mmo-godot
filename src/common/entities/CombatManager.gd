@@ -6,7 +6,6 @@ extends Node
 @onready var entity: Node = get_parent()
 
 var combat_started_tick: int = 0
-var last_combat_event_tick: int = 0
 
 
 func init(owner_entity: Node) -> void:
@@ -20,12 +19,12 @@ func is_in_combat() -> bool:
 func enter_combat(source_entity: Node, sim_tick: int) -> void:
 	if combat_started_tick <= 0:
 		combat_started_tick = sim_tick
-	last_combat_event_tick = sim_tick
 
 
 func leave_combat(sim_tick: int) -> void:
 	combat_started_tick = 0
-	last_combat_event_tick = sim_tick
+	if hostility != null:
+		hostility.clear_combat()
 
 
 func can_target(
@@ -106,9 +105,10 @@ func on_damage_taken(
 		source_entity: Node,
 		amount: int,
 		ability: AbilityResource,
-		context: AbilityExecutionContext) -> void:
+		context: AbilityExecutionContext,
+		threat_amount: float = -1.0) -> void:
 	if hostility != null:
-		hostility.attacked_by(source_entity)
+		hostility.attacked_by(source_entity, amount if threat_amount < 0.0 else threat_amount)
 	if context != null:
 		enter_combat(source_entity, context.sim_tick)
 
@@ -118,8 +118,7 @@ func on_healing_done(
 		amount: int,
 		ability: AbilityResource,
 		context: AbilityExecutionContext) -> void:
-	if context != null:
-		last_combat_event_tick = context.sim_tick
+	pass
 
 
 func on_combatant_died(killer_entity: Node, context: AbilityExecutionContext) -> EntityEvents:
@@ -141,8 +140,9 @@ func _apply_damage(
 		return []
 
 	target_manager.stats.hp = maxi(0, target_manager.stats.hp - amount)
+	var threat_amount := float(amount) * effect.aggro_modifier
 	on_damage_dealt(target_entity, amount, ability, context)
-	target_manager.on_damage_taken(source_entity, amount, ability, context)
+	target_manager.on_damage_taken(source_entity, amount, ability, context, threat_amount)
 
 	var source_entity_id := _entity_id(source_entity, context)
 	var target_entity_id := _entity_id(target_entity, context)
@@ -151,6 +151,8 @@ func _apply_damage(
 	]
 	if target_manager.stats.hp <= 0:
 		events.append(target_manager.on_combatant_died(source_entity, context))
+		if context != null and context.combat_system != null:
+			context.combat_system.clear_combat_for_entity(target_entity, context.sim_tick)
 	return events
 
 
@@ -175,6 +177,12 @@ func _apply_heal(
 
 	target_manager.stats.hp = mini(target_manager.stats.max_hp, target_manager.stats.hp + applied)
 	on_healing_done(target_entity, applied, ability, context)
+	if context != null and context.combat_system != null:
+		context.combat_system.add_healing_aggro(
+				source_entity,
+				target_entity,
+				float(applied) * effect.aggro_modifier,
+				context.sim_tick)
 
 	return [
 		EntityEvents.healing_received(

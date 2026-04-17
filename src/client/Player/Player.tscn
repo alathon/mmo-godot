@@ -11,7 +11,7 @@
 [ext_resource type="Script" uid="uid://1r8f5frqejnq" path="res://src/common/entities/CombatManager.gd" id="6_8cp3o"]
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="6_nx6lr"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="7_2n468"]
-[ext_resource type="Script" path="res://src/common/entities/DetermineHostility.gd" id="7_ijb4o"]
+[ext_resource type="Script" uid="uid://c5t8r2h0stlty" path="res://src/common/entities/DetermineHostility.gd" id="7_ijb4o"]
 [ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="8_8cp3o"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ag42k"]
@@ -53,6 +53,7 @@ script = ExtResource("6_8cp3o")
 metadata/_custom_type_script = "uid://1r8f5frqejnq"
 
 [node name="DetermineHostility" type="Node" parent="." unique_id=450433658]
+unique_name_in_owner = true
 script = ExtResource("7_ijb4o")
 
 [node name="EntityTarget" type="Node" parent="." unique_id=1679356008]

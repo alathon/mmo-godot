@@ -32,7 +32,7 @@ This is the remaining work to turn the current ability/combat scaffold into real
 - [x] Replace temporary hostility logic in `CombatManager.is_hostile_to(...)`.
 - [x] Replace temporary friendliness logic in `CombatManager.is_friendly_to(...)`.
 - [x] Define initial hostility target rules:
-  - entities are friendly by default,
+  - unknown relationships are hostile until real faction data exists,
   - `DetermineHostility.attacked_by(...)` marks a specific attacker as hostile,
   - `DetermineHostility` owns a temporary aggro list,
   - `DetermineHostility.clear_combat()` clears temporary hostility and aggro.
@@ -90,12 +90,18 @@ This is the remaining work to turn the current ability/combat scaffold into real
 
 ## Combat State
 
-- [ ] Implement combat engagement rules.
-- [ ] Implement combat end timing.
-- [ ] Implement threat/aggro model.
-- [ ] Track last combat event tick consistently.
-- [ ] Decide how healing threat is distributed.
-- [ ] Decide how deaths clear combat state.
+- [x] Implement combat engagement rules.
+- [x] Implement combat end timing:
+  - no timeout-based combat drop,
+  - combat ends through explicit `leave_combat(...)`, death cleanup, or other future clear hooks.
+- [x] Implement threat/aggro model:
+  - damage adds `damage * aggro_modifier`,
+  - aggro remains until combat is cleared or the target entity disappears.
+- [x] Decide how healing threat is distributed:
+  - healing adds threat to every entity that already has the healed target on its aggro list.
+- [x] Decide how deaths clear combat state:
+  - the dead entity leaves combat,
+  - other aggro lists remove the dead entity.
 
 ## Events And Network
 

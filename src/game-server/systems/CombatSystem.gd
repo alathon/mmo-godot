@@ -36,6 +36,37 @@ func get_entity_id(entity: Node) -> int:
 	return 0
 
 
+func add_healing_aggro(
+		healer_entity: Node,
+		healed_entity: Node,
+		threat_amount: float,
+		sim_tick: int) -> void:
+	if healer_entity == null or healed_entity == null or threat_amount <= 0.0:
+		return
+	for combat_manager in _get_combat_managers():
+		if combat_manager.entity == healer_entity:
+			continue
+		if combat_manager.hostility != null and combat_manager.hostility.has_aggro_for(healed_entity):
+			combat_manager.hostility.add_aggro(healer_entity, threat_amount)
+			combat_manager.enter_combat(healer_entity, sim_tick)
+			var healer_manager := _get_combat_manager_for_entity(healer_entity)
+			if healer_manager != null:
+				healer_manager.enter_combat(combat_manager.entity, sim_tick)
+
+
+func clear_combat_for_entity(entity: Node, sim_tick: int) -> void:
+	if entity == null:
+		return
+	var entity_manager := _get_combat_manager_for_entity(entity)
+	if entity_manager != null:
+		entity_manager.leave_combat(sim_tick)
+	for combat_manager in _get_combat_managers():
+		if combat_manager.hostility != null:
+			combat_manager.hostility.clear_aggro(entity)
+		if combat_manager.hostility == null or not combat_manager.hostility.has_aggro():
+			combat_manager.leave_combat(sim_tick)
+
+
 func is_valid_combat_target(
 		source_entity: Node,
 		target_entity: Node,
@@ -144,6 +175,17 @@ func _get_combat_manager_for_entity(entity: Node) -> CombatManager:
 	if entity is ServerPlayer:
 		return (entity as ServerPlayer).combat_manager
 	return null
+
+
+func _get_combat_managers() -> Array[CombatManager]:
+	var managers: Array[CombatManager] = []
+	if _zone == null:
+		return managers
+	for entity_id in _zone.players:
+		var player := _zone.players[entity_id] as ServerPlayer
+		if player != null and player.combat_manager != null:
+			managers.append(player.combat_manager)
+	return managers
 
 
 func _resolve_completed_ability_use(
