@@ -92,18 +92,12 @@ func _on_ability_use_accepted(ack: Proto.AbilityUseAccepted) -> void:
 	ability_use_accepted.emit(ack)
 	if _local_player != null:
 		_local_player.on_ability_accepted(ack)
-	if _debug or ack.get_ability_id() == "fireball":
-		print("[CLIENT_ABILITY_ACK] client=%d accepted ability=%s requested_tick=%d start_tick=%d" % [
-			get_local_player_id(), ack.get_ability_id(), ack.get_requested_tick(), ack.get_start_tick()])
 
 
 func _on_ability_use_rejected(rejection: Proto.AbilityUseRejected) -> void:
 	ability_use_rejected.emit(rejection)
 	if _local_player != null:
 		_local_player.on_ability_rejected(rejection)
-	if _debug or rejection.get_ability_id() == "fireball":
-		print("[CLIENT_ABILITY_ACK] client=%d rejected ability=%s requested_tick=%d reason=%d" % [
-			get_local_player_id(), rejection.get_ability_id(), rejection.get_requested_tick(), rejection.get_cancel_reason()])
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	if BotMode == true:
@@ -240,33 +234,21 @@ func _dispatch_entity_event(event) -> void:
 	if event.has_ability_use_started():
 		var payload = event.get_ability_use_started()
 		ability_use_started.emit(payload)
-		_dispatch_ability_started_to_entity(payload)
-		if payload.get_ability_id() == "fireball":
-			print("[CLIENT_ABILITY_EVENT] client=%d started ability=fireball source=%d cast_time=%.2f" % [
-				get_local_player_id(), payload.get_source_entity_id(), payload.get_cast_time()])
+		_dispatch_ability_started_to_entity(payload, event.get_tick())
 		_log_entity_event(event.get_tick(), "ability_started", payload.get_source_entity_id(), payload.get_ability_id())
 	elif event.has_ability_use_canceled():
 		var payload = event.get_ability_use_canceled()
 		ability_use_canceled.emit(payload)
-		_dispatch_ability_canceled_to_entity(payload)
-		if payload.get_ability_id() == "fireball":
-			print("[CLIENT_ABILITY_EVENT] client=%d canceled ability=fireball source=%d reason=%d" % [
-				get_local_player_id(), payload.get_source_entity_id(), payload.get_cancel_reason()])
+		_dispatch_ability_canceled_to_entity(payload, event.get_tick())
 		_log_entity_event(event.get_tick(), "ability_canceled", payload.get_source_entity_id(), payload.get_ability_id())
 	elif event.has_ability_use_completed():
 		var payload = event.get_ability_use_completed()
 		ability_use_completed.emit(payload)
-		_dispatch_ability_completed_to_entity(payload)
-		if payload.get_ability_id() == "fireball":
-			print("[CLIENT_ABILITY_EVENT] client=%d completed ability=fireball source=%d" % [
-				get_local_player_id(), payload.get_source_entity_id()])
+		_dispatch_ability_completed_to_entity(payload, event.get_tick())
 		_log_entity_event(event.get_tick(), "ability_completed", payload.get_source_entity_id(), payload.get_ability_id())
 	elif event.has_damage_taken():
 		var payload = event.get_damage_taken()
 		damage_taken.emit(payload)
-		if payload.get_ability_id() == "fireball":
-			print("[CLIENT_ABILITY_EVENT] client=%d damage ability=fireball source=%d target=%d amount=%.0f" % [
-				get_local_player_id(), payload.get_source_entity_id(), payload.get_target_entity_id(), payload.get_amount()])
 		_log_entity_event(event.get_tick(), "damage_taken", payload.get_target_entity_id(), payload.get_ability_id())
 	elif event.has_healing_received():
 		var payload = event.get_healing_received()
@@ -305,19 +287,19 @@ func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: St
 		tick, event_name, entity_id, detail])
 
 
-func _dispatch_ability_started_to_entity(payload) -> void:
+func _dispatch_ability_started_to_entity(payload, event_tick: int) -> void:
 	var entity := _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_started"):
-		entity.on_ability_started(payload)
+		entity.on_ability_started(payload, event_tick)
 
 
-func _dispatch_ability_completed_to_entity(payload) -> void:
+func _dispatch_ability_completed_to_entity(payload, event_tick: int) -> void:
 	var entity := _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_completed"):
-		entity.on_ability_completed(payload)
+		entity.on_ability_completed(payload, event_tick)
 
 
-func _dispatch_ability_canceled_to_entity(payload) -> void:
+func _dispatch_ability_canceled_to_entity(payload, event_tick: int) -> void:
 	var entity := _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_canceled"):
-		entity.on_ability_canceled(payload)
+		entity.on_ability_canceled(payload, event_tick)

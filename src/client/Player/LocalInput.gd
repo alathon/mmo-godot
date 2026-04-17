@@ -19,7 +19,6 @@ func _process(_delta: float) -> void:
 		_jump_latch = true
 	if Input.is_action_just_pressed("test_fireball"):
 		_ability_latch = "fireball"
-		print("[CLIENT_ABILITY_TEST] queued fireball")
 
 func _on_before_tick_loop(tick: int) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")

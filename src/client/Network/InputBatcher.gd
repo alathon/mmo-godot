@@ -101,6 +101,3 @@ func _add_input(batch: Proto.InputBatch, entry: Dictionary) -> void:
 		ability_input.set_ground_x(ground_position.x)
 		ability_input.set_ground_y(ground_position.y)
 		ability_input.set_ground_z(ground_position.z)
-		if ability_id == "fireball":
-			print("[CLIENT_ABILITY_TEST] send ability=fireball tick=%d target=%d" % [
-				int(entry.get("tick", 0)), target_entity_id])

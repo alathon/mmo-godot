@@ -43,14 +43,14 @@ func apply_world_state(state: Proto.EntityState) -> void:
 	if stats != null:
 		stats.apply_world_state(state)
 
-func on_ability_started(event) -> void:
-	_ability_presentation.on_authoritative_ability_started(event)
+func on_ability_started(event, event_tick: int) -> void:
+	_ability_presentation.on_authoritative_ability_started(event, event_tick)
 
-func on_ability_completed(event) -> void:
-	_ability_presentation.on_authoritative_ability_completed(event)
+func on_ability_completed(event, event_tick: int) -> void:
+	_ability_presentation.on_authoritative_ability_completed(event, event_tick)
 
-func on_ability_canceled(event) -> void:
-	_ability_presentation.on_authoritative_ability_canceled(event)
+func on_ability_canceled(event, event_tick: int) -> void:
+	_ability_presentation.on_authoritative_ability_canceled(event, event_tick)
 
 func setCharacterModel(model_name: String) -> void:
 	var model = (load("res://assets/entities/character_models/%s.tscn" % model_name)).instantiate()

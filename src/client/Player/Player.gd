@@ -72,14 +72,14 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 			input.get("ability_id", ""),
 			target_entity_id)
 
-func on_ability_started(event) -> void:
-	_ability_presentation.on_authoritative_ability_started(event)
+func on_ability_started(event, event_tick: int) -> void:
+	_ability_presentation.on_authoritative_ability_started(event, event_tick)
 
-func on_ability_completed(event) -> void:
-	_ability_presentation.on_authoritative_ability_completed(event)
+func on_ability_completed(event, event_tick: int) -> void:
+	_ability_presentation.on_authoritative_ability_completed(event, event_tick)
 
-func on_ability_canceled(event) -> void:
-	_ability_presentation.on_authoritative_ability_canceled(event)
+func on_ability_canceled(event, event_tick: int) -> void:
+	_ability_presentation.on_authoritative_ability_canceled(event, event_tick)
 
 func on_ability_accepted(ack: Proto.AbilityUseAccepted) -> void:
 	_ability_presentation.confirm_ability_started(

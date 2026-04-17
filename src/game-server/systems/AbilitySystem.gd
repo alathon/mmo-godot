@@ -38,9 +38,6 @@ func handle_ability_input(entity_id: int, input: Dictionary, sim_tick: int) -> v
 	var ability_id := StringName(input.get("ability_id", ""))
 	if ability_id == &"":
 		return
-	if ability_id == &"fireball":
-		print("[SERVER_ABILITY_INPUT] entity=%d ability=fireball tick=%d target=%d" % [
-			entity_id, sim_tick, int(input.get("target_entity_id", 0))])
 
 	var target := _target_spec_from_input(input)
 	var result := manager.use_ability(
