@@ -1,6 +1,8 @@
 class_name Stats
 extends Node
 
+const Proto = preload("res://src/common/proto/packets.gd")
+
 @export var max_hp: int = 100
 @export var max_mana: int = 100
 @export var max_stamina: int = 100
@@ -21,3 +23,14 @@ func _ready() -> void:
 		stamina = max_stamina
 	if energy <= 0:
 		energy = max_energy
+
+
+func apply_world_state(state: Proto.EntityState) -> void:
+	if state == null:
+		return
+	hp = state.get_hp()
+	max_hp = state.get_max_hp()
+	mana = state.get_mana()
+	max_mana = state.get_max_mana()
+	stamina = state.get_stamina()
+	max_stamina = state.get_max_stamina()

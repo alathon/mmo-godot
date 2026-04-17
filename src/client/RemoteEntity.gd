@@ -4,6 +4,7 @@ extends Node3D
 const Proto = preload("res://src/common/proto/packets.gd")
 
 @onready var _interpolator: RemoteInterpolator = %RemoteInterpolator
+@onready var stats: Stats = %Stats
 
 var id: int
 
@@ -36,6 +37,10 @@ func _ready() -> void:
 func initialize_position(pos: Vector3, rot_y: float) -> void:
 	global_position = pos
 	rotation.y = rot_y
+
+func apply_world_state(state: Proto.EntityState) -> void:
+	if stats != null:
+		stats.apply_world_state(state)
 
 func setCharacterModel(model_name: String) -> void:
 	var model = (load("res://assets/entities/character_models/%s.tscn" % model_name)).instantiate()

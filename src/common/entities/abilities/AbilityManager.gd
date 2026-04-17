@@ -143,6 +143,9 @@ func cancel_casting(reason: int, context: AbilityExecutionContext) -> Array[Enti
 
 	var source_entity_id := state.cast_source_entity_id
 	var ability_id := state.cast_ability_id
+	if ability_id == &"fireball":
+		print("[SERVER_ABILITY_CAST] canceled ability=fireball entity=%d reason=%d" % [
+			source_entity_id, reason])
 	var events: Array[EntityEvents] = [
 		EntityEvents.ability_canceled(source_entity_id, ability_id, reason)
 	]
@@ -202,12 +205,18 @@ func _complete_cast(sim_tick: int, context: AbilityExecutionContext) -> Array[En
 	var start_tick := state.cast_start_tick
 	var ability := _get_cast_ability(ability_id, context)
 	if ability == null or not has_resources_for(ability):
+		if ability_id == &"fireball":
+			print("[SERVER_ABILITY_CAST] canceled ability=fireball entity=%d reason=%d" % [
+				source_entity_id, AbilityConstants.CANCEL_INVALID])
 		state.clear_cast()
 		return [
 			EntityEvents.ability_canceled(source_entity_id, ability_id, AbilityConstants.CANCEL_INVALID)
 		]
 
 	spend_resources_for(ability)
+	if ability_id == &"fireball":
+		print("[SERVER_ABILITY_CAST] completed ability=fireball entity=%d start_tick=%d completed_tick=%d" % [
+			source_entity_id, start_tick, sim_tick])
 	var events: Array[EntityEvents] = [
 		EntityEvents.ability_completed(source_entity_id, ability_id)
 	]

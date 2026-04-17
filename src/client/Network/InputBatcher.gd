@@ -22,13 +22,24 @@ func clear() -> void:
 	_current_batch.clear()
 	_previous_batch.clear()
 
-func queue_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: float, tick: int) -> void:
+func queue_input(
+		input_x: float,
+		input_z: float,
+		jump_pressed: bool,
+		rot_y: float,
+		tick: int,
+		ability_id: String = "",
+		target_entity_id: int = 0,
+		ground_position: Vector3 = Vector3.ZERO) -> void:
 	_current_batch.append({
 		"input_x": input_x,
 		"input_z": input_z,
 		"jump_pressed": jump_pressed,
 		"rot_y": rot_y,
 		"tick": tick,
+		"ability_id": ability_id,
+		"target_entity_id": target_entity_id,
+		"ground_position": ground_position,
 	})
 	if _current_batch.size() >= batch_size:
 		_flush()
@@ -49,8 +60,8 @@ func _flush() -> void:
 	for entry in _current_batch:
 		_add_input(batch, entry)
 
-	var has_movement := _current_batch.any(func(e): return e["input_x"] != 0.0 or e["input_z"] != 0.0 or e["jump_pressed"])
-	if has_movement and (_debug or _timing_debug):
+	var has_input := _current_batch.any(func(e): return e["input_x"] != 0.0 or e["input_z"] != 0.0 or e["jump_pressed"] or e.get("ability_id", "") != "")
+	if has_input and (_debug or _timing_debug):
 		var ticks := _current_batch.map(func(e): return e["tick"])
 		var estimated_server_tick := -1
 		var lead_adjusted_tick := -1
@@ -80,3 +91,16 @@ func _add_input(batch: Proto.InputBatch, entry: Dictionary) -> void:
 	input.set_jump_pressed(entry["jump_pressed"])
 	input.set_rot_y(entry["rot_y"])
 	input.set_tick(entry["tick"])
+	var ability_id := String(entry.get("ability_id", ""))
+	if ability_id != "":
+		var ability_input = input.new_ability_input()
+		var ground_position := entry.get("ground_position", Vector3.ZERO) as Vector3
+		var target_entity_id := int(entry.get("target_entity_id", 0))
+		ability_input.set_ability_id(ability_id)
+		ability_input.set_target_entity_id(target_entity_id)
+		ability_input.set_ground_x(ground_position.x)
+		ability_input.set_ground_y(ground_position.y)
+		ability_input.set_ground_z(ground_position.z)
+		if ability_id == "fireball":
+			print("[CLIENT_ABILITY_TEST] send ability=fireball tick=%d target=%d" % [
+				int(entry.get("tick", 0)), target_entity_id])

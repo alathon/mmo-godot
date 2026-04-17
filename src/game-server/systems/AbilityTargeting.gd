@@ -17,26 +17,26 @@ func resolve_targets(
 		ability: AbilityResource,
 		target: AbilityTargetSpec) -> Array[Node]:
 	if source_entity == null or target == null:
-		return []
+		return _empty_targets()
 	if ability != null and ability.target_type == AbilityResource.TargetType.SELF:
-		return [source_entity]
+		return _single_target(source_entity)
 	if ability != null and ability.aoe_shape != AbilityResource.AoeShape.NONE:
 		return _resolve_aoe_targets(source_entity, ability, target)
 
 	match target.kind:
 		AbilityTargetSpec.Kind.SELF:
-			return [source_entity]
+			return _single_target(source_entity)
 		AbilityTargetSpec.Kind.ENTITY:
 			var explicit_target := get_entity_by_id(target.entity_id)
-			return [explicit_target] if explicit_target != null else []
+			return _single_target(explicit_target)
 		AbilityTargetSpec.Kind.CURRENT_TARGET:
 			var current_target_id := _get_current_target_id(source_entity)
 			var current_target := get_entity_by_id(current_target_id)
-			return [current_target] if current_target != null else []
+			return _single_target(current_target)
 		AbilityTargetSpec.Kind.GROUND:
 			return _resolve_ground_targets(source_entity, ability, target.ground_position)
 		_:
-			return []
+			return _empty_targets()
 
 
 func get_valid_targets_for(source_entity: Node, ability: AbilityResource) -> Array[Node]:
@@ -111,7 +111,7 @@ func _resolve_aoe_targets(
 		AbilityResource.AoeShape.CONE:
 			return _resolve_cone_targets(source_entity, ability, target)
 		_:
-			return []
+			return _empty_targets()
 
 
 func _resolve_ground_targets(
@@ -119,9 +119,9 @@ func _resolve_ground_targets(
 		ability: AbilityResource,
 		ground_position: Vector3) -> Array[Node]:
 	if ability == null:
-		return []
+		return _empty_targets()
 	if ability.aoe_shape == AbilityResource.AoeShape.NONE:
-		return []
+		return _empty_targets()
 	return _resolve_aoe_targets(source_entity, ability, AbilityTargetSpec.ground(ground_position))
 
 
@@ -142,7 +142,7 @@ func _resolve_cone_targets(
 	var source_position := get_entity_position(source_entity)
 	var forward := _get_cone_forward(source_entity, target)
 	if forward == Vector3.ZERO:
-		return []
+		return _empty_targets()
 
 	var targets: Array[Node] = []
 	for candidate in get_valid_targets_for(source_entity, ability):
@@ -198,6 +198,18 @@ func _get_candidate_entities() -> Array[Node]:
 	for entity_id in _zone.players:
 		candidates.append(_zone.players[entity_id])
 	return candidates
+
+
+func _single_target(target_entity: Node) -> Array[Node]:
+	var targets: Array[Node] = []
+	if target_entity != null:
+		targets.append(target_entity)
+	return targets
+
+
+func _empty_targets() -> Array[Node]:
+	var targets: Array[Node] = []
+	return targets
 
 
 func _is_combat_target_type(target_type: int) -> bool:

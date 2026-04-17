@@ -9,6 +9,8 @@ var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9001"
 
 signal connected_to_server
 signal disconnected_from_server
+signal ability_use_accepted(ack: Proto.AbilityUseAccepted)
+signal ability_use_rejected(rejection: Proto.AbilityUseRejected)
 signal world_state_received(diff: Proto.WorldState)
 signal world_positions_received(diff: Proto.WorldPositions)
 signal zone_redirect_received(zone_id: String, address: String, port: int, token: String)
@@ -137,6 +139,14 @@ func send_zone_arrival(token: String) -> void:
 	arrival.set_transfer_token(token)
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
 
+func send_target_select(entity_id: int) -> void:
+	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+		return
+	var pkt = Proto.Packet.new()
+	var target_select = pkt.new_target_select()
+	target_select.set_target_entity_id(entity_id)
+	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
+
 var _packets_received: int = 0
 
 func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
@@ -152,6 +162,10 @@ func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
 		world_positions_received.emit(diff)
 	elif pkt.has_clock_pong():
 		%NetworkClock.on_clock_pong(pkt.get_clock_pong())
+	elif pkt.has_ability_accepted():
+		ability_use_accepted.emit(pkt.get_ability_accepted())
+	elif pkt.has_ability_rejected():
+		ability_use_rejected.emit(pkt.get_ability_rejected())
 	elif pkt.has_zone_redirect():
 		var redirect := pkt.get_zone_redirect()
 		zone_redirect_received.emit(

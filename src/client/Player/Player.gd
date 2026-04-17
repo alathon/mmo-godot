@@ -11,6 +11,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _target_state: EntityTargetState = %EntityTarget
 @onready var _combat_manager: CombatManager = %CombatManager
 @onready var _ability_manager: AbilityManager = %AbilityManager
+@onready var stats: Stats = %Stats
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
@@ -24,6 +25,10 @@ func set_target_entity_id(entity_id: int) -> void:
 
 func get_target_entity_id() -> int:
 	return _target_state.get_target_entity_id()
+
+func apply_world_state(state: Proto.EntityState) -> void:
+	if stats != null:
+		stats.apply_world_state(state)
 
 func clear_target() -> void:
 	_target_state.clear_target()
@@ -53,7 +58,14 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 		print("[TRACE:Player %d] t=%s tick=%d input_gathered x=%.2f z=%.2f jump=%s" % [id,
 			Globals.ts(), current_tick,
 			input["input_x"], input["input_z"], input["jump_pressed"]])
-	_input_batcher.queue_input(input["input_x"], input["input_z"], input["jump_pressed"], _body.rotation.y, current_tick)
+	_input_batcher.queue_input(
+			input["input_x"],
+			input["input_z"],
+			input["jump_pressed"],
+			_body.rotation.y,
+			current_tick,
+			input.get("ability_id", ""),
+			get_target_entity_id())
 
 func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 	if frozen:

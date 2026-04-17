@@ -105,10 +105,16 @@ This is the remaining work to turn the current ability/combat scaffold into real
 
 ## Events And Network
 
-- [ ] Verify `AbilityUseAccepted` client handling.
-- [ ] Verify `AbilityUseRejected` client handling.
-- [ ] Verify `WorldState.events` client handling.
-- [ ] Verify client handling for:
+- [x] Verify `AbilityUseAccepted` client routing:
+  - `BackendAPI` emits `ability_use_accepted`,
+  - `GameManager` re-emits `ability_use_accepted`.
+- [x] Verify `AbilityUseRejected` client routing:
+  - `BackendAPI` emits `ability_use_rejected`,
+  - `GameManager` re-emits `ability_use_rejected`.
+- [x] Verify `WorldState.events` client dispatch:
+  - `GameManager` dispatches ordered `WorldState.events`,
+  - one typed signal is emitted per supported payload.
+- [ ] Implement client presentation/behavior for:
   - ability started,
   - ability canceled,
   - ability completed,
