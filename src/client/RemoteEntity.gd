@@ -4,6 +4,7 @@ extends Node3D
 const Proto = preload("res://src/common/proto/packets.gd")
 
 @onready var _interpolator: RemoteInterpolator = %RemoteInterpolator
+@onready var _ability_presentation: Node = %AbilityPresentation
 @onready var stats: Stats = %Stats
 
 var id: int
@@ -41,6 +42,15 @@ func initialize_position(pos: Vector3, rot_y: float) -> void:
 func apply_world_state(state: Proto.EntityState) -> void:
 	if stats != null:
 		stats.apply_world_state(state)
+
+func on_ability_started(event) -> void:
+	_ability_presentation.on_authoritative_ability_started(event)
+
+func on_ability_completed(event) -> void:
+	_ability_presentation.on_authoritative_ability_completed(event)
+
+func on_ability_canceled(event) -> void:
+	_ability_presentation.on_authoritative_ability_canceled(event)
 
 func setCharacterModel(model_name: String) -> void:
 	var model = (load("res://assets/entities/character_models/%s.tscn" % model_name)).instantiate()

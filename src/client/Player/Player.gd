@@ -11,6 +11,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _target_state: EntityTargetState = %EntityTarget
 @onready var _combat_manager: CombatManager = %CombatManager
 @onready var _ability_manager: AbilityManager = %AbilityManager
+@onready var _ability_presentation: Node = %AbilityPresentation
 @onready var stats: Stats = %Stats
 
 var _animationTree: AnimationTree
@@ -58,6 +59,10 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 		print("[TRACE:Player %d] t=%s tick=%d input_gathered x=%.2f z=%.2f jump=%s" % [id,
 			Globals.ts(), current_tick,
 			input["input_x"], input["input_z"], input["jump_pressed"]])
+	var ability_id := StringName(input.get("ability_id", ""))
+	var target_entity_id := get_target_entity_id()
+	if ability_id != &"":
+		_ability_presentation.predict_ability_started(ability_id, target_entity_id, current_tick)
 	_input_batcher.queue_input(
 			input["input_x"],
 			input["input_z"],
@@ -65,7 +70,27 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 			_body.rotation.y,
 			current_tick,
 			input.get("ability_id", ""),
-			get_target_entity_id())
+			target_entity_id)
+
+func on_ability_started(event) -> void:
+	_ability_presentation.on_authoritative_ability_started(event)
+
+func on_ability_completed(event) -> void:
+	_ability_presentation.on_authoritative_ability_completed(event)
+
+func on_ability_canceled(event) -> void:
+	_ability_presentation.on_authoritative_ability_canceled(event)
+
+func on_ability_accepted(ack: Proto.AbilityUseAccepted) -> void:
+	_ability_presentation.confirm_ability_started(
+			StringName(ack.get_ability_id()),
+			ack.get_requested_tick())
+
+func on_ability_rejected(rejection: Proto.AbilityUseRejected) -> void:
+	_ability_presentation.reject_ability_started(
+			StringName(rejection.get_ability_id()),
+			rejection.get_requested_tick(),
+			rejection.get_cancel_reason())
 
 func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 	if frozen:

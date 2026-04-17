@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://vvo7ggrbjgrw" path="res://src/client/Network/BackendAPI.gd" id="1_4po38"]
 [ext_resource type="Script" uid="uid://dp86opdmyy36x" path="res://src/client/Network/NetworkClockNew.gd" id="3_bg4vv"]
+[ext_resource type="Script" uid="uid://d3tix8733b3qq" path="res://src/client/TargetSelectionIndicator.gd" id="4_k367o"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="6_mfuft"]
 
 [node name="Services" type="Node" unique_id=1368178531]
@@ -14,9 +15,14 @@ metadata/_custom_type_script = "uid://vvo7ggrbjgrw"
 [node name="GameManager" type="Node" parent="." unique_id=803377627]
 unique_name_in_owner = true
 script = ExtResource("6_mfuft")
+BotMode = null
 metadata/_custom_type_script = "uid://dyjg3a1a48cwy"
 
 [node name="NetworkClock" type="Node" parent="." unique_id=1889349879]
 unique_name_in_owner = true
 script = ExtResource("3_bg4vv")
 metadata/_custom_type_script = "uid://dp86opdmyy36x"
+
+[node name="TargetSelectionIndicator" type="Node" parent="." unique_id=1773781867]
+unique_name_in_owner = true
+script = ExtResource("4_k367o")

@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_mflae"]
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="3_mflae"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="4_fb5u3"]
+[ext_resource type="Script" path="res://src/client/AbilityPresentation.gd" id="5_ability_presentation"]
 
 [node name="RemoteEntity" type="Node3D" unique_id=751671690]
 script = ExtResource("1_548v2")
@@ -29,3 +30,7 @@ metadata/_custom_type_script = "uid://vp2733m2uoyk"
 [node name="RemoteInterpolator" type="Node" parent="." unique_id=600016612]
 unique_name_in_owner = true
 script = ExtResource("2_al5b1")
+
+[node name="AbilityPresentation" type="Node" parent="." unique_id=1450354033]
+unique_name_in_owner = true
+script = ExtResource("5_ability_presentation")
