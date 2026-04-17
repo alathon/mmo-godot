@@ -11,7 +11,7 @@ static func create(
 		source_entity_id: int,
 		ability_id: StringName,
 		target: AbilityTargetSpec,
-		requested_tick: int):
+		requested_tick: int) -> AbilityUseRequest:
 	var request := AbilityUseRequest.new()
 	request.source_entity_id = source_entity_id
 	request.ability_id = ability_id

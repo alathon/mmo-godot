@@ -24,19 +24,23 @@ func tick(tick: int, ctx: Dictionary) -> void:
 	wstate.set_tick(tick)
 
 	for peer_id in players:
-		var mob_stats := (players[peer_id] as ServerPlayer).get_node_or_null("Mob/Stats") as Stats
-		if mob_stats:
-			var es := wstate.add_entities()
-			es.set_entity_id(peer_id)
-			es.set_hp(mob_stats.hp)
-			es.set_max_hp(mob_stats.max_hp)
-			es.set_mana(mob_stats.mana)
-			es.set_max_mana(mob_stats.max_mana)
-			es.set_stamina(mob_stats.stamina)
-			es.set_max_stamina(mob_stats.max_stamina)
+		var player := players[peer_id] as ServerPlayer
+		var mob_stats := player.stats
+		var es := wstate.add_entities()
+		es.set_entity_id(peer_id)
+		es.set_hp(mob_stats.hp)
+		es.set_max_hp(mob_stats.max_hp)
+		es.set_mana(mob_stats.mana)
+		es.set_max_mana(mob_stats.max_mana)
+		es.set_stamina(mob_stats.stamina)
+		es.set_max_stamina(mob_stats.max_stamina)
 
-	if _combat_system.has_events():
-		_combat_system.build_combat_events_proto(wstate.new_combat_events(), tick)
+	if _ability_system.has_events() or _combat_system.has_events():
+		var combat_events = wstate.new_combat_events()
+		if _ability_system.has_events():
+			_ability_system.build_ability_events_proto(combat_events, tick)
+		if _combat_system.has_events():
+			_combat_system.build_combat_events_proto(combat_events, tick)
 
 	var rbytes := rpkt.to_bytes()
 	for peer_id in players:

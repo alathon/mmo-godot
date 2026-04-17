@@ -35,7 +35,7 @@ static func ability_started(
 		ability_id: StringName,
 		target_entity_id: int = 0,
 		ground_position: Vector3 = Vector3.ZERO,
-		cast_time: float = 0.0):
+		cast_time: float = 0.0) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.ABILITY_USE_STARTED
 	event.source_entity_id = source_entity_id
@@ -46,7 +46,7 @@ static func ability_started(
 	return event
 
 
-static func ability_canceled(source_entity_id: int, ability_id: StringName, cancel_reason: int):
+static func ability_canceled(source_entity_id: int, ability_id: StringName, cancel_reason: int) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.ABILITY_USE_CANCELED
 	event.source_entity_id = source_entity_id
@@ -55,7 +55,7 @@ static func ability_canceled(source_entity_id: int, ability_id: StringName, canc
 	return event
 
 
-static func ability_completed(source_entity_id: int, ability_id: StringName, hit_type: int = 0):
+static func ability_completed(source_entity_id: int, ability_id: StringName, hit_type: int = 0) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.ABILITY_USE_COMPLETED
 	event.source_entity_id = source_entity_id
@@ -68,7 +68,7 @@ static func damage_taken(
 		source_entity_id: int,
 		target_entity_id: int,
 		ability_id: StringName,
-		amount: float):
+		amount: float) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.DAMAGE_TAKEN
 	event.source_entity_id = source_entity_id
@@ -82,7 +82,7 @@ static func healing_received(
 		source_entity_id: int,
 		target_entity_id: int,
 		ability_id: StringName,
-		amount: float):
+		amount: float) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.HEALING_RECEIVED
 	event.source_entity_id = source_entity_id
@@ -92,7 +92,7 @@ static func healing_received(
 	return event
 
 
-static func combat_started(entity_id: int, source_entity_id: int = 0):
+static func combat_started(entity_id: int, source_entity_id: int = 0) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.COMBAT_STARTED
 	event.entity_id = entity_id
@@ -100,14 +100,14 @@ static func combat_started(entity_id: int, source_entity_id: int = 0):
 	return event
 
 
-static func combat_ended(entity_id: int):
+static func combat_ended(entity_id: int) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.COMBAT_ENDED
 	event.entity_id = entity_id
 	return event
 
 
-static func combatant_died(entity_id: int, killer_entity_id: int = 0):
+static func combatant_died(entity_id: int, killer_entity_id: int = 0) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.COMBATANT_DIED
 	event.entity_id = entity_id
@@ -119,13 +119,15 @@ static func buff_applied(
 		source_entity_id: int,
 		target_entity_id: int,
 		ability_id: StringName,
-		status_effect_id: StringName):
+		status_effect_id: StringName,
+		remaining_duration: float = 0.0) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.BUFF_APPLIED
 	event.source_entity_id = source_entity_id
 	event.target_entity_id = target_entity_id
 	event.ability_id = ability_id
 	event.status_effect_id = status_effect_id
+	event.amount = remaining_duration
 	return event
 
 
@@ -133,17 +135,19 @@ static func debuff_applied(
 		source_entity_id: int,
 		target_entity_id: int,
 		ability_id: StringName,
-		status_effect_id: StringName):
+		status_effect_id: StringName,
+		remaining_duration: float = 0.0) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.DEBUFF_APPLIED
 	event.source_entity_id = source_entity_id
 	event.target_entity_id = target_entity_id
 	event.ability_id = ability_id
 	event.status_effect_id = status_effect_id
+	event.amount = remaining_duration
 	return event
 
 
-static func status_effect_removed(entity_id: int, status_effect_id: StringName, remove_reason: int):
+static func status_effect_removed(entity_id: int, status_effect_id: StringName, remove_reason: int) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.STATUS_EFFECT_REMOVED
 	event.entity_id = entity_id

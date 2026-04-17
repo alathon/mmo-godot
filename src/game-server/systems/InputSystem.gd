@@ -160,4 +160,6 @@ func tick(tick: int, ctx: Dictionary) -> void:
 
 
 func _get_state(player: Node) -> PlayerInputState:
-	return player.get_node_or_null("PlayerInputState") as PlayerInputState
+	if player is ServerPlayer:
+		return (player as ServerPlayer).input_state
+	return null

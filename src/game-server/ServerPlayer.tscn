@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="3_mobstats"]
 [ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="3_v5fr3"]
 [ext_resource type="Script" uid="uid://1r8f5frqejnq" path="res://src/common/entities/CombatManager.gd" id="4_hednv"]
+[ext_resource type="Script" path="res://src/common/entities/DetermineHostility.gd" id="5_hostility"]
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="7_vb6v5"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="8_63a3n"]
 
@@ -29,6 +30,10 @@ metadata/_custom_type_script = "uid://ch0i48lswewgc"
 unique_name_in_owner = true
 script = ExtResource("4_hednv")
 metadata/_custom_type_script = "uid://1r8f5frqejnq"
+
+[node name="DetermineHostility" type="Node" parent="." unique_id=1001000003]
+unique_name_in_owner = true
+script = ExtResource("5_hostility")
 
 [node name="EntityTarget" type="Node" parent="." unique_id=383263366]
 unique_name_in_owner = true

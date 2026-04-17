@@ -83,6 +83,7 @@ func _ready() -> void:
 	_input_system.init(self)
 	_movement_system.init(self)
 	_combat_system.init(self)
+	_ability_system.init(self, _combat_system)
 	_world_state_system.init(self, _combat_system)
 	_world_positions_system.init(self)
 
@@ -280,8 +281,7 @@ func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
 	player.body.global_position = position
 	player.body.rotation.y = rot_y
 	players[id] = player
-	var state := player.get_node("PlayerInputState") as PlayerInputState
-	state.last_input_tick = NetworkTime.tick
+	player.input_state.last_input_tick = NetworkTime.tick
 	_input_system.on_player_added(id)
 
 func _remove_player(id: int) -> void:
@@ -361,8 +361,7 @@ func _handle_zone_arrival(peer_id: int, msg: Proto.ZoneArrival) -> void:
 		player.body.global_position = spawn_pos
 		player.body.rotation.y = spawn_rot
 		player.body.velocity = Vector3.ZERO
-		var state := player.get_node("PlayerInputState") as PlayerInputState
-		state.first_input_tick = -1
+		player.input_state.first_input_tick = -1
 		_input_system.on_player_added(peer_id)  # reset input buffer
 	print("[SERVER] peer=%d ARRIVED at pos=%s rot_y=%.2f spawn_path='%s'" % [peer_id, spawn_pos, spawn_rot, spawn_path])
 

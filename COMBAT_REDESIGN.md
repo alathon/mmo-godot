@@ -49,6 +49,7 @@ src/common/entities/abilities/
   AbilityValidationResult.gd
   AbilityTargetSpec.gd
   AbilityExecutionContext.gd
+  CompletedAbilityUse.gd
 
 src/common/
   EntityEvents.gd
@@ -56,6 +57,7 @@ src/common/
 
 src/common/entities/
   EntityTargetState.gd
+  DetermineHostility.gd
   CombatManager.gd
   Stats.gd
 
@@ -225,45 +227,45 @@ func is_in_range(
 Suggested private methods:
 
 ```gdscript
-func _process_movement_cancels(moving_entities: Dictionary, sim_tick: int) -> void
+func _process_movement_cancels(
+	moving_entities: Dictionary,
+	sim_tick: int,
+	context: AbilityExecutionContext
+) -> void
 func _process_ability_inputs(ability_inputs: Dictionary, sim_tick: int) -> void
-func _tick_ability_managers(sim_tick: int) -> void
+func _tick_ability_managers(
+	sim_tick: int,
+	context: AbilityExecutionContext,
+	ctx: Dictionary
+) -> void
 func _flush_ack_queue() -> void
 
-func _make_execution_context(sim_tick: int) -> AbilityExecutionContext
+func _make_execution_context(
+	sim_tick: int,
+	source_entity_id: int = 0
+) -> AbilityExecutionContext
 func _enqueue_ack(result: AbilityUseResult) -> void
 func _append_events(events: Array[EntityEvents]) -> void
-func _dispatch_resolved_ability(
-	source_entity: Node,
-	ability: AbilityResource,
-	target_entities: Array[Node],
-	ability_events: Array[EntityEvents],
-	context: AbilityExecutionContext
-) -> Array[EntityEvents]
+func _append_completed_uses(ctx: Dictionary, completed_uses: Array[CompletedAbilityUse]) -> void
+func _target_spec_from_input(input: Dictionary) -> AbilityTargetSpec
 ```
 
-`AbilitySystem` owns ability execution sequencing. When an ability completes, it resolves targets and calls `_dispatch_resolved_ability(...)`. Combat abilities are handed to `CombatSystem.on_ability_resolved(...)`; later non-combat ability domains can use the same handoff shape.
+`AbilitySystem` owns ability execution sequencing. When an ability completes, it consumes `CompletedAbilityUse` snapshots from `AbilityManager` and appends them to `ctx["completed_ability_uses"]`. That shared tick context becomes the current ability/combat stack for the tick.
 
 ```gdscript
-func _dispatch_resolved_ability(
-	source_entity: Node,
-	ability: AbilityResource,
-	target_entities: Array[Node],
-	ability_events: Array[EntityEvents],
-	context: AbilityExecutionContext
-) -> Array[EntityEvents]:
-	if ability_is_combat_ability:
-		return _combat_system.on_ability_resolved(
-			source_entity,
-			ability,
-			target_entities,
-			ability_events,
-			context
-		)
-	return []
+func _tick_ability_managers(
+		sim_tick: int,
+		context: AbilityExecutionContext,
+		ctx: Dictionary) -> void:
+	for entity_id in _zone.players:
+		var manager := get_ability_manager(entity_id)
+		if manager == null:
+			continue
+		_append_events(manager.tick(context.delta, sim_tick, context))
+		_append_completed_uses(ctx, manager.consume_completed_uses())
 ```
 
-`CombatSystem` owns combat consequences. It should not infer damage, healing, death, threat, or combat engagement from already-created events. It receives a resolved ability with source, ability, targets, generic ability events, and context, then returns additional `EntityEvents` for combat consequences.
+`CombatSystem` owns combat consequences. It consumes `ctx["completed_ability_uses"]` as the current combat stack for that tick, resolves the source, ability resource, and materialized targets, then returns additional `EntityEvents` for combat consequences. It should not infer damage, healing, death, threat, or combat engagement from already-created generic ability lifecycle events.
 
 Current mapping:
 
@@ -304,9 +306,10 @@ for entity_id in moving_entities:
 
 The cancel reason constants should move from `CombatConstants` to `AbilityConstants` when they describe ability-use outcomes.
 
+
 **AbilityManager**
 
-This is the entity-facing ability surface. It owns GCD, cast state, animation lock, cooldowns, queueing, and resource checks for one entity.
+This is the entity-facing ability surface. It owns GCD, cast state, animation lock, cooldowns, queueing, resource checks, and ability target materialization for one entity.
 
 ```gdscript
 class_name AbilityManager
@@ -340,6 +343,18 @@ func can_use_ability(
 	allow_queue: bool = false
 ) -> AbilityValidationResult
 
+func resolve_targets(
+	ability: AbilityResource,
+	target: AbilityTargetSpec,
+	context: AbilityExecutionContext
+) -> Array[Node]
+
+func is_target_legal(
+	ability: AbilityResource,
+	target: AbilityTargetSpec,
+	context: AbilityExecutionContext
+) -> bool
+
 func has_resources_for(ability: AbilityResource) -> bool
 func spend_resources_for(ability: AbilityResource) -> void
 
@@ -351,6 +366,7 @@ func get_cooldown_remaining(ability_id: StringName) -> float
 
 func cancel_casting(reason: int, context: AbilityExecutionContext) -> Array[EntityEvents]
 func clear_queued_ability() -> void
+func consume_completed_uses() -> Array[CompletedAbilityUse]
 ```
 
 Private methods:
@@ -358,16 +374,9 @@ Private methods:
 ```gdscript
 func _start_cast(request: AbilityUseRequest, ability: AbilityResource, sim_tick: int) -> Array[EntityEvents]
 func _complete_cast(sim_tick: int, context: AbilityExecutionContext) -> Array[EntityEvents]
-func _resolve_ability(
-	source_entity_id: int,
-	ability_id: StringName,
-	target: AbilityTargetSpec,
-	requested_tick: int,
-	context: AbilityExecutionContext
-) -> Array[EntityEvents]
 
 func _queue_ability(request: AbilityUseRequest) -> void
-func _try_dequeue_ability(sim_tick: int, context: AbilityExecutionContext) -> Array[EntityEvents]
+func _try_dequeue_ability(_sim_tick: int, _context: AbilityExecutionContext) -> Array[EntityEvents]
 
 func _in_cast_queue_window() -> bool
 func _in_gcd_queue_window() -> bool
@@ -385,6 +394,14 @@ entity.ability_manager.cancel_casting(AbilityConstants.CANCEL_MOVED, context)
 entity.ability_manager.can_use_ability(ability, target, context)
 entity.ability_manager.has_resources_for(ability)
 ```
+
+Instant abilities use the same lifecycle as casted abilities. They emit `ability_started`, immediately complete through `_complete_cast(...)`, emit `ability_completed`, and produce a `CompletedAbilityUse` snapshot in the same simulation tick.
+
+Resources are checked when an ability starts, but they are not spent until completion. If the entity no longer has enough resources at completion, the cast is canceled and no `CompletedAbilityUse` is produced.
+
+Cooldowns start when an ability starts casting. If the cast is canceled or interrupted before completion, the ability and cooldown-group cooldowns are refunded.
+
+Ability queueing accepts one queued request during the cast or GCD queue window. A queued request does not emit `ability_started` immediately; it emits the normal start event when `_try_dequeue_ability(...)` starts it after cast, animation lock, and GCD constraints allow. If the queued request is invalid when it dequeues, it emits `ability_canceled` and is cleared.
 
 And leaves combat-only state in the combat API:
 
@@ -424,7 +441,6 @@ func on_ability_resolved(
 	source_entity: Node,
 	ability: AbilityResource,
 	target_entities: Array[Node],
-	ability_events: Array[EntityEvents],
 	context: AbilityExecutionContext
 ) -> Array[EntityEvents]
 
@@ -720,10 +736,17 @@ AbilitySystem
 
 AbilityManager
   Owns one entity's ability-use state: GCD, animation lock, cooldowns,
-  cast lifecycle, queueing, resource checks, and the public ability API.
+  cast lifecycle, queueing, resource checks, target materialization, and the public ability API.
 
 EntityTargetState
   Owns selected target for the entity, independent of combat.
+
+DetermineHostility
+  Owns entity-specific hostility overrides. Entities are friendly by default
+  until `attacked_by(...)` marks a specific attacker as hostile and adds it
+  to the aggro list. `clear_combat()` clears temporary hostility and aggro.
+  Future faction, team, party, and reputation rules should live behind this
+  surface.
 
 CombatSystem
   Owns combat event buffering, combat event protobuf translation,

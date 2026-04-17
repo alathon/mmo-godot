@@ -2,9 +2,17 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { GodotClient } from "./godot-client.js";
+import { getLogPath, log } from "./logger.js";
 import { registerAllTools } from "./tools/index.js";
 
 const GODOT_PORT = parseInt(process.env.GODOT_MCP_PORT ?? "6505", 10);
+
+log("process starting", {
+  argv: process.argv,
+  cwd: process.cwd(),
+  godotPort: GODOT_PORT,
+  logPath: getLogPath(),
+});
 
 const godot = new GodotClient(GODOT_PORT);
 
@@ -57,15 +65,27 @@ registerAllTools(server, godot);
 // Start
 // ---------------------------------------------------------------------------
 async function main() {
+  log("main starting");
   godot.listen();
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
   console.error(`[godot-mcp] MCP server running on stdio (Godot port ${GODOT_PORT})`);
+  log("mcp stdio connected", { godotPort: GODOT_PORT });
 }
 
 main().catch((err) => {
   console.error("[godot-mcp] Fatal error:", err);
+  log("fatal error", err);
   process.exit(1);
+});
+
+process.on("uncaughtException", (err) => {
+  log("uncaught exception", err);
+  throw err;
+});
+
+process.on("unhandledRejection", (reason) => {
+  log("unhandled rejection", reason);
 });

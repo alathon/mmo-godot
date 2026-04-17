@@ -6,13 +6,13 @@ var reason: StringName = &""
 var cancel_reason: int = AbilityConstants.CANCEL_INVALID
 
 
-static func accepted():
+static func accepted() -> AbilityValidationResult:
 	var result := AbilityValidationResult.new()
 	result.ok = true
 	return result
 
 
-static func rejected(reason: StringName, cancel_reason: int):
+static func rejected(reason: StringName, cancel_reason: int) -> AbilityValidationResult:
 	var result := AbilityValidationResult.new()
 	result.ok = false
 	result.reason = reason

@@ -15,7 +15,7 @@ static func accepted_result(
 		ability_id: StringName,
 		requested_tick: int,
 		start_tick: int,
-		events: Array[EntityEvents] = []):
+		events: Array[EntityEvents] = []) -> AbilityUseResult:
 	var result := AbilityUseResult.new()
 	result.accepted = true
 	result.ability_id = ability_id
@@ -29,7 +29,7 @@ static func rejected_result(
 		ability_id: StringName,
 		requested_tick: int,
 		reject_reason: int,
-		events: Array[EntityEvents] = []):
+		events: Array[EntityEvents] = []) -> AbilityUseResult:
 	var result := AbilityUseResult.new()
 	result.accepted = false
 	result.ability_id = ability_id
@@ -42,7 +42,7 @@ static func rejected_result(
 static func from_validation(
 		ability_id: StringName,
 		requested_tick: int,
-		validation: AbilityValidationResult):
+		validation: AbilityValidationResult) -> AbilityUseResult:
 	if validation != null and validation.ok:
 		return accepted_result(ability_id, requested_tick, 0)
 	var reason := AbilityConstants.CANCEL_INVALID
