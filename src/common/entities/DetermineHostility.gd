@@ -14,7 +14,9 @@ func get_hostility_state(target_entity: Node) -> int:
 		return HostilityState.FRIENDLY
 	if _aggro_by_entity.has(target_entity.get_instance_id()):
 		return HostilityState.HOSTILE
-	return HostilityState.FRIENDLY
+	# Everything is hostile.
+	# TODO: Actual races/alliances/groups/whatever.
+	return HostilityState.HOSTILE
 
 
 func is_hostile_to(target_entity: Node) -> bool:
