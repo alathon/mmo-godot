@@ -22,8 +22,8 @@ func init(zone: Node, combat_system: CombatSystem) -> void:
 func tick(sim_tick: int, ctx: Dictionary) -> void:
 	var context := _make_execution_context(sim_tick)
 	ctx["ability_execution_context"] = context
-	if not ctx.has("completed_ability_uses"):
-		ctx["completed_ability_uses"] = []
+	if not ctx.has("scheduled_ability_uses"):
+		ctx["scheduled_ability_uses"] = []
 	_process_movement_cancels(ctx.get("moving_entities", {}), sim_tick, context)
 	_process_ability_inputs(ctx.get("ability_inputs", {}), sim_tick)
 	_tick_ability_managers(sim_tick, context, ctx)
@@ -40,10 +40,12 @@ func handle_ability_input(entity_id: int, input: Dictionary, sim_tick: int) -> v
 		return
 
 	var target := _target_spec_from_input(input)
+	var request_id := int(input.get("ability_request_id", 0))
 	var result := manager.use_ability(
 			ability_id,
 			target,
 			sim_tick,
+			request_id,
 			_make_execution_context(sim_tick, entity_id))
 	_enqueue_ack(entity_id, result)
 	_append_events(result.events)
@@ -120,8 +122,8 @@ func _tick_ability_managers(
 		if manager == null:
 			continue
 		_append_events(manager.tick(context.delta, sim_tick, context))
-		var completed_uses := manager.consume_completed_uses()
-		_append_completed_uses(ctx, completed_uses)
+		var scheduled_uses := manager.consume_scheduled_uses()
+		_append_scheduled_uses(ctx, scheduled_uses)
 
 
 func _flush_ack_queue() -> void:
@@ -136,11 +138,16 @@ func _flush_ack_queue() -> void:
 			accepted.set_ability_id(String(result.ability_id))
 			accepted.set_requested_tick(result.requested_tick)
 			accepted.set_start_tick(result.start_tick)
+			accepted.set_request_id(result.request_id)
+			accepted.set_resolve_tick(result.resolve_tick)
+			accepted.set_finish_tick(result.finish_tick)
+			accepted.set_impact_tick(result.impact_tick)
 		else:
 			var rejected = packet.new_ability_rejected()
 			rejected.set_ability_id(String(result.ability_id))
 			rejected.set_requested_tick(result.requested_tick)
 			rejected.set_cancel_reason(result.reject_reason)
+			rejected.set_request_id(result.request_id)
 		multiplayer.send_bytes(packet.to_bytes(), entity_id, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
 	_ack_queue.clear()
 
@@ -168,12 +175,12 @@ func _append_events(events: Array[EntityEvents]) -> void:
 	_pending_events.append_array(events)
 
 
-func _append_completed_uses(ctx: Dictionary, completed_uses: Array[CompletedAbilityUse]) -> void:
-	if completed_uses.is_empty():
+func _append_scheduled_uses(ctx: Dictionary, scheduled_uses: Array) -> void:
+	if scheduled_uses.is_empty():
 		return
-	if not ctx.has("completed_ability_uses"):
-		ctx["completed_ability_uses"] = []
-	ctx["completed_ability_uses"].append_array(completed_uses)
+	if not ctx.has("scheduled_ability_uses"):
+		ctx["scheduled_ability_uses"] = []
+	ctx["scheduled_ability_uses"].append_array(scheduled_uses)
 
 
 func _target_spec_from_input(input: Dictionary) -> AbilityTargetSpec:

@@ -841,6 +841,11 @@ class AbilityInput:
 		service.field = __ground_z
 		data[__ground_z.tag] = service
 
+		__request_id = PBField.new("request_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __request_id
+		data[__request_id.tag] = service
+
 	var data = {}
 
 	var __ability_id: PBField
@@ -907,6 +912,19 @@ class AbilityInput:
 		__ground_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_ground_z(value : float) -> void:
 		__ground_z.value = value
+
+	var __request_id: PBField
+	func has_request_id() -> bool:
+		if __request_id.value != null:
+			return true
+		return false
+	func get_request_id() -> int:
+		return __request_id.value
+	func clear_request_id() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__request_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_request_id(value : int) -> void:
+		__request_id.value = value
 
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -993,6 +1011,26 @@ class AbilityUseAccepted:
 		service.field = __start_tick
 		data[__start_tick.tag] = service
 
+		__request_id = PBField.new("request_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __request_id
+		data[__request_id.tag] = service
+
+		__resolve_tick = PBField.new("resolve_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __resolve_tick
+		data[__resolve_tick.tag] = service
+
+		__finish_tick = PBField.new("finish_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __finish_tick
+		data[__finish_tick.tag] = service
+
+		__impact_tick = PBField.new("impact_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __impact_tick
+		data[__impact_tick.tag] = service
+
 	var data = {}
 
 	var __ability_id: PBField
@@ -1034,6 +1072,58 @@ class AbilityUseAccepted:
 	func set_start_tick(value : int) -> void:
 		__start_tick.value = value
 
+	var __request_id: PBField
+	func has_request_id() -> bool:
+		if __request_id.value != null:
+			return true
+		return false
+	func get_request_id() -> int:
+		return __request_id.value
+	func clear_request_id() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__request_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_request_id(value : int) -> void:
+		__request_id.value = value
+
+	var __resolve_tick: PBField
+	func has_resolve_tick() -> bool:
+		if __resolve_tick.value != null:
+			return true
+		return false
+	func get_resolve_tick() -> int:
+		return __resolve_tick.value
+	func clear_resolve_tick() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__resolve_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_resolve_tick(value : int) -> void:
+		__resolve_tick.value = value
+
+	var __finish_tick: PBField
+	func has_finish_tick() -> bool:
+		if __finish_tick.value != null:
+			return true
+		return false
+	func get_finish_tick() -> int:
+		return __finish_tick.value
+	func clear_finish_tick() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__finish_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_finish_tick(value : int) -> void:
+		__finish_tick.value = value
+
+	var __impact_tick: PBField
+	func has_impact_tick() -> bool:
+		if __impact_tick.value != null:
+			return true
+		return false
+	func get_impact_tick() -> int:
+		return __impact_tick.value
+	func clear_impact_tick() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__impact_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_impact_tick(value : int) -> void:
+		__impact_tick.value = value
+
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
 
@@ -1073,6 +1163,11 @@ class AbilityUseRejected:
 		service = PBServiceField.new()
 		service.field = __cancel_reason
 		data[__cancel_reason.tag] = service
+
+		__request_id = PBField.new("request_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __request_id
+		data[__request_id.tag] = service
 
 	var data = {}
 
@@ -1114,6 +1209,426 @@ class AbilityUseRejected:
 		__cancel_reason.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_cancel_reason(value : int) -> void:
 		__cancel_reason.value = value
+
+	var __request_id: PBField
+	func has_request_id() -> bool:
+		if __request_id.value != null:
+			return true
+		return false
+	func get_request_id() -> int:
+		return __request_id.value
+	func clear_request_id() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__request_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_request_id(value : int) -> void:
+		__request_id.value = value
+
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+
+enum ResolvedAbilityEffectKind {
+	RESOLVED_EFFECT_DAMAGE = 0,
+	RESOLVED_EFFECT_HEAL = 1,
+	RESOLVED_EFFECT_STATUS = 2
+}
+
+enum ResolvedAbilityEffectPhase {
+	RESOLVED_EFFECT_IMPACT = 0,
+	RESOLVED_EFFECT_EARLY = 1
+}
+
+class ResolvedAbilityEffect:
+	func _init():
+		var service
+
+		__kind = PBField.new("kind", PB_DATA_TYPE.ENUM, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM])
+		service = PBServiceField.new()
+		service.field = __kind
+		data[__kind.tag] = service
+
+		__phase = PBField.new("phase", PB_DATA_TYPE.ENUM, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM])
+		service = PBServiceField.new()
+		service.field = __phase
+		data[__phase.tag] = service
+
+		__source_entity_id = PBField.new("source_entity_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __source_entity_id
+		data[__source_entity_id.tag] = service
+
+		__target_entity_id = PBField.new("target_entity_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __target_entity_id
+		data[__target_entity_id.tag] = service
+
+		__ability_id = PBField.new("ability_id", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __ability_id
+		data[__ability_id.tag] = service
+
+		__hit_type = PBField.new("hit_type", PB_DATA_TYPE.ENUM, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM])
+		service = PBServiceField.new()
+		service.field = __hit_type
+		data[__hit_type.tag] = service
+
+		__amount = PBField.new("amount", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __amount
+		data[__amount.tag] = service
+
+		__status_id = PBField.new("status_id", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __status_id
+		data[__status_id.tag] = service
+
+		__duration = PBField.new("duration", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 9, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		service = PBServiceField.new()
+		service.field = __duration
+		data[__duration.tag] = service
+
+		__is_debuff = PBField.new("is_debuff", PB_DATA_TYPE.BOOL, PB_RULE.OPTIONAL, 10, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL])
+		service = PBServiceField.new()
+		service.field = __is_debuff
+		data[__is_debuff.tag] = service
+
+	var data = {}
+
+	var __kind: PBField
+	func has_kind() -> bool:
+		if __kind.value != null:
+			return true
+		return false
+	func get_kind():
+		return __kind.value
+	func clear_kind() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__kind.value = DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM]
+	func set_kind(value) -> void:
+		__kind.value = value
+
+	var __phase: PBField
+	func has_phase() -> bool:
+		if __phase.value != null:
+			return true
+		return false
+	func get_phase():
+		return __phase.value
+	func clear_phase() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__phase.value = DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM]
+	func set_phase(value) -> void:
+		__phase.value = value
+
+	var __source_entity_id: PBField
+	func has_source_entity_id() -> bool:
+		if __source_entity_id.value != null:
+			return true
+		return false
+	func get_source_entity_id() -> int:
+		return __source_entity_id.value
+	func clear_source_entity_id() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__source_entity_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_source_entity_id(value : int) -> void:
+		__source_entity_id.value = value
+
+	var __target_entity_id: PBField
+	func has_target_entity_id() -> bool:
+		if __target_entity_id.value != null:
+			return true
+		return false
+	func get_target_entity_id() -> int:
+		return __target_entity_id.value
+	func clear_target_entity_id() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__target_entity_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_target_entity_id(value : int) -> void:
+		__target_entity_id.value = value
+
+	var __ability_id: PBField
+	func has_ability_id() -> bool:
+		if __ability_id.value != null:
+			return true
+		return false
+	func get_ability_id() -> String:
+		return __ability_id.value
+	func clear_ability_id() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__ability_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_ability_id(value : String) -> void:
+		__ability_id.value = value
+
+	var __hit_type: PBField
+	func has_hit_type() -> bool:
+		if __hit_type.value != null:
+			return true
+		return false
+	func get_hit_type():
+		return __hit_type.value
+	func clear_hit_type() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__hit_type.value = DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM]
+	func set_hit_type(value) -> void:
+		__hit_type.value = value
+
+	var __amount: PBField
+	func has_amount() -> bool:
+		if __amount.value != null:
+			return true
+		return false
+	func get_amount() -> int:
+		return __amount.value
+	func clear_amount() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__amount.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_amount(value : int) -> void:
+		__amount.value = value
+
+	var __status_id: PBField
+	func has_status_id() -> bool:
+		if __status_id.value != null:
+			return true
+		return false
+	func get_status_id() -> String:
+		return __status_id.value
+	func clear_status_id() -> void:
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		__status_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_status_id(value : String) -> void:
+		__status_id.value = value
+
+	var __duration: PBField
+	func has_duration() -> bool:
+		if __duration.value != null:
+			return true
+		return false
+	func get_duration() -> float:
+		return __duration.value
+	func clear_duration() -> void:
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		__duration.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
+	func set_duration(value : float) -> void:
+		__duration.value = value
+
+	var __is_debuff: PBField
+	func has_is_debuff() -> bool:
+		if __is_debuff.value != null:
+			return true
+		return false
+	func get_is_debuff() -> bool:
+		return __is_debuff.value
+	func clear_is_debuff() -> void:
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		__is_debuff.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL]
+	func set_is_debuff(value : bool) -> void:
+		__is_debuff.value = value
+
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+
+class AbilityUseResolved:
+	func _init():
+		var service
+
+		__ability_id = PBField.new("ability_id", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = __ability_id
+		data[__ability_id.tag] = service
+
+		__requested_tick = PBField.new("requested_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __requested_tick
+		data[__requested_tick.tag] = service
+
+		__start_tick = PBField.new("start_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __start_tick
+		data[__start_tick.tag] = service
+
+		__request_id = PBField.new("request_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __request_id
+		data[__request_id.tag] = service
+
+		__resolve_tick = PBField.new("resolve_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __resolve_tick
+		data[__resolve_tick.tag] = service
+
+		__finish_tick = PBField.new("finish_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __finish_tick
+		data[__finish_tick.tag] = service
+
+		__impact_tick = PBField.new("impact_tick", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __impact_tick
+		data[__impact_tick.tag] = service
+
+		__source_entity_id = PBField.new("source_entity_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __source_entity_id
+		data[__source_entity_id.tag] = service
+
+		var __effects_default: Array[ResolvedAbilityEffect] = []
+		__effects = PBField.new("effects", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 9, true, __effects_default)
+		service = PBServiceField.new()
+		service.field = __effects
+		service.func_ref = Callable(self, "add_effects")
+		data[__effects.tag] = service
+
+	var data = {}
+
+	var __ability_id: PBField
+	func has_ability_id() -> bool:
+		if __ability_id.value != null:
+			return true
+		return false
+	func get_ability_id() -> String:
+		return __ability_id.value
+	func clear_ability_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__ability_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_ability_id(value : String) -> void:
+		__ability_id.value = value
+
+	var __requested_tick: PBField
+	func has_requested_tick() -> bool:
+		if __requested_tick.value != null:
+			return true
+		return false
+	func get_requested_tick() -> int:
+		return __requested_tick.value
+	func clear_requested_tick() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__requested_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_requested_tick(value : int) -> void:
+		__requested_tick.value = value
+
+	var __start_tick: PBField
+	func has_start_tick() -> bool:
+		if __start_tick.value != null:
+			return true
+		return false
+	func get_start_tick() -> int:
+		return __start_tick.value
+	func clear_start_tick() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__start_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_start_tick(value : int) -> void:
+		__start_tick.value = value
+
+	var __request_id: PBField
+	func has_request_id() -> bool:
+		if __request_id.value != null:
+			return true
+		return false
+	func get_request_id() -> int:
+		return __request_id.value
+	func clear_request_id() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__request_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_request_id(value : int) -> void:
+		__request_id.value = value
+
+	var __resolve_tick: PBField
+	func has_resolve_tick() -> bool:
+		if __resolve_tick.value != null:
+			return true
+		return false
+	func get_resolve_tick() -> int:
+		return __resolve_tick.value
+	func clear_resolve_tick() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__resolve_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_resolve_tick(value : int) -> void:
+		__resolve_tick.value = value
+
+	var __finish_tick: PBField
+	func has_finish_tick() -> bool:
+		if __finish_tick.value != null:
+			return true
+		return false
+	func get_finish_tick() -> int:
+		return __finish_tick.value
+	func clear_finish_tick() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__finish_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_finish_tick(value : int) -> void:
+		__finish_tick.value = value
+
+	var __impact_tick: PBField
+	func has_impact_tick() -> bool:
+		if __impact_tick.value != null:
+			return true
+		return false
+	func get_impact_tick() -> int:
+		return __impact_tick.value
+	func clear_impact_tick() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__impact_tick.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_impact_tick(value : int) -> void:
+		__impact_tick.value = value
+
+	var __source_entity_id: PBField
+	func has_source_entity_id() -> bool:
+		if __source_entity_id.value != null:
+			return true
+		return false
+	func get_source_entity_id() -> int:
+		return __source_entity_id.value
+	func clear_source_entity_id() -> void:
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		__source_entity_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_source_entity_id(value : int) -> void:
+		__source_entity_id.value = value
+
+	var __effects: PBField
+	func get_effects() -> Array[ResolvedAbilityEffect]:
+		return __effects.value
+	func clear_effects() -> void:
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		__effects.value.clear()
+	func add_effects() -> ResolvedAbilityEffect:
+		var element = ResolvedAbilityEffect.new()
+		__effects.value.append(element)
+		return element
 
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -4647,6 +5162,12 @@ class Packet:
 		service.func_ref = Callable(self, "new_world_state")
 		data[__world_state.tag] = service
 
+		__ability_resolved = PBField.new("ability_resolved", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 14, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __ability_resolved
+		service.func_ref = Callable(self, "new_ability_resolved")
+		data[__ability_resolved.tag] = service
+
 	var data = {}
 
 	var __player_input: PBField
@@ -4685,6 +5206,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__player_input.value = PlayerInput.new()
 		return __player_input.value
 
@@ -4724,6 +5247,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__world_positions.value = WorldPositions.new()
 		return __world_positions.value
 
@@ -4763,6 +5288,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__clock_ping.value = ClockPing.new()
 		return __clock_ping.value
 
@@ -4802,6 +5329,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__clock_pong.value = ClockPong.new()
 		return __clock_pong.value
 
@@ -4841,6 +5370,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__input_batch.value = InputBatch.new()
 		return __input_batch.value
 
@@ -4880,6 +5411,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__zone_redirect.value = ZoneRedirect.new()
 		return __zone_redirect.value
 
@@ -4919,6 +5452,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__zone_arrival.value = ZoneArrival.new()
 		return __zone_arrival.value
 
@@ -4958,6 +5493,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__login_request.value = LoginRequest.new()
 		return __login_request.value
 
@@ -4997,6 +5534,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__player_spawn.value = PlayerSpawn.new()
 		return __player_spawn.value
 
@@ -5036,6 +5575,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__target_select.value = TargetSelect.new()
 		return __target_select.value
 
@@ -5075,6 +5616,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__ability_accepted.value = AbilityUseAccepted.new()
 		return __ability_accepted.value
 
@@ -5114,6 +5657,8 @@ class Packet:
 		data[12].state = PB_SERVICE_STATE.FILLED
 		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__ability_rejected.value = AbilityUseRejected.new()
 		return __ability_rejected.value
 
@@ -5153,8 +5698,51 @@ class Packet:
 		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
 		data[13].state = PB_SERVICE_STATE.FILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
 		__world_state.value = WorldState.new()
 		return __world_state.value
+
+	var __ability_resolved: PBField
+	func has_ability_resolved() -> bool:
+		if __ability_resolved.value != null:
+			return true
+		return false
+	func get_ability_resolved() -> AbilityUseResolved:
+		return __ability_resolved.value
+	func clear_ability_resolved() -> void:
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		__ability_resolved.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_ability_resolved() -> AbilityUseResolved:
+		__player_input.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__world_positions.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__clock_ping.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__clock_pong.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__input_batch.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__zone_redirect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__zone_arrival.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		__player_spawn.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		__target_select.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		__ability_accepted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		__ability_rejected.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__world_state.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		data[14].state = PB_SERVICE_STATE.FILLED
+		__ability_resolved.value = AbilityUseResolved.new()
+		return __ability_resolved.value
 
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

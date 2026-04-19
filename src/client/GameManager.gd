@@ -13,6 +13,7 @@ signal local_player_spawned(player: Player)
 signal remote_player_spawned(player: RemoteEntity)
 signal ability_use_accepted(ack)
 signal ability_use_rejected(rejection)
+signal ability_use_resolved(resolved)
 signal entity_event_received(event)
 signal ability_use_started(event)
 signal ability_use_canceled(event)
@@ -49,6 +50,7 @@ func _ready() -> void:
 	_api.world_state_received.connect(_on_world_state)
 	_api.ability_use_accepted.connect(_on_ability_use_accepted)
 	_api.ability_use_rejected.connect(_on_ability_use_rejected)
+	_api.ability_use_resolved.connect(_on_ability_use_resolved)
 	_api.zone_redirect_received.connect(_on_zone_redirect)
 	_api.player_spawn_received.connect(_on_player_spawn)
 	_api.connected_to_server.connect(_on_connected_to_server)
@@ -98,6 +100,12 @@ func _on_ability_use_rejected(rejection: Proto.AbilityUseRejected) -> void:
 	ability_use_rejected.emit(rejection)
 	if _local_player != null:
 		_local_player.on_ability_rejected(rejection)
+
+
+func _on_ability_use_resolved(resolved: Proto.AbilityUseResolved) -> void:
+	ability_use_resolved.emit(resolved)
+	if _local_player != null:
+		_local_player.on_ability_resolved(resolved)
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	if BotMode == true:

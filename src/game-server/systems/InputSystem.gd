@@ -74,12 +74,14 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 		"input_z": input.get_input_z(),
 		"jump_pressed": input.get_jump_pressed(),
 		"ability_id": "",
+		"ability_request_id": 0,
 		"target_entity_id": 0,
 		"ground_x": 0.0, "ground_y": 0.0, "ground_z": 0.0,
 	}
 	if input.has_ability_input():
 		var ai = input.get_ability_input()
 		buf_entry["ability_id"] = ai.get_ability_id()
+		buf_entry["ability_request_id"] = ai.get_request_id()
 		buf_entry["target_entity_id"] = ai.get_target_entity_id()
 		buf_entry["ground_x"] = ai.get_ground_x()
 		buf_entry["ground_y"] = ai.get_ground_y()
@@ -157,6 +159,7 @@ func tick(tick: int, ctx: Dictionary) -> void:
 		if input.get("ability_id", "") != "":
 			ability_inputs[peer_id] = {
 				"ability_id": input["ability_id"],
+				"ability_request_id": input.get("ability_request_id", 0),
 				"target_entity_id": input.get("target_entity_id", 0),
 				"ground_x": input.get("ground_x", 0.0),
 				"ground_y": input.get("ground_y", 0.0),
@@ -169,6 +172,7 @@ func tick(tick: int, ctx: Dictionary) -> void:
 			state.last_input = input.duplicate()
 			state.last_input["jump_pressed"] = false
 			state.last_input["ability_id"] = ""
+			state.last_input["ability_request_id"] = 0
 
 	# Prune inputs older than sim_tick
 	for peer_id in _input_buffers:

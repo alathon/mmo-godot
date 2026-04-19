@@ -22,6 +22,7 @@ message AbilityInput {
   float ground_x = 3;          // Only for ground target type
   float ground_y = 4;
   float ground_z = 5;
+  uint32 request_id = 6;
 }
 
 // ─── Target Selection (client → server) ────────────────────────────────────
@@ -36,12 +37,53 @@ message AbilityUseAccepted {
   string ability_id = 1;
   uint32 requested_tick = 2;
   uint32 start_tick = 3;
+  uint32 request_id = 4;
+  uint32 resolve_tick = 5;
+  uint32 finish_tick = 6;
+  uint32 impact_tick = 7;
 }
 
 message AbilityUseRejected {
   string ability_id = 1;
   uint32 requested_tick = 2;
   uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
+  uint32 request_id = 4;
+}
+
+enum ResolvedAbilityEffectKind {
+  RESOLVED_EFFECT_DAMAGE = 0;
+  RESOLVED_EFFECT_HEAL = 1;
+  RESOLVED_EFFECT_STATUS = 2;
+}
+
+enum ResolvedAbilityEffectPhase {
+  RESOLVED_EFFECT_IMPACT = 0;
+  RESOLVED_EFFECT_EARLY = 1;
+}
+
+message ResolvedAbilityEffect {
+  ResolvedAbilityEffectKind kind = 1;
+  ResolvedAbilityEffectPhase phase = 2;
+  uint32 source_entity_id = 3;
+  uint32 target_entity_id = 4;
+  string ability_id = 5;
+  HitType hit_type = 6;
+  uint32 amount = 7;
+  string status_id = 8;
+  float duration = 9;
+  bool is_debuff = 10;
+}
+
+message AbilityUseResolved {
+  string ability_id = 1;
+  uint32 requested_tick = 2;
+  uint32 start_tick = 3;
+  uint32 request_id = 4;
+  uint32 resolve_tick = 5;
+  uint32 finish_tick = 6;
+  uint32 impact_tick = 7;
+  uint32 source_entity_id = 8;
+  repeated ResolvedAbilityEffect effects = 9;
 }
 
 // ─── Entity Events (server → all clients in zone, per tick) ─────────────────
@@ -315,6 +357,7 @@ message Packet {
     AbilityUseAccepted ability_accepted = 11;
     AbilityUseRejected ability_rejected = 12;
     WorldState world_state = 13;
+    AbilityUseResolved ability_resolved = 14;
   }
 }
 

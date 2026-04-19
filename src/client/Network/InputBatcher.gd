@@ -30,7 +30,8 @@ func queue_input(
 		tick: int,
 		ability_id: String = "",
 		target_entity_id: int = 0,
-		ground_position: Vector3 = Vector3.ZERO) -> void:
+		ground_position: Vector3 = Vector3.ZERO,
+		ability_request_id: int = 0) -> void:
 	_current_batch.append({
 		"input_x": input_x,
 		"input_z": input_z,
@@ -40,6 +41,7 @@ func queue_input(
 		"ability_id": ability_id,
 		"target_entity_id": target_entity_id,
 		"ground_position": ground_position,
+		"ability_request_id": ability_request_id,
 	})
 	if _current_batch.size() >= batch_size:
 		_flush()
@@ -96,8 +98,10 @@ func _add_input(batch: Proto.InputBatch, entry: Dictionary) -> void:
 		var ability_input = input.new_ability_input()
 		var ground_position := entry.get("ground_position", Vector3.ZERO) as Vector3
 		var target_entity_id := int(entry.get("target_entity_id", 0))
+		var request_id := int(entry.get("ability_request_id", 0))
 		ability_input.set_ability_id(ability_id)
 		ability_input.set_target_entity_id(target_entity_id)
 		ability_input.set_ground_x(ground_position.x)
 		ability_input.set_ground_y(ground_position.y)
 		ability_input.set_ground_z(ground_position.z)
+		ability_input.set_request_id(request_id)

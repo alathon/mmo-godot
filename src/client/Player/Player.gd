@@ -17,6 +17,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
 var _debug: bool = false
+var _next_ability_request_id: int = 1
 
 var frozen: bool = true
 var id: int
@@ -61,8 +62,15 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 			input["input_x"], input["input_z"], input["jump_pressed"]])
 	var ability_id := StringName(input.get("ability_id", ""))
 	var target_entity_id := get_target_entity_id()
+	var ability_request_id := 0
 	if ability_id != &"":
-		_ability_presentation.predict_ability_started(ability_id, target_entity_id, current_tick)
+		ability_request_id = _next_ability_request_id
+		_next_ability_request_id += 1
+		_ability_presentation.predict_ability_started(
+				ability_request_id,
+				ability_id,
+				target_entity_id,
+				current_tick)
 	_input_batcher.queue_input(
 			input["input_x"],
 			input["input_z"],
@@ -70,7 +78,9 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 			_body.rotation.y,
 			current_tick,
 			input.get("ability_id", ""),
-			target_entity_id)
+			target_entity_id,
+			Vector3.ZERO,
+			ability_request_id)
 
 func on_ability_started(event, event_tick: int) -> void:
 	_ability_presentation.on_authoritative_ability_started(event, event_tick)
@@ -82,15 +92,13 @@ func on_ability_canceled(event, event_tick: int) -> void:
 	_ability_presentation.on_authoritative_ability_canceled(event, event_tick)
 
 func on_ability_accepted(ack: Proto.AbilityUseAccepted) -> void:
-	_ability_presentation.confirm_ability_started(
-			StringName(ack.get_ability_id()),
-			ack.get_requested_tick())
+	_ability_presentation.confirm_ability_started(ack)
 
 func on_ability_rejected(rejection: Proto.AbilityUseRejected) -> void:
-	_ability_presentation.reject_ability_started(
-			StringName(rejection.get_ability_id()),
-			rejection.get_requested_tick(),
-			rejection.get_cancel_reason())
+	_ability_presentation.reject_ability_started(rejection)
+
+func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
+	_ability_presentation.on_ability_resolved(resolved)
 
 func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 	if frozen:

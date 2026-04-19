@@ -11,6 +11,7 @@ signal connected_to_server
 signal disconnected_from_server
 signal ability_use_accepted(ack: Proto.AbilityUseAccepted)
 signal ability_use_rejected(rejection: Proto.AbilityUseRejected)
+signal ability_use_resolved(resolved: Proto.AbilityUseResolved)
 signal world_state_received(diff: Proto.WorldState)
 signal world_positions_received(diff: Proto.WorldPositions)
 signal zone_redirect_received(zone_id: String, address: String, port: int, token: String)
@@ -166,6 +167,8 @@ func _on_packet(_peer_id: int, bytes: PackedByteArray) -> void:
 		ability_use_accepted.emit(pkt.get_ability_accepted())
 	elif pkt.has_ability_rejected():
 		ability_use_rejected.emit(pkt.get_ability_rejected())
+	elif pkt.has_ability_resolved():
+		ability_use_resolved.emit(pkt.get_ability_resolved())
 	elif pkt.has_zone_redirect():
 		var redirect := pkt.get_zone_redirect()
 		zone_redirect_received.emit(

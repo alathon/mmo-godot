@@ -33,6 +33,7 @@ enum VarianceProfile {
 @export var variance_profile: VarianceProfile = VarianceProfile.NONE
 @export var target_type: TargetType = TargetType.OTHER_ENEMY
 @export var cast_time: float = 0.0
+@export var resolve_lead_ticks: int = 8
 @export var range: float = 0.0
 @export var uses_gcd: bool = true
 @export var cooldown: float = 0.0          # recharge time per charge

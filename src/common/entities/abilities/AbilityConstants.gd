@@ -2,6 +2,7 @@ class_name AbilityConstants
 
 const GCD_DURATION: float = 2.5
 const ANIMATION_LOCK_DURATION: float = 0.7
+const IMPACT_DELAY_DURATION: float = 0.6
 const ABILITY_QUEUE_WINDOW: float = 0.5
 
 const CANCEL_MOVED: int = 0

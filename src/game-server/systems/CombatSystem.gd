@@ -1,9 +1,15 @@
 class_name CombatSystem
 extends Node
 
+const Proto = preload("res://src/common/proto/packets.gd")
+const ResolvedAbilityEffectSnapshot = preload("res://src/common/entities/abilities/ResolvedAbilityEffectSnapshot.gd")
+const ResolvedAbilityUseSnapshot = preload("res://src/common/entities/abilities/ResolvedAbilityUseSnapshot.gd")
+const ScheduledAbilityUse = preload("res://src/common/entities/abilities/ScheduledAbilityUse.gd")
+
 var _zone: Node = null
 var _targeting: CombatTargeting = null
 var _pending_events: Array[EntityEvents] = []
+var _pending_uses: Array = []
 
 
 func init(zone: Node) -> void:
@@ -16,8 +22,8 @@ func tick(sim_tick: int, ctx: Dictionary) -> void:
 	var context: AbilityExecutionContext = ctx.get("ability_execution_context", null)
 	if context == null:
 		return
-	for completed_use in ctx.get("completed_ability_uses", []):
-		_append_events(_resolve_completed_ability_use(completed_use, context))
+	_enqueue_scheduled_uses(ctx.get("scheduled_ability_uses", []))
+	_process_scheduled_uses(sim_tick, context)
 
 
 func get_combat_manager(entity_id: int) -> CombatManager:
@@ -34,6 +40,10 @@ func get_entity_id(entity: Node) -> int:
 		if _zone.players[entity_id] == entity:
 			return entity_id
 	return 0
+
+
+func get_entity(entity_id: int) -> Node:
+	return _get_entity(entity_id)
 
 
 func add_healing_aggro(
@@ -136,6 +146,27 @@ func _append_events(events: Array[EntityEvents]) -> void:
 	_pending_events.append_array(events)
 
 
+func _enqueue_scheduled_uses(scheduled_uses: Array) -> void:
+	for use in scheduled_uses:
+		var scheduled_use := use as ScheduledAbilityUse
+		if scheduled_use != null:
+			_pending_uses.append(scheduled_use)
+
+
+func _process_scheduled_uses(sim_tick: int, context: AbilityExecutionContext) -> void:
+	var pending: Array = []
+	for use in _pending_uses:
+		if use.canceled:
+			continue
+		if not use.resolved and use.resolve_tick <= sim_tick:
+			_resolve_scheduled_ability_use(use, context)
+		if use.resolved and use.impact_tick <= sim_tick:
+			_append_events(_apply_scheduled_ability_use(use, context))
+		else:
+			pending.append(use)
+	_pending_uses = pending
+
+
 func _check_deaths(
 		source_entity: Node,
 		target_entities: Array[Node],
@@ -188,25 +219,143 @@ func _get_combat_managers() -> Array[CombatManager]:
 	return managers
 
 
-func _resolve_completed_ability_use(
-		completed_use: CompletedAbilityUse,
-		context: AbilityExecutionContext) -> Array[EntityEvents]:
-	if completed_use == null or context == null or context.ability_db == null:
-		return []
+func _resolve_scheduled_ability_use(
+		use: ScheduledAbilityUse,
+		context: AbilityExecutionContext) -> void:
+	if use == null or context == null or context.ability_db == null:
+		return
 
-	var source_entity := _get_entity(completed_use.source_entity_id)
+	var resolved_use := ResolvedAbilityUseSnapshot.from_scheduled_use(use)
+	var source_entity := _get_entity(use.source_entity_id)
 	if source_entity == null:
-		return []
+		use.resolved_use = resolved_use
+		use.resolved = true
+		_send_ability_resolved(resolved_use)
+		return
 
-	var ability := context.ability_db.get_ability(completed_use.ability_id)
+	var ability := context.ability_db.get_ability(use.ability_id)
 	if ability == null:
-		return []
+		use.resolved_use = resolved_use
+		use.resolved = true
+		_send_ability_resolved(resolved_use)
+		return
 
 	var target_entities: Array[Node] = []
-	if context.ability_system != null:
+	if context.ability_system != null and context.ability_system.is_in_range(source_entity, ability, use.target):
 		target_entities = context.ability_system.resolve_targets(
 				source_entity,
 				ability,
-				completed_use.target)
+				use.target)
 
-	return on_ability_resolved(source_entity, ability, target_entities, context)
+	var source_manager := _get_combat_manager_for_entity(source_entity)
+	if source_manager != null:
+		resolved_use = source_manager.resolve_ability_use_snapshot(
+				source_entity,
+				target_entities,
+				ability,
+				use,
+				context)
+	use.resolved_use = resolved_use
+	use.resolved = true
+
+	_log_ability("Resolve ability use (server)", context.sim_tick, use.ability_id, use.source_entity_id, {
+		"request": use.request_id,
+		"requested": use.requested_tick,
+		"start": use.start_tick,
+		"resolve": use.resolve_tick,
+		"finish": use.finish_tick,
+		"impact": use.impact_tick,
+		"targets": target_entities.size(),
+		"effects": resolved_use.effects.size(),
+	})
+	_send_ability_resolved(resolved_use)
+
+
+func _apply_scheduled_ability_use(
+		use: ScheduledAbilityUse,
+		context: AbilityExecutionContext) -> Array[EntityEvents]:
+	if use == null or context == null or use.resolved_use == null:
+		return []
+
+	var source_entity := _get_entity(use.source_entity_id)
+	if source_entity == null:
+		return []
+
+	var source_manager := _get_combat_manager_for_entity(source_entity)
+	if source_manager == null:
+		return []
+
+	_log_ability("Apply ability impact (server)", context.sim_tick, use.ability_id, use.source_entity_id, {
+		"request": use.request_id,
+		"requested": use.requested_tick,
+		"start": use.start_tick,
+		"resolve": use.resolve_tick,
+		"finish": use.finish_tick,
+		"impact": use.impact_tick,
+		"effects": use.resolved_use.effects.size(),
+	})
+	return source_manager.apply_resolved_ability_use(source_entity, use.resolved_use, context)
+
+
+func _send_ability_resolved(resolved_use: ResolvedAbilityUseSnapshot) -> void:
+	if resolved_use == null or resolved_use.source_entity_id <= 0:
+		return
+
+	var packet := Proto.Packet.new()
+	var resolved_msg := packet.new_ability_resolved()
+	resolved_msg.set_ability_id(String(resolved_use.ability_id))
+	resolved_msg.set_requested_tick(resolved_use.requested_tick)
+	resolved_msg.set_start_tick(resolved_use.start_tick)
+	resolved_msg.set_request_id(resolved_use.request_id)
+	resolved_msg.set_resolve_tick(resolved_use.resolve_tick)
+	resolved_msg.set_finish_tick(resolved_use.finish_tick)
+	resolved_msg.set_impact_tick(resolved_use.impact_tick)
+	resolved_msg.set_source_entity_id(resolved_use.source_entity_id)
+	for resolved_effect in resolved_use.effects:
+		_write_resolved_effect(resolved_msg.add_effects(), resolved_effect)
+	multiplayer.send_bytes(
+			packet.to_bytes(),
+			resolved_use.source_entity_id,
+			MultiplayerPeer.TRANSFER_MODE_RELIABLE,
+			0)
+
+
+func _write_resolved_effect(effect_msg, resolved_effect: ResolvedAbilityEffectSnapshot) -> void:
+	if resolved_effect == null:
+		return
+	effect_msg.set_kind(resolved_effect.kind)
+	effect_msg.set_phase(resolved_effect.phase)
+	effect_msg.set_source_entity_id(resolved_effect.source_entity_id)
+	effect_msg.set_target_entity_id(resolved_effect.target_entity_id)
+	effect_msg.set_ability_id(String(resolved_effect.ability_id))
+	effect_msg.set_hit_type(resolved_effect.hit_type)
+	effect_msg.set_amount(resolved_effect.amount)
+	effect_msg.set_status_id(String(resolved_effect.status_effect_id))
+	effect_msg.set_duration(resolved_effect.duration)
+	effect_msg.set_is_debuff(resolved_effect.is_debuff)
+
+
+func _log_ability(
+		label: String,
+		tick: int,
+		ability_id: StringName,
+		entity_id: int,
+		details: Dictionary = {}) -> void:
+	var message := "[ABILITY] %s tick=%d time=%s entity=%d ability=%s" % [
+		label,
+		tick,
+		_timestamp(),
+		entity_id,
+		ability_id]
+	for key in details:
+		message += " %s=%s" % [key, str(details[key])]
+	print(message)
+
+
+func _timestamp() -> String:
+	var time := Time.get_time_dict_from_system()
+	return "%02d:%02d:%02d.%03d" % [
+		int(time["hour"]),
+		int(time["minute"]),
+		int(time["second"]),
+		Time.get_ticks_msec() % 1000]
