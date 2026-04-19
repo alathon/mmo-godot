@@ -129,7 +129,7 @@ func get_local_player_id() -> int:
 	return multiplayer.get_unique_id()
 
 
-func get_entity_by_id(entity_id: int) -> Node:
+func get_entity_by_id(entity_id: int) -> Entity:
 	return _get_entity(entity_id)
 
 
@@ -165,11 +165,12 @@ func select_target_entity(entity_id: int) -> void:
 		_local_player.clear_target()
 		_target_indicator.clear()
 
-	var target_entity := _get_entity(entity_id) as Node3D
-	if entity_id > 0 and target_entity == null:
-		print("[CLIENT_TARGET] client=%d target=%d has no Node3D entity for indicator" % [
+	var target_entity := _get_entity(entity_id) as Entity
+	var target_visual := target_entity.get_visual() if target_entity != null else null
+	if entity_id > 0 and target_visual == null:
+		print("[CLIENT_TARGET] client=%d target=%d has no visual node for indicator" % [
 			get_local_player_id(), entity_id])
-	_target_indicator.set_target(target_entity)
+	_target_indicator.set_target(target_visual)
 	_api.send_target_select(entity_id)
 	print("[CLIENT_TARGET] client=%d selected target=%d" % [get_local_player_id(), entity_id])
 
@@ -196,7 +197,7 @@ func _spawn_remote_player(id: int, pos: Vector3, rot_y: float) -> void:
 
 func _despawn_remote_player(id: int) -> void:
 	print("Despawn remote player %d called" % id)
-	_target_indicator.clear_if_target(_remote_players[id])
+	_target_indicator.clear_if_target(_remote_players[id].get_visual())
 	_remote_players[id].queue_free()
 	_remote_players.erase(id)
 
@@ -233,7 +234,7 @@ func _on_world_positions(diff: Proto.WorldPositions) -> void:
 			_despawn_remote_player(id)
 
 
-func _get_entity(entity_id: int) -> Node:
+func _get_entity(entity_id: int) -> Entity:
 	if _local_player != null and entity_id == _local_player.id:
 		return _local_player
 	return _remote_players.get(entity_id, null)
@@ -249,7 +250,10 @@ func _get_nearest_target_entity_id(screen_position: Vector2) -> int:
 		var entity: RemoteEntity = _remote_players[entity_id]
 		if entity == null or not is_instance_valid(entity):
 			continue
-		var target_position := entity.global_position + Vector3.UP * TARGET_PICK_HEIGHT
+		var visual := entity.get_visual()
+		if visual == null:
+			continue
+		var target_position := entity.get_position() + Vector3.UP * TARGET_PICK_HEIGHT
 		if _camera.is_position_behind(target_position):
 			continue
 		var entity_screen_position := _camera.unproject_position(target_position)

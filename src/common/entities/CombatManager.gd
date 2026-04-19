@@ -431,6 +431,8 @@ func _effect_can_apply_to_target(source_entity: Node, target_entity: Node, effec
 
 
 func _get_combat_manager(target_entity: Node) -> CombatManager:
+	if target_entity is SimulatedEntity:
+		return (target_entity as SimulatedEntity).combat_manager
 	if target_entity is ServerPlayer:
 		return (target_entity as ServerPlayer).combat_manager
 	return null

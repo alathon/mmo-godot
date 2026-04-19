@@ -54,12 +54,16 @@ func is_in_combat_range(source_entity: Node, target_entity: Node, ability: Abili
 
 
 func _get_combat_manager(entity: Node) -> CombatManager:
+	if entity is SimulatedEntity:
+		return (entity as SimulatedEntity).combat_manager
 	if entity is ServerPlayer:
 		return (entity as ServerPlayer).combat_manager
 	return null
 
 
 func _get_entity_position(entity: Node) -> Vector3:
+	if entity is Entity:
+		return (entity as Entity).get_position()
 	if entity is ServerPlayer:
 		return (entity as ServerPlayer).body.global_position
 	if entity is Node3D:

@@ -1,10 +1,9 @@
-class_name AbilityPresentation
+class_name LocalAbilityPrediction
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
 
 var _owner: Node = null
-var _local_prediction: LocalAbilityPrediction = null
 var _predicted_request_id: int = 0
 var _predicted_ability_id: int = 0
 var _predicted_requested_tick: int = -1
@@ -17,12 +16,9 @@ var _prediction_confirmed := false
 var _ability_db: AbilityDatabase = AbilityDatabase.new()
 
 
-
 func _ready() -> void:
 	_owner = get_parent()
-	_local_prediction = get_node_or_null("../LocalAbilityPrediction") as LocalAbilityPrediction
 	_ability_db.load_all()
-
 
 
 func predict_ability_started(
@@ -76,6 +72,27 @@ func reject_ability_started(rejection: Proto.AbilityUseRejected) -> void:
 	_clear_prediction()
 
 
+func on_authoritative_ability_completed(event, event_tick: int) -> void:
+	var ability_id: int = event.get_ability_id()
+	if not _matches_active_prediction(ability_id):
+		return
+	_log_ability("Complete ability (local)", event_tick, ability_id, {
+		"request": _predicted_request_id,
+		"requested": _predicted_requested_tick,
+		"start": _predicted_start_tick,
+		"resolve": _predicted_resolve_tick,
+		"finish": _predicted_finish_tick,
+		"impact": _predicted_impact_tick,
+	})
+	_clear_prediction()
+
+
+func on_authoritative_ability_canceled(event, _event_tick: int) -> void:
+	var ability_id: int = event.get_ability_id()
+	if _matches_active_prediction(ability_id):
+		_clear_prediction()
+
+
 func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 	if resolved == null:
 		return
@@ -94,67 +111,22 @@ func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 	})
 
 
-func on_authoritative_ability_started(event, event_tick: int) -> void:
-	var ability_id: int = event.get_ability_id()
-	if _local_prediction != null and _local_prediction.has_active_prediction_for_ability(ability_id):
-		return
-	if _has_active_prediction() and _matches_active_prediction(ability_id):
-		return
-	var cast_ticks := _seconds_to_ticks(event.get_cast_time())
-	var finish_tick := event_tick + cast_ticks
-	var impact_tick := finish_tick + _seconds_to_ticks(AbilityConstants.IMPACT_DELAY_DURATION)
-	_log_ability("Start casting (remote player)", event_tick, ability_id, {
-		"cast_time": event.get_cast_time(),
-		"finish_est": finish_tick,
-		"impact_est": impact_tick,
-	})
-
-
-func on_authoritative_ability_completed(event, event_tick: int) -> void:
-	var ability_id: int = event.get_ability_id()
-	if _local_prediction != null and _local_prediction.has_active_prediction_for_ability(ability_id):
-		return
-	var is_local_prediction := _matches_active_prediction(ability_id)
-	var label := "Complete ability (local)" if is_local_prediction else "Complete ability (remote player)"
-	var details := {}
-	if is_local_prediction:
-		details = {
-			"request": _predicted_request_id,
-			"requested": _predicted_requested_tick,
-			"start": _predicted_start_tick,
-			"resolve": _predicted_resolve_tick,
-			"finish": _predicted_finish_tick,
-			"impact": _predicted_impact_tick,
-		}
-	_log_ability(label, event_tick, ability_id, details)
-	if _matches_active_prediction(ability_id):
-		_clear_prediction()
-
-
-func on_authoritative_ability_canceled(event, _event_tick: int) -> void:
-	var ability_id: int = event.get_ability_id()
-	if _local_prediction != null and _local_prediction.has_active_prediction_for_ability(ability_id):
-		return
-	if _matches_active_prediction(ability_id):
-		_clear_prediction()
-
-
 func get_predicted_ability_id_for_request(request_id: int) -> int:
 	if _matches_prediction(request_id):
 		return _predicted_ability_id
 	return 0
 
 
+func has_active_prediction_for_ability(ability_id: int) -> bool:
+	return _matches_active_prediction(ability_id)
+
+
 func _matches_prediction(request_id: int) -> bool:
 	return request_id > 0 and _predicted_request_id == request_id
 
 
-func _has_active_prediction() -> bool:
-	return _predicted_ability_id > 0
-
-
 func _matches_active_prediction(ability_id: int) -> bool:
-	return _predicted_ability_id == ability_id
+	return _predicted_ability_id == ability_id and _predicted_ability_id > 0
 
 
 func _count_effects(resolved: Proto.AbilityUseResolved, kind: int) -> int:
@@ -203,12 +175,6 @@ func _log_ability(
 	for key in details:
 		message += " %s=%s" % [key, str(details[key])]
 	print(message)
-
-
-func _seconds_to_ticks(seconds: float) -> int:
-	if seconds <= 0.0:
-		return 0
-	return int(ceil(seconds * float(Globals.TICK_RATE)))
 
 
 func _timestamp() -> String:

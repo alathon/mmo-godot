@@ -74,8 +74,8 @@ func get_ability_manager(entity_id: int) -> AbilityManager:
 	var source_entity := get_entity(entity_id)
 	if source_entity == null:
 		return null
-	if source_entity is ServerPlayer:
-		return (source_entity as ServerPlayer).ability_manager
+	if source_entity is SimulatedEntity:
+		return (source_entity as SimulatedEntity).ability_manager
 	return null
 
 

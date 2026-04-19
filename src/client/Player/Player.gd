@@ -1,5 +1,5 @@
 class_name Player
-extends Node
+extends SimulatedEntity
 
 const Proto = preload("res://src/common/proto/packets.gd")
 
@@ -8,11 +8,8 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _input_source: LocalInput = %LocalInput
 @onready var _input_batcher: InputBatcher = %InputBatcher
 @onready var _visual: VisualSmoother = %VisualSmoother
-@onready var _target_state: EntityTargetState = %EntityTarget
-@onready var _combat_manager: CombatManager = %CombatManager
-@onready var _ability_manager: AbilityManager = %AbilityManager
+@onready var _local_ability_prediction: LocalAbilityPrediction = %LocalAbilityPrediction
 @onready var _ability_presentation: Node = %AbilityPresentation
-@onready var stats: Stats = %Stats
 @onready var _hp_bar: HealthBar = %HealthBar as HealthBar
 
 var _animationTree: AnimationTree
@@ -21,23 +18,19 @@ var _debug: bool = false
 var _next_ability_request_id: int = 1
 
 var frozen: bool = true
-var id: int
-var is_local: bool = false
 
-func set_target_entity_id(entity_id: int) -> void:
-	_target_state.set_target_entity_id(entity_id)
+func _get_face_angle() -> float:
+	return _body.face_angle
 
-func get_target_entity_id() -> int:
-	return _target_state.get_target_entity_id()
+
+func _set_face_angle(value: float) -> void:
+	_body.face_angle = value
 
 func apply_world_state(state: Proto.EntityState) -> void:
 	if stats != null:
 		stats.apply_world_state(state)
 		if _hp_bar != null:
 			_hp_bar.set_values(stats.hp, stats.max_hp)
-
-func clear_target() -> void:
-	_target_state.clear_target()
 
 func _ready() -> void:
 	NetworkTime.on_tick.connect(_on_network_tick)
@@ -72,7 +65,7 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 	if ability_id > 0:
 		ability_request_id = _next_ability_request_id
 		_next_ability_request_id += 1
-		_ability_presentation.predict_ability_started(
+		_local_ability_prediction.predict_ability_started(
 				ability_request_id,
 				ability_id,
 				target_entity_id,
@@ -93,23 +86,25 @@ func on_ability_started(event, event_tick: int) -> void:
 
 func on_ability_completed(event, event_tick: int) -> void:
 	_ability_presentation.on_authoritative_ability_completed(event, event_tick)
+	_local_ability_prediction.on_authoritative_ability_completed(event, event_tick)
 
 func on_ability_canceled(event, event_tick: int) -> void:
 	_ability_presentation.on_authoritative_ability_canceled(event, event_tick)
+	_local_ability_prediction.on_authoritative_ability_canceled(event, event_tick)
 
 func on_ability_accepted(ack: Proto.AbilityUseAccepted) -> void:
-	_ability_presentation.confirm_ability_started(ack)
+	_local_ability_prediction.confirm_ability_started(ack)
 
 func on_ability_rejected(rejection: Proto.AbilityUseRejected) -> void:
-	_ability_presentation.reject_ability_started(rejection)
+	_local_ability_prediction.reject_ability_started(rejection)
 
 func get_predicted_ability_id_for_request(request_id: int) -> int:
-	if _ability_presentation != null and _ability_presentation.has_method("get_predicted_ability_id_for_request"):
-		return int(_ability_presentation.get_predicted_ability_id_for_request(request_id))
+	if _local_ability_prediction != null:
+		return int(_local_ability_prediction.get_predicted_ability_id_for_request(request_id))
 	return 0
 
 func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
-	_ability_presentation.on_ability_resolved(resolved)
+	_local_ability_prediction.on_ability_resolved(resolved)
 
 func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 	if frozen:

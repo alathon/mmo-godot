@@ -78,6 +78,8 @@ func is_in_range(source_entity: Node, ability: AbilityResource, target: AbilityT
 func get_entity_position(entity: Node) -> Vector3:
 	if entity == null:
 		return Vector3.ZERO
+	if entity is Entity:
+		return (entity as Entity).get_position()
 	if entity is ServerPlayer:
 		return (entity as ServerPlayer).body.global_position
 	if entity is Node3D:
@@ -94,8 +96,8 @@ func get_entity_by_id(entity_id: int) -> Node:
 func _get_current_target_id(source_entity: Node) -> int:
 	if source_entity == null:
 		return 0
-	if source_entity is ServerPlayer:
-		return (source_entity as ServerPlayer).target_state.get_target_entity_id()
+	if source_entity is SimulatedEntity:
+		return (source_entity as SimulatedEntity).get_target_entity_id()
 	if source_entity.has_method("get_target_entity_id"):
 		return source_entity.get_target_entity_id()
 	return 0
@@ -177,6 +179,9 @@ func _get_cone_forward(source_entity: Node, target: AbilityTargetSpec) -> Vector
 		var toward_ground := target.ground_position - source_position
 		toward_ground.y = 0.0
 		return toward_ground.normalized() if toward_ground != Vector3.ZERO else Vector3.ZERO
+	if source_entity is Entity:
+		var angle := (source_entity as Entity).face_angle
+		return Vector3(-sin(angle), 0.0, -cos(angle)).normalized()
 	if source_entity is ServerPlayer:
 		var angle := (source_entity as ServerPlayer).body.face_angle
 		return Vector3(-sin(angle), 0.0, -cos(angle)).normalized()

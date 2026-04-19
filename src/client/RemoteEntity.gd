@@ -1,26 +1,23 @@
 class_name RemoteEntity
-extends Node3D
+extends Entity
 
 const Proto = preload("res://src/common/proto/packets.gd")
 
+@onready var _visual: RemoteEntityBody = %Visual
 @onready var _interpolator: RemoteInterpolator = %RemoteInterpolator
 @onready var _ability_presentation: Node = %AbilityPresentation
 @onready var stats: Stats = %Stats
-@onready var _hp_bar: HealthBar = $UIAnchor/HealthBar
+@onready var _hp_bar: HealthBar = $Visual/UIAnchor/HealthBar
 
-var id: int
-var is_local: bool = false
-
-# Mimic CharacterBody3D-exposed things
-var velocity: Vector3 = Vector3.ZERO
-var _is_on_floor: bool = true
-func is_on_floor() -> bool:
-	return _is_on_floor
-
-var face_angle: float:
+var velocity: Vector3:
+	get:
+		return _visual.velocity if _visual != null else Vector3.ZERO
 	set(value):
-		face_angle = value
-		rotation.y = value
+		if _visual != null:
+			_visual.velocity = value
+
+func is_on_floor() -> bool:
+	return _visual != null and _visual.is_on_floor()
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
@@ -39,9 +36,21 @@ func _ready() -> void:
 	if stats != null and _hp_bar != null:
 		_hp_bar.set_values(stats.hp, stats.max_hp)
 
+
+func _get_face_angle() -> float:
+	return _visual.face_angle if _visual != null else 0.0
+
+
+func _set_face_angle(value: float) -> void:
+	if _visual != null:
+		_visual.face_angle = value
+
+
 func initialize_position(pos: Vector3, rot_y: float) -> void:
-	global_position = pos
-	rotation.y = rot_y
+	if _visual == null:
+		return
+	_visual.global_position = pos
+	face_angle = rot_y
 
 func apply_world_state(state: Proto.EntityState) -> void:
 	if stats != null:
@@ -61,11 +70,11 @@ func on_ability_canceled(event, event_tick: int) -> void:
 func setCharacterModel(model_name: String) -> void:
 	var model = (load("res://assets/entities/character_models/%s.tscn" % model_name)).instantiate()
 
-	add_child(model)
+	_visual.add_child(model)
 	model.position.y = -1
 
 	var anim_tree: AnimationTree = model.get_node("%AnimationTree") as AnimationTree
-	anim_tree.advance_expression_base_node = anim_tree.get_path_to(self)
+	anim_tree.advance_expression_base_node = anim_tree.get_path_to(_visual)
 	anim_tree.active = true
 
 	_animationTree = anim_tree

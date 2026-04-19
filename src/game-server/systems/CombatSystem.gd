@@ -25,14 +25,16 @@ func tick(sim_tick: int, ctx: Dictionary) -> void:
 
 func get_combat_manager(entity_id: int) -> CombatManager:
 	var entity := _get_entity(entity_id)
-	if entity is ServerPlayer:
-		return (entity as ServerPlayer).combat_manager
+	if entity is SimulatedEntity:
+		return (entity as SimulatedEntity).combat_manager
 	return null
 
 
 func get_entity_id(entity: Node) -> int:
 	if _zone == null or entity == null:
 		return 0
+	if entity is Entity:
+		return (entity as Entity).id
 	for entity_id in _zone.players:
 		if _zone.players[entity_id] == entity:
 			return entity_id
@@ -203,8 +205,8 @@ func _get_entity(entity_id: int) -> Node:
 
 
 func _get_combat_manager_for_entity(entity: Node) -> CombatManager:
-	if entity is ServerPlayer:
-		return (entity as ServerPlayer).combat_manager
+	if entity is SimulatedEntity:
+		return (entity as SimulatedEntity).combat_manager
 	return null
 
 

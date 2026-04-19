@@ -1,13 +1,15 @@
 class_name RemoteEntityBody
 extends Node3D
 
+var velocity: Vector3 = Vector3.ZERO
+var _is_on_floor: bool = true
+
+var face_angle: float:
+	get:
+		return rotation.y
+	set(value):
+		rotation.y = value
 
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	set_physics_process(false)
-	set_process(false)
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func is_on_floor() -> bool:
+	return _is_on_floor

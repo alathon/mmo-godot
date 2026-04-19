@@ -1,20 +1,13 @@
 class_name ServerPlayer
-extends Node
+extends SimulatedEntity
 
 @onready var body: PhysicsBody = %Body
-
-@onready var ability_manager: AbilityManager = %AbilityManager
-@onready var combat_manager: CombatManager = %CombatManager
 @onready var hostility: Node = %DetermineHostility
-@onready var target_state: EntityTargetState = %EntityTarget
-@onready var stats: Stats = %Stats
 @onready var input_state: PlayerInputState = $PlayerInputState
 
-func set_target_entity_id(entity_id: int) -> void:
-	target_state.set_target_entity_id(entity_id)
+func _get_face_angle() -> float:
+	return body.face_angle
 
-func get_target_entity_id() -> int:
-	return target_state.get_target_entity_id()
 
-func clear_target() -> void:
-	target_state.clear_target()
+func _set_face_angle(value: float) -> void:
+	body.face_angle = value

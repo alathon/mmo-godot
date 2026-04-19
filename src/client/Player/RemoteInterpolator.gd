@@ -10,6 +10,8 @@ extends Node
 
 const RENDER_DELAY := 0  # ticks to lag behind latest received
 
+@export var target: Node3D
+
 var _debug: bool = false
 var _paused: bool = false
 
@@ -34,7 +36,7 @@ func push_snapshot(tick: int, props: Dictionary) -> void:
 	if _debug and _last_push_msec >= 0:
 		var gap_ms := now - _last_push_msec
 		var tick_gap := tick - _last_snapshot_tick
-		print("[RI:%s] PUSH tick=%d | gap_ms=%d | tick_gap=%d" % [get_parent().name, tick, gap_ms, tick_gap])
+		print("[RI:%s] PUSH tick=%d | gap_ms=%d | tick_gap=%d" % [_target_name(), tick, gap_ms, tick_gap])
 	_last_push_msec = now
 	_last_snapshot_tick = tick
 
@@ -43,7 +45,7 @@ func push_snapshot(tick: int, props: Dictionary) -> void:
 		_render_tick = float(tick - RENDER_DELAY)
 
 func _process(delta: float) -> void:
-	if _history.is_empty() or _paused:
+	if _history.is_empty() or _paused or target == null:
 		return
 
 	var latest := _history.get_latest_index()
@@ -56,7 +58,7 @@ func _process(delta: float) -> void:
 	_render_tick = minf(unclamped, ceiling)
 
 	if _debug and stalled:
-		print("[RI:%s] STALL | render_tick=%.2f | ceiling=%.1f | buffer=%.2f | latest=%d" % [get_parent().name,
+		print("[RI:%s] STALL | render_tick=%.2f | ceiling=%.1f | buffer=%.2f | latest=%d" % [_target_name(),
 			_render_tick, ceiling, ceiling - _render_tick, latest
 		])
 
@@ -72,7 +74,7 @@ func _process(delta: float) -> void:
 	var from_idx := _history.get_latest_index_at(from_tick)
 	if from_idx < 0:
 		if _debug:
-			print("[RI:%s] WARNING: Not enough history to interpolate yet" % get_parent().name)
+			print("[RI:%s] WARNING: Not enough history to interpolate yet" % _target_name())
 		return  # not enough history yet
 
 	var to_idx := _history.get_latest_index_at(to_tick)
@@ -84,9 +86,14 @@ func _process(delta: float) -> void:
 		return
 	var to: Dictionary = from if to_idx < 0 else (_history.get_at(to_idx) if _history.get_at(to_idx) != null else from)
 
-	var parent := get_parent()
 	for key in to:
-		parent.set(key, _lerp(from.get(key, to[key]), to[key], alpha))
+		target.set(key, _lerp(from.get(key, to[key]), to[key], alpha))
+
+
+func _target_name() -> String:
+	if target != null:
+		return target.name
+	return get_parent().name
 
 static func _lerp(a: Variant, b: Variant, t: float) -> Variant:
 	if a is bool:

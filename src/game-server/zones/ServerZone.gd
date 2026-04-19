@@ -277,6 +277,7 @@ func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
 	print("[SERVER] Spawning player %d at %s" % [id, position])
 	var player := ServerPlayerScene.instantiate() as ServerPlayer
 	player.name = "ServerPlayer_%d" % id
+	player.id = id
 	_entities.add_child(player)
 	player.body.global_position = position
 	player.body.rotation.y = rot_y
