@@ -90,13 +90,14 @@ func resolve_ability_use_snapshot(
 func apply_resolved_ability_use(
 		source_entity: Node,
 		resolved_use: ResolvedAbilityUseSnapshot,
-		context: AbilityExecutionContext) -> Array[EntityEvents]:
+		context: AbilityExecutionContext,
+		phase: int = ResolvedAbilityEffectSnapshot.Phase.IMPACT) -> Array[EntityEvents]:
 	if source_entity == null or resolved_use == null:
 		return []
 
 	var events: Array[EntityEvents] = []
 	for resolved_effect in resolved_use.effects:
-		if resolved_effect == null:
+		if resolved_effect == null or resolved_effect.phase != phase:
 			continue
 		var target_entity := _get_entity_by_id(resolved_effect.target_entity_id, context)
 		match resolved_effect.kind:
@@ -271,41 +272,50 @@ func _resolve_effect_snapshot(
 		target_entity_id: int,
 		ability_id: StringName,
 		effect: AbilityEffect) -> ResolvedAbilityEffectSnapshot:
+	var snapshot: ResolvedAbilityEffectSnapshot = null
 	if effect is DamageEffect:
 		var damage_effect := effect as DamageEffect
 		var damage_amount := int(round(resolve_effect_value(damage_effect.formula)))
 		if damage_amount <= 0:
 			return null
-		return ResolvedAbilityEffectSnapshot.damage(
+		snapshot = ResolvedAbilityEffectSnapshot.damage(
 				source_entity_id,
 				target_entity_id,
 				ability_id,
 				damage_amount,
 				damage_effect.aggro_modifier)
-	if effect is HealEffect:
+	elif effect is HealEffect:
 		var heal_effect := effect as HealEffect
 		var heal_amount := int(round(resolve_effect_value(heal_effect.formula)))
 		if heal_amount <= 0:
 			return null
-		return ResolvedAbilityEffectSnapshot.heal(
+		snapshot = ResolvedAbilityEffectSnapshot.heal(
 				source_entity_id,
 				target_entity_id,
 				ability_id,
 				heal_amount,
 				heal_effect.aggro_modifier)
-	if effect is ApplyStatusEffect:
+	elif effect is ApplyStatusEffect:
 		var status_effect := effect as ApplyStatusEffect
 		var status_id := status_effect.effect_id
 		if status_id == &"":
 			status_id = StringName(status_effect.display_name)
-		return ResolvedAbilityEffectSnapshot.status(
+		snapshot = ResolvedAbilityEffectSnapshot.status(
 				source_entity_id,
 				target_entity_id,
 				ability_id,
 				status_id,
 				status_effect.duration,
 				status_effect.is_debuff)
-	return null
+	if snapshot != null:
+		snapshot.phase = _resolve_effect_phase(effect)
+	return snapshot
+
+
+func _resolve_effect_phase(effect: AbilityEffect) -> int:
+	if effect != null and effect.application_phase == AbilityEffect.ApplicationPhase.EARLY:
+		return ResolvedAbilityEffectSnapshot.Phase.EARLY
+	return ResolvedAbilityEffectSnapshot.Phase.IMPACT
 
 
 func _apply_resolved_damage(

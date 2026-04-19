@@ -167,7 +167,7 @@ func _finalize_sync() -> void:
 		NetworkTime.reset_tick(get_lead_adjusted_tick())
 		return
 
-	print("[CLIENT] NetworkClockNew: RTT updated (rtt=%.3fs, lead=%.3fs)" % [rtt, lead_time])
+	#print("[CLIENT] NetworkClockNew: RTT updated (rtt=%.3fs, lead=%.3fs)" % [rtt, lead_time])
 
 
 # =============================================================================

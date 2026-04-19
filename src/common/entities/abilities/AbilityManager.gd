@@ -23,6 +23,13 @@ func tick(delta: float, sim_tick: int, context: AbilityExecutionContext) -> Arra
 	state.anim_lock_remaining = maxf(0.0, state.anim_lock_remaining - delta)
 	cooldowns.tick(delta)
 	if state.is_casting():
+		if not state.cast_locked and sim_tick >= state.cast_lock_tick:
+			state.cast_locked = true
+			_log_ability("Lock cast (server)", sim_tick, state.cast_ability_id, state.cast_source_entity_id, {
+				"request": state.cast_request_id,
+				"lock": state.cast_lock_tick,
+				"finish": state.cast_finish_tick,
+			})
 		if sim_tick >= state.cast_finish_tick:
 			events.append_array(_complete_cast(sim_tick, context))
 	if not state.is_casting():
@@ -37,6 +44,12 @@ func use_ability(
 		request_id: int,
 		context: AbilityExecutionContext) -> AbilityUseResult:
 	if context == null or context.ability_db == null:
+		_log_ability("Reject ability (server)", 0, ability_id, 0, {
+			"request": request_id,
+			"requested": requested_tick,
+			"reason": "missing_context",
+			"cancel_reason": AbilityConstants.CANCEL_INVALID,
+		})
 		return AbilityUseResult.rejected_result(
 				ability_id,
 				requested_tick,
@@ -47,6 +60,12 @@ func use_ability(
 	var ability := context.ability_db.get_ability(ability_id)
 	var validation := can_use_ability(ability, target, context, true)
 	if not validation.ok:
+		_log_ability("Reject ability (server)", context.sim_tick, ability_id, context.source_entity_id, {
+			"request": request_id,
+			"requested": requested_tick,
+			"reason": validation.reason,
+			"cancel_reason": validation.cancel_reason,
+		})
 		return AbilityUseResult.rejected_result(
 				ability_id,
 				requested_tick,
@@ -145,6 +164,10 @@ func is_casting() -> bool:
 	return state.is_casting()
 
 
+func can_movement_cancel_current_cast() -> bool:
+	return state.is_casting() and not state.cast_locked
+
+
 func is_on_gcd() -> bool:
 	return state.gcd_remaining > 0.0
 
@@ -171,6 +194,13 @@ func cancel_casting(reason: int, context: AbilityExecutionContext) -> Array[Enti
 		EntityEvents.ability_canceled(source_entity_id, ability_id, reason)
 	]
 
+	_log_ability("Cancel cast (server)", context.sim_tick if context != null else 0, ability_id, source_entity_id, {
+		"request": state.cast_request_id,
+		"reason": reason,
+		"locked": state.cast_locked,
+		"lock": state.cast_lock_tick,
+		"finish": state.cast_finish_tick,
+	})
 	_cancel_cast_cooldown(ability_id, context)
 	if _active_scheduled_use != null:
 		_active_scheduled_use.canceled = true
@@ -205,14 +235,17 @@ func _start_cast(request: AbilityUseRequest, ability: AbilityResource, sim_tick:
 	state.cast_requested_tick = request.requested_tick
 	state.cast_start_tick = sim_tick
 	state.cast_finish_tick = sim_tick + state.cast_total_ticks
+	state.cast_lock_tick = _compute_lock_tick(ability, state.cast_start_tick, state.cast_finish_tick)
 	state.cast_resolve_tick = _compute_resolve_tick(ability, state.cast_start_tick, state.cast_finish_tick)
 	state.cast_impact_tick = state.cast_finish_tick + _seconds_to_ticks(AbilityConstants.IMPACT_DELAY_DURATION)
+	state.cast_locked = state.cast_lock_tick <= state.cast_start_tick
 	_active_scheduled_use = ScheduledAbilityUse.create(
 			request.source_entity_id,
 			request.ability_id,
 			request.target,
 			request.requested_tick,
 			state.cast_start_tick,
+			state.cast_lock_tick,
 			state.cast_resolve_tick,
 			state.cast_finish_tick,
 			state.cast_impact_tick,
@@ -226,6 +259,8 @@ func _start_cast(request: AbilityUseRequest, ability: AbilityResource, sim_tick:
 		"request": request.request_id,
 		"requested": request.requested_tick,
 		"start": state.cast_start_tick,
+		"lock": state.cast_lock_tick,
+		"start_locked": state.cast_locked,
 		"resolve": state.cast_resolve_tick,
 		"finish": state.cast_finish_tick,
 		"impact": state.cast_impact_tick,
@@ -251,6 +286,7 @@ func _complete_cast(sim_tick: int, context: AbilityExecutionContext) -> Array[En
 	var target := state.cast_target
 	var requested_tick := state.cast_requested_tick
 	var start_tick := state.cast_start_tick
+	var lock_tick := state.cast_lock_tick
 	var resolve_tick := state.cast_resolve_tick
 	var finish_tick := state.cast_finish_tick
 	var impact_tick := state.cast_impact_tick
@@ -269,6 +305,7 @@ func _complete_cast(sim_tick: int, context: AbilityExecutionContext) -> Array[En
 		"request": request_id,
 		"requested": requested_tick,
 		"start": start_tick,
+		"lock": lock_tick,
 		"resolve": resolve_tick,
 		"finish": finish_tick,
 		"impact": impact_tick,
@@ -318,6 +355,12 @@ func _try_dequeue_ability(sim_tick: int, context: AbilityExecutionContext) -> Ar
 	var validation := can_use_ability(ability, target, context, false)
 	state.clear_queued()
 	if not validation.ok:
+		_log_ability("Reject queued ability (server)", sim_tick, ability_id, request.source_entity_id, {
+			"request": request.request_id,
+			"requested": request.requested_tick,
+			"reason": validation.reason,
+			"cancel_reason": validation.cancel_reason,
+		})
 		return [
 			EntityEvents.ability_canceled(
 					request.source_entity_id,
@@ -389,6 +432,12 @@ func _compute_resolve_tick(ability: AbilityResource, start_tick: int, finish_tic
 	if ability == null:
 		return start_tick
 	return maxi(start_tick, finish_tick - maxi(0, ability.resolve_lead_ticks))
+
+
+func _compute_lock_tick(ability: AbilityResource, start_tick: int, finish_tick: int) -> int:
+	if ability == null or ability.cast_lock_time <= 0.0:
+		return start_tick
+	return mini(finish_tick, start_tick + _seconds_to_ticks(ability.cast_lock_time))
 
 
 func _event_target_entity_id(target: AbilityTargetSpec) -> int:

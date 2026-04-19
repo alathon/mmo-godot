@@ -33,6 +33,7 @@ enum VarianceProfile {
 @export var variance_profile: VarianceProfile = VarianceProfile.NONE
 @export var target_type: TargetType = TargetType.OTHER_ENEMY
 @export var cast_time: float = 0.0
+@export var cast_lock_time: float = -1.0   # seconds of casting before lock engages (cancelable window); <=0 = lock at start
 @export var resolve_lead_ticks: int = 8
 @export var range: float = 0.0
 @export var uses_gcd: bool = true

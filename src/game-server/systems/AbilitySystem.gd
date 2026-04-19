@@ -100,7 +100,7 @@ func _process_movement_cancels(
 		context: AbilityExecutionContext) -> void:
 	for entity_id in moving_entities:
 		var manager := get_ability_manager(entity_id)
-		if manager != null and manager.is_casting():
+		if manager != null and manager.can_movement_cancel_current_cast():
 			_append_events(manager.cancel_casting(AbilityConstants.CANCEL_MOVED, context))
 
 

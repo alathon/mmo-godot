@@ -160,8 +160,11 @@ func _process_scheduled_uses(sim_tick: int, context: AbilityExecutionContext) ->
 			continue
 		if not use.resolved and use.resolve_tick <= sim_tick:
 			_resolve_scheduled_ability_use(use, context)
+		if use.resolved and not use.early_applied and use.lock_tick <= sim_tick:
+			_append_events(_apply_scheduled_ability_use(use, context, ResolvedAbilityEffectSnapshot.Phase.EARLY))
+			use.early_applied = true
 		if use.resolved and use.impact_tick <= sim_tick:
-			_append_events(_apply_scheduled_ability_use(use, context))
+			_append_events(_apply_scheduled_ability_use(use, context, ResolvedAbilityEffectSnapshot.Phase.IMPACT))
 		else:
 			pending.append(use)
 	_pending_uses = pending
@@ -262,6 +265,7 @@ func _resolve_scheduled_ability_use(
 		"request": use.request_id,
 		"requested": use.requested_tick,
 		"start": use.start_tick,
+		"lock": use.lock_tick,
 		"resolve": use.resolve_tick,
 		"finish": use.finish_tick,
 		"impact": use.impact_tick,
@@ -273,7 +277,8 @@ func _resolve_scheduled_ability_use(
 
 func _apply_scheduled_ability_use(
 		use: ScheduledAbilityUse,
-		context: AbilityExecutionContext) -> Array[EntityEvents]:
+		context: AbilityExecutionContext,
+		phase: int = ResolvedAbilityEffectSnapshot.Phase.IMPACT) -> Array[EntityEvents]:
 	if use == null or context == null or use.resolved_use == null:
 		return []
 
@@ -285,16 +290,25 @@ func _apply_scheduled_ability_use(
 	if source_manager == null:
 		return []
 
-	_log_ability("Apply ability impact (server)", context.sim_tick, use.ability_id, use.source_entity_id, {
+	var events := source_manager.apply_resolved_ability_use(source_entity, use.resolved_use, context, phase)
+	if events.is_empty():
+		return events
+
+	var phase_label := "early" if phase == ResolvedAbilityEffectSnapshot.Phase.EARLY else "impact"
+	_log_ability("Apply ability %s (server)" % phase_label, context.sim_tick, use.ability_id, use.source_entity_id, {
 		"request": use.request_id,
 		"requested": use.requested_tick,
 		"start": use.start_tick,
+		"lock": use.lock_tick,
 		"resolve": use.resolve_tick,
 		"finish": use.finish_tick,
 		"impact": use.impact_tick,
-		"effects": use.resolved_use.effects.size(),
+		"applied": events.size(),
 	})
-	return source_manager.apply_resolved_ability_use(source_entity, use.resolved_use, context)
+	for event in events:
+		if event != null and event.type == EntityEvents.Type.COMBATANT_DIED:
+			_log_death(context.sim_tick, event.entity_id, event.killer_entity_id, use.ability_id)
+	return events
 
 
 func _send_ability_resolved(resolved_use: ResolvedAbilityUseSnapshot) -> void:
@@ -350,6 +364,15 @@ func _log_ability(
 	for key in details:
 		message += " %s=%s" % [key, str(details[key])]
 	print(message)
+
+
+func _log_death(tick: int, entity_id: int, killer_entity_id: int, ability_id: StringName) -> void:
+	print("[COMBAT] Combatant died tick=%d time=%s entity=%d killer=%d ability=%s" % [
+		tick,
+		_timestamp(),
+		entity_id,
+		killer_entity_id,
+		ability_id])
 
 
 func _timestamp() -> String:

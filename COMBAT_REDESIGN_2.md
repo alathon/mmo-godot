@@ -7,7 +7,7 @@
 - [x] Add `finish_tick` and `impact_tick` to ACK, but keep effects applying as today.
 - [x] Replace `CompletedAbilityUse` with scheduled impact application at `impact_tick`.
 - [x] Add `ScheduledAbilityUse` with `resolve_tick`, add `ResolvedAbilityUse` / `ResolvedAbilityEffect` snapshots, and send `AbilityUseResolved` when effects are known.
-- [ ] Add `ApplicationPhase.EARLY` and `cast_locked` behavior.
+- [x] Add `ApplicationPhase.EARLY` and `cast_locked` behavior.
 - [ ] Split `cooldown` into instant internal cooldown semantics vs cast-time behavior.
 
 Here is how I’d reshape the current system to match that model.

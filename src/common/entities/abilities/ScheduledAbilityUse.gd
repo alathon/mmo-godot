@@ -7,11 +7,13 @@ var ability_id: StringName = &""
 var target: AbilityTargetSpec = null
 var requested_tick: int = 0
 var start_tick: int = 0
+var lock_tick: int = 0
 var resolve_tick: int = 0
 var finish_tick: int = 0
 var impact_tick: int = 0
 var canceled: bool = false
 var resolved: bool = false
+var early_applied: bool = false
 var resolved_use: RefCounted = null
 
 
@@ -21,6 +23,7 @@ static func create(
 		target_spec: AbilityTargetSpec,
 		original_requested_tick: int,
 		original_start_tick: int,
+		scheduled_lock_tick: int,
 		scheduled_resolve_tick: int,
 		finished_tick: int,
 		scheduled_impact_tick: int,
@@ -32,6 +35,7 @@ static func create(
 	use.target = target_spec
 	use.requested_tick = original_requested_tick
 	use.start_tick = original_start_tick
+	use.lock_tick = scheduled_lock_tick
 	use.resolve_tick = scheduled_resolve_tick
 	use.finish_tick = finished_tick
 	use.impact_tick = scheduled_impact_tick

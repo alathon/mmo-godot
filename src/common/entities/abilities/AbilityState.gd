@@ -12,9 +12,11 @@ var cast_total: float = 0.0
 var cast_total_ticks: int = 0
 var cast_requested_tick: int = 0
 var cast_start_tick: int = 0
+var cast_lock_tick: int = 0
 var cast_resolve_tick: int = 0
 var cast_finish_tick: int = 0
 var cast_impact_tick: int = 0
+var cast_locked: bool = false
 
 var queued_source_entity_id: int = 0
 var queued_request_id: int = 0
@@ -40,9 +42,11 @@ func clear_cast() -> void:
 	cast_total_ticks = 0
 	cast_requested_tick = 0
 	cast_start_tick = 0
+	cast_lock_tick = 0
 	cast_resolve_tick = 0
 	cast_finish_tick = 0
 	cast_impact_tick = 0
+	cast_locked = false
 
 
 func clear_queued() -> void:
