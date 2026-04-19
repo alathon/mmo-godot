@@ -3,11 +3,6 @@ extends Node
 
 const ResolvedAbilityEffectSnapshot = preload("res://src/common/entities/abilities/ResolvedAbilityEffectSnapshot.gd")
 const ResolvedAbilityUseSnapshot = preload("res://src/common/entities/abilities/ResolvedAbilityUseSnapshot.gd")
-const STATUS_ID_BY_KEY := {
-	&"stunned": 1001,
-	&"magic_lockout": 1002,
-	&"rejuvenation": 1003,
-}
 
 @onready var stats: Stats = %Stats
 @onready var hostility: Node = %DetermineHostility
@@ -151,7 +146,9 @@ func _apply_effect(
 		elif effect is HealEffect:
 			events.append_array(_apply_heal(source_entity, target_entity, ability, effect as HealEffect, context))
 		elif effect is ApplyStatusEffect:
-			events.append(_apply_status(source_entity, target_entity, ability, effect as ApplyStatusEffect, context))
+			var status_event := _apply_status(source_entity, target_entity, ability, effect as ApplyStatusEffect, context)
+			if status_event != null:
+				events.append(status_event)
 	return events
 
 
@@ -262,10 +259,13 @@ func _apply_status(
 		ability: AbilityResource,
 		effect: ApplyStatusEffect,
 		context: AbilityExecutionContext) -> EntityEvents:
-	var status_id := _resolve_status_id(effect.status_id, effect.effect_id, effect.display_name)
+	var status_id := effect.get_status_id()
+	if status_id <= 0:
+		return null
+	var is_debuff := effect.is_debuff()
 	var source_entity_id := _entity_id(source_entity, context)
 	var target_entity_id := _entity_id(target_entity, context)
-	if effect.is_debuff:
+	if is_debuff:
 		return EntityEvents.debuff_applied(source_entity_id, target_entity_id, ability.get_ability_id(), status_id, effect.duration)
 	return EntityEvents.buff_applied(source_entity_id, target_entity_id, ability.get_ability_id(), status_id, effect.duration)
 
@@ -300,14 +300,16 @@ func _resolve_effect_snapshot(
 				heal_effect.aggro_modifier)
 	elif effect is ApplyStatusEffect:
 		var status_effect := effect as ApplyStatusEffect
-		var status_id := _resolve_status_id(status_effect.status_id, status_effect.effect_id, status_effect.display_name)
+		var status_id := status_effect.get_status_id()
+		if status_id <= 0:
+			return null
 		snapshot = ResolvedAbilityEffectSnapshot.status(
 				source_entity_id,
 				target_entity_id,
 				ability_id,
 				status_id,
 				status_effect.duration,
-				status_effect.is_debuff)
+				status_effect.is_debuff())
 	if snapshot != null:
 		snapshot.phase = _resolve_effect_phase(effect)
 	return snapshot
@@ -401,18 +403,6 @@ func _apply_resolved_status(resolved_effect: ResolvedAbilityEffectSnapshot) -> E
 			resolved_effect.ability_id,
 			resolved_effect.status_id,
 			resolved_effect.duration)
-
-
-func _resolve_status_id(configured_status_id: int, status_key: StringName, display_name: String) -> int:
-	if configured_status_id > 0:
-		return configured_status_id
-	var resolved_key := status_key
-	if resolved_key == &"" and display_name != "":
-		resolved_key = StringName(display_name.to_snake_case())
-	if STATUS_ID_BY_KEY.has(resolved_key):
-		return int(STATUS_ID_BY_KEY[resolved_key])
-	return 0
-
 
 func _resolved_status_target_is_alive(target_entity: Node) -> bool:
 	var target_manager := _get_combat_manager(target_entity)

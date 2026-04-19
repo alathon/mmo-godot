@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="StatusResource" format=3]
+
+[ext_resource type="Script" path="res://src/common/ability_definitions/StatusResource.gd" id="1_status_resource"]
+
+[resource]
+script = ExtResource("1_status_resource")
+status_id = 1001
+status_name = "Stunned"
+is_debuff = true
+tags_applied = PackedStringArray("stunned")

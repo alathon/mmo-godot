@@ -18,24 +18,26 @@ script = ExtResource("1_sosh0")
 condition = SubResource("Resource_tvv5y")
 metadata/_custom_type_script = "uid://1kt8qok880pp"
 
-[sub_resource type="Resource" id="Resource_qbf3x"]
+[sub_resource type="Resource" id="Resource_bj8ij"]
 script = ExtResource("5_cdij5")
-base = 120.0
+base = 10.0
 metadata/_custom_type_script = "uid://bjo3ueuo52uk1"
 
-[sub_resource type="Resource" id="Resource_j1m57"]
+[sub_resource type="Resource" id="Resource_x5uhx"]
 script = ExtResource("2_vwgc1")
-formula = SubResource("Resource_qbf3x")
+formula = SubResource("Resource_bj8ij")
 target_narrower = 1
+metadata/_custom_type_script = "uid://dn45bp34f1hv1"
 
 [resource]
 script = ExtResource("2_546e4")
 ability_id = 1
 ability_name = "Fireball"
 tags = ["magic", "fire"]
+variance_profile = 1
 cast_time = 1.5
 cast_lock_time = 1.0
 range = 30.0
 mana_cost = 40
-effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_j1m57")])
+effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_x5uhx")])
 conditional_effects = Array[ExtResource("1_sosh0")]([SubResource("Resource_8aqol")])

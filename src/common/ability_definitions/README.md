@@ -93,18 +93,13 @@ Applies a status effect (buff or debuff) to the target. This is the only way to 
 
 | Field | Type | Description |
 |---|---|---|
-| `display_name` | String | Name shown in the buff/debuff bar. |
-| `icon` | Texture2D | Icon displayed in the buff/debuff bar. |
-| `is_debuff` | bool | Whether this is a debuff (true) or buff (false). |
+| `status` | StatusResource | Reference to a status resource in `resources/statuses/`. |
 | `duration` | float | How long the status lasts in seconds. 0 = permanent (until removed). |
 | `max_stacks` | int | Maximum number of stacks. Re-applying the status when at max stacks refreshes the duration instead. |
 | `tick_interval` | float | Seconds between ticks. Defaults to 3.0. |
-| `dispel_category` | String | Which dispel category can remove this (e.g. `"magic"`, `"poison"`). Empty = cannot be dispelled. |
-| `tags_applied` | PackedStringArray | Tags added to the entity while this status is active (e.g. `["burning"]`). |
-| `tags_locked` | PackedStringArray | Ability tags that the entity cannot use while this status is active (e.g. `["magic"]` to lock out all magic abilities). |
 | `tick_effects` | Array[AbilityEffect] | Effects that fire on each tick (e.g. a DamageEffect for a DoT, a HealEffect for a HoT). |
 
-The status effect's identity is the `effect_id` field inherited from AbilityEffect. Other resources (ConsumeStacksEffect, ConditionCasterHasStatus) reference a status by this ID.
+Statuses are defined in standalone `StatusResource` files. Identity is `status_id` (numeric).
 
 #### DisplacementEffect
 
@@ -131,7 +126,7 @@ Consumes stacks of a status effect and fires additional effects per stack consum
 
 | Field | Type | Description |
 |---|---|---|
-| `status_id` | StringName | The `effect_id` of the ApplyStatusEffect whose stacks to consume. |
+| `status_id` | int | Numeric `status_id` of the ApplyStatusEffect whose stacks to consume. |
 | `per_stack_effects` | Array[AbilityEffect] | Effects fired once per stack consumed (e.g. a DamageEffect that scales by stack count). |
 
 ---
@@ -190,7 +185,7 @@ All conditions have a `negate` checkbox that inverts the result.
 | Condition | Fields | Description |
 |---|---|---|
 | **ConditionTargetHpBelow** | `threshold` (0.0-1.0) | True if the target's HP is below the given fraction. 0.2 = below 20%. |
-| **ConditionCasterHasStatus** | `status_id` (StringName) | True if the caster currently has the named status effect active. |
+| **ConditionCasterHasStatus** | `status_id` (int) | True if the caster currently has the status effect ID active. |
 | **ConditionTargetHasTag** | `tag` (String) | True if the target currently has the named tag (e.g. from an active status effect). |
 
 ### Example: Execute-style finisher
@@ -428,6 +423,6 @@ src/common/combat/
 
 resources/
   abilities/                   -- .tres files for AbilityResource instances
-    status_effects/            -- (reserved for future use)
+  statuses/                    -- .tres files for StatusResource instances
   ability_modifiers/           -- .tres files for AbilityModifier instances
 ```

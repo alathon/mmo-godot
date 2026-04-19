@@ -295,9 +295,14 @@ func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: Va
 		return
 	var resolved_detail := str(detail)
 	if detail is int:
-		var ability_name := _ability_db.get_ability_name(int(detail))
+		var detail_id := int(detail)
+		var ability_name := _ability_db.get_ability_name(detail_id)
 		if ability_name != "":
-			resolved_detail = "%d (%s)" % [int(detail), ability_name]
+			resolved_detail = "%d (%s)" % [detail_id, ability_name]
+		elif event_name == "buff_applied" or event_name == "debuff_applied" or event_name == "status_effect_removed":
+			var status_name := _ability_db.get_status_name(detail_id)
+			if status_name != "":
+				resolved_detail = "%d (%s)" % [detail_id, status_name]
 	print("[CLIENT_EVENT] tick=%d event=%s entity=%d detail=%s" % [
 		tick, event_name, entity_id, resolved_detail])
 
