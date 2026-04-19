@@ -9,7 +9,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _input_batcher: InputBatcher = %InputBatcher
 @onready var _visual: VisualSmoother = %VisualSmoother
 @onready var _local_ability_prediction: LocalAbilityPrediction = %LocalAbilityPrediction
-@onready var _ability_presentation: Node = %AbilityPresentation
+@onready var _ability_event_controller: AbilityEventController = %AbilityEventController
 @onready var _hp_bar: HealthBar = %HealthBar as HealthBar
 
 var _animationTree: AnimationTree
@@ -34,6 +34,7 @@ func apply_world_state(state: Proto.EntityState) -> void:
 
 func _ready() -> void:
 	NetworkTime.on_tick.connect(_on_network_tick)
+	_local_ability_prediction.predicted_ability_started.connect(_on_predicted_ability_started)
 	if stats != null and _hp_bar != null:
 		_hp_bar.set_values(stats.hp, stats.max_hp)
 
@@ -82,14 +83,14 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 			ability_request_id)
 
 func on_ability_started(event, event_tick: int) -> void:
-	_ability_presentation.on_authoritative_ability_started(event, event_tick)
+	_ability_event_controller.on_authoritative_ability_started(event, event_tick)
 
 func on_ability_completed(event, event_tick: int) -> void:
-	_ability_presentation.on_authoritative_ability_completed(event, event_tick)
+	_ability_event_controller.on_authoritative_ability_completed(event, event_tick)
 	_local_ability_prediction.on_authoritative_ability_completed(event, event_tick)
 
 func on_ability_canceled(event, event_tick: int) -> void:
-	_ability_presentation.on_authoritative_ability_canceled(event, event_tick)
+	_ability_event_controller.on_authoritative_ability_canceled(event, event_tick)
 	_local_ability_prediction.on_authoritative_ability_canceled(event, event_tick)
 
 func on_ability_accepted(ack: Proto.AbilityUseAccepted) -> void:
@@ -104,7 +105,11 @@ func get_predicted_ability_id_for_request(request_id: int) -> int:
 	return 0
 
 func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
-	_local_ability_prediction.on_ability_resolved(resolved)
+	_ability_event_controller.on_authoritative_ability_resolved(resolved)
+
+
+func _on_predicted_ability_started(prediction: Dictionary) -> void:
+	_ability_event_controller.on_predicted_ability_started(prediction)
 
 func on_entity_position_diff(entity: Proto.EntityPosition, tick: int) -> void:
 	if frozen:

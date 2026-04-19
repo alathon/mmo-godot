@@ -12,7 +12,7 @@
 [ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="9_ph7ab"]
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="9_xiffd"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="10_pdq4c"]
-[ext_resource type="Script" path="res://src/client/AbilityPresentation.gd" id="11_ability_presentation"]
+[ext_resource type="Script" path="res://src/client/AbilityEventController.gd" id="11_ability_event_controller"]
 [ext_resource type="Script" path="res://src/client/LocalAbilityPrediction.gd" id="12_local_ability_prediction"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ag42k"]
@@ -47,9 +47,9 @@ unique_name_in_owner = true
 script = ExtResource("5_xiffd")
 metadata/_custom_type_script = "uid://ch0i48lswewgc"
 
-[node name="AbilityPresentation" type="Node" parent="." unique_id=615132746]
+[node name="AbilityEventController" type="Node" parent="." unique_id=615132746]
 unique_name_in_owner = true
-script = ExtResource("11_ability_presentation")
+script = ExtResource("11_ability_event_controller")
 
 [node name="LocalAbilityPrediction" type="Node" parent="." unique_id=166000003]
 unique_name_in_owner = true

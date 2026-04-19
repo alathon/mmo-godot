@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_mflae"]
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="3_mflae"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="4_fb5u3"]
-[ext_resource type="Script" uid="uid://bvcodnvlmxvdv" path="res://src/client/AbilityPresentation.gd" id="5_ability_presentation"]
+[ext_resource type="Script" path="res://src/client/AbilityEventController.gd" id="5_ability_event_controller"]
 [ext_resource type="Script" uid="uid://caygriu4reiyk" path="res://src/client/RemoteEntityBody.gd" id="6_remote_body"]
 
 [node name="RemoteEntity" type="Node" unique_id=989911963]
@@ -44,6 +44,6 @@ unique_name_in_owner = true
 script = ExtResource("4_fb5u3")
 metadata/_custom_type_script = "uid://vp2733m2uoyk"
 
-[node name="AbilityPresentation" type="Node" parent="." unique_id=1450354033]
+[node name="AbilityEventController" type="Node" parent="." unique_id=1450354033]
 unique_name_in_owner = true
-script = ExtResource("5_ability_presentation")
+script = ExtResource("5_ability_event_controller")

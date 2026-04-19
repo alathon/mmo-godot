@@ -467,15 +467,27 @@ func _log_ability(
 		ability_id: int,
 		entity_id: int,
 		details: Dictionary = {}) -> void:
-	var message := "[ABILITY] %s tick=%d time=%s entity=%d ability=%s" % [
+	var message := "%s %s [ABILITY] %s entity=%d ability=%s" % [
+		_format_tick_prefix(tick),
+		_get_log_prefix(),
 		label,
-		tick,
-		_timestamp(),
 		entity_id,
 		ability_id]
 	for key in details:
 		message += " %s=%s" % [key, str(details[key])]
 	print(message)
+
+
+func _get_log_prefix() -> String:
+	if multiplayer != null and multiplayer.multiplayer_peer != null:
+		if multiplayer.is_server():
+			return "[SERVER]"
+		return "[PLAYER %d]" % multiplayer.get_unique_id()
+	return "[SERVER]"
+
+
+func _format_tick_prefix(tick: int) -> String:
+	return "[TICK %d | (%s)]" % [tick, _timestamp()]
 
 
 func _timestamp() -> String:

@@ -14,7 +14,8 @@ func _ready() -> void:
 
 func set_target(target: Node3D) -> void:
 	if target == _target:
-		print("[TARGET_INDICATOR] target unchanged target=%s decal_parent=%s" % [
+		print("%s [TARGET_INDICATOR] target unchanged target=%s decal_parent=%s" % [
+			_get_log_prefix(),
 			_target_name(target), _target_name(_decal.get_parent())])
 		return
 
@@ -26,7 +27,8 @@ func set_target(target: Node3D) -> void:
 	_reparent_decal(_target)
 	_decal.position = TARGET_DECAL_OFFSET
 	_decal.visible = true
-	print("[TARGET_INDICATOR] target=%s decal_parent=%s visible=%s position=%s" % [
+	print("%s [TARGET_INDICATOR] target=%s decal_parent=%s visible=%s position=%s" % [
+		_get_log_prefix(),
 		_target_name(_target), _target_name(_decal.get_parent()), _decal.visible, _decal.position])
 
 func clear() -> void:
@@ -37,7 +39,7 @@ func clear() -> void:
 	_decal.visible = false
 	_reparent_decal(self)
 	_decal.position = Vector3.ZERO
-	print("[TARGET_INDICATOR] clear decal_parent=%s" % _target_name(_decal.get_parent()))
+	print("%s [TARGET_INDICATOR] clear decal_parent=%s" % [_get_log_prefix(), _target_name(_decal.get_parent())])
 
 func clear_if_target(target: Node) -> void:
 	if target == _target:
@@ -56,3 +58,7 @@ func _target_name(target: Node) -> String:
 	if target == null:
 		return "<null>"
 	return "%s(%s)" % [target.name, target.get_path()]
+
+
+func _get_log_prefix() -> String:
+	return "[PLAYER %d]" % multiplayer.get_unique_id()

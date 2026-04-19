@@ -17,7 +17,7 @@ var _enabled: bool = true
 func _ready() -> void:
 	_ability_db.load_all()
 	if console_output_enabled:
-		add_sink(CombatLogConsoleSink.new())
+		add_sink(CombatLogConsoleSink.new(self))
 	if _game_manager != null:
 		_connect_game_manager(_game_manager)
 

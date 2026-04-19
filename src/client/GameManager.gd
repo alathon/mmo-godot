@@ -168,11 +168,11 @@ func select_target_entity(entity_id: int) -> void:
 	var target_entity := _get_entity(entity_id) as Entity
 	var target_visual := target_entity.get_visual() if target_entity != null else null
 	if entity_id > 0 and target_visual == null:
-		print("[CLIENT_TARGET] client=%d target=%d has no visual node for indicator" % [
-			get_local_player_id(), entity_id])
+		print("%s [CLIENT_TARGET] client=%d target=%d has no visual node for indicator" % [
+			_get_log_prefix(), get_local_player_id(), entity_id])
 	_target_indicator.set_target(target_visual)
 	_api.send_target_select(entity_id)
-	print("[CLIENT_TARGET] client=%d selected target=%d" % [get_local_player_id(), entity_id])
+	print("%s [CLIENT_TARGET] client=%d selected target=%d" % [_get_log_prefix(), get_local_player_id(), entity_id])
 
 func _on_world_state(diff: Proto.WorldState) -> void:
 	for entity_state in diff.get_entities():
@@ -275,17 +275,17 @@ func _dispatch_entity_event(event) -> void:
 		var payload = event.get_ability_use_started()
 		ability_use_started.emit(payload)
 		_dispatch_ability_started_to_entity(payload, event.get_tick())
-		_log_entity_event(event.get_tick(), "ability_started", payload.get_source_entity_id(), payload.get_ability_id())
+		_log_entity_event(event.get_tick(), "ability_use_started", payload.get_source_entity_id(), payload.get_ability_id())
 	elif event.has_ability_use_canceled():
 		var payload = event.get_ability_use_canceled()
 		ability_use_canceled.emit(payload)
 		_dispatch_ability_canceled_to_entity(payload, event.get_tick())
-		_log_entity_event(event.get_tick(), "ability_canceled", payload.get_source_entity_id(), payload.get_ability_id())
+		_log_entity_event(event.get_tick(), "ability_use_canceled", payload.get_source_entity_id(), payload.get_ability_id())
 	elif event.has_ability_use_completed():
 		var payload = event.get_ability_use_completed()
 		ability_use_completed.emit(payload)
 		_dispatch_ability_completed_to_entity(payload, event.get_tick())
-		_log_entity_event(event.get_tick(), "ability_completed", payload.get_source_entity_id(), payload.get_ability_id())
+		_log_entity_event(event.get_tick(), "ability_use_completed", payload.get_source_entity_id(), payload.get_ability_id())
 	elif event.has_damage_taken():
 		var payload = event.get_damage_taken()
 		damage_taken.emit(payload)
@@ -333,8 +333,8 @@ func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: Va
 			var status_name := _ability_db.get_status_name(detail_id)
 			if status_name != "":
 				resolved_detail = "%d (%s)" % [detail_id, status_name]
-	print("[CLIENT_EVENT] tick=%d event=%s entity=%d detail=%s" % [
-		tick, event_name, entity_id, resolved_detail])
+	print("%s %s [CLIENT_EVENT] event=%s entity=%d detail=%s" % [
+		_format_tick_prefix(tick), _get_log_prefix(), event_name, entity_id, resolved_detail])
 
 
 func _dispatch_ability_started_to_entity(payload, event_tick: int) -> void:
@@ -353,3 +353,20 @@ func _dispatch_ability_canceled_to_entity(payload, event_tick: int) -> void:
 	var entity := _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_canceled"):
 		entity.on_ability_canceled(payload, event_tick)
+
+
+func _get_log_prefix() -> String:
+	return "[PLAYER %d]" % get_local_player_id()
+
+
+func _format_tick_prefix(tick: int) -> String:
+	return "[TICK %d | (%s)]" % [tick, _timestamp()]
+
+
+func _timestamp() -> String:
+	var time := Time.get_time_dict_from_system()
+	return "%02d:%02d:%02d.%03d" % [
+		int(time["hour"]),
+		int(time["minute"]),
+		int(time["second"]),
+		Time.get_ticks_msec() % 1000]

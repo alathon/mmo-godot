@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://c5t8r2h0stlty" path="res://src/common/entities/DetermineHostility.gd" id="7_ijb4o"]
 [ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="8_8cp3o"]
 [ext_resource type="Script" path="res://src/client/LocalAbilityPrediction.gd" id="9_local_ability_prediction"]
-[ext_resource type="Script" uid="uid://bvcodnvlmxvdv" path="res://src/client/AbilityPresentation.gd" id="14_ability_presentation"]
+[ext_resource type="Script" path="res://src/client/AbilityEventController.gd" id="14_ability_event_controller"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ag42k"]
 radius = 0.2
@@ -50,9 +50,9 @@ metadata/_custom_type_script = "uid://vp3i6edrewfe"
 unique_name_in_owner = true
 script = ExtResource("8_8cp3o")
 
-[node name="AbilityPresentation" type="Node" parent="." unique_id=615132746]
+[node name="AbilityEventController" type="Node" parent="." unique_id=615132746]
 unique_name_in_owner = true
-script = ExtResource("14_ability_presentation")
+script = ExtResource("14_ability_event_controller")
 
 [node name="LocalAbilityPrediction" type="Node" parent="." unique_id=166000002]
 unique_name_in_owner = true

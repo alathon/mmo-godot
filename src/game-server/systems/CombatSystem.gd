@@ -350,10 +350,9 @@ func _log_ability(
 		ability_id: int,
 		entity_id: int,
 		details: Dictionary = {}) -> void:
-	var message := "[ABILITY] %s tick=%d time=%s entity=%d ability=%s" % [
+	var message := "%s [SERVER] [ABILITY] %s entity=%d ability=%s" % [
+		_format_tick_prefix(tick),
 		label,
-		tick,
-		_timestamp(),
 		entity_id,
 		ability_id]
 	for key in details:
@@ -362,12 +361,15 @@ func _log_ability(
 
 
 func _log_death(tick: int, entity_id: int, killer_entity_id: int, ability_id: int) -> void:
-	print("[COMBAT] Combatant died tick=%d time=%s entity=%d killer=%d ability=%s" % [
-		tick,
-		_timestamp(),
+	print("%s [SERVER] [COMBAT] Combatant died entity=%d killer=%d ability=%s" % [
+		_format_tick_prefix(tick),
 		entity_id,
 		killer_entity_id,
 		ability_id])
+
+
+func _format_tick_prefix(tick: int) -> String:
+	return "[TICK %d | (%s)]" % [tick, _timestamp()]
 
 
 func _timestamp() -> String:
