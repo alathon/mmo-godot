@@ -43,7 +43,7 @@ message AbilityUseAccepted {
 }
 
 message AbilityUseRejected {
-  uint32 cancel_reason = 1; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
+  uint32 cancel_reason = 1; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid, 5=insufficient_resources
   uint32 request_id = 2;
 }
 
@@ -103,7 +103,7 @@ message EntityEvent_AbilityUseStarted {
 message EntityEvent_AbilityUseCanceled {
   uint32 source_entity_id = 1;
   uint32 ability_id = 2;
-  uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
+  uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid, 5=insufficient_resources
 }
 
 message EntityEvent_AbilityUseCompleted {

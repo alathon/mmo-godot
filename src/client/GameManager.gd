@@ -146,6 +146,12 @@ func get_entity_names(entity_ids: Array) -> Dictionary:
 			names[resolved_id] = str(resolved_id)
 	return names
 
+
+func get_local_predicted_ability_id_for_request(request_id: int) -> int:
+	if _local_player != null:
+		return _local_player.get_predicted_ability_id_for_request(request_id)
+	return 0
+
 func select_target_at_screen_position(screen_position: Vector2) -> void:
 	var entity_id := _get_nearest_target_entity_id(screen_position)
 	select_target_entity(entity_id)

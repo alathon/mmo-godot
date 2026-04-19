@@ -121,7 +121,7 @@ func can_use_ability(
 	if not cooldowns.is_ready(ability.get_ability_id(), StringName(ability.cooldown_group)):
 		return AbilityValidationResult.rejected(&"cooldown_active", AbilityConstants.CANCEL_INVALID)
 	if not has_resources_for(ability):
-		return AbilityValidationResult.rejected(&"insufficient_resources", AbilityConstants.CANCEL_INVALID)
+		return AbilityValidationResult.rejected(&"insufficient_resources", AbilityConstants.CANCEL_INSUFFICIENT_RESOURCES)
 	if not is_target_legal(ability, target, context):
 		return AbilityValidationResult.rejected(&"invalid_target", AbilityConstants.CANCEL_INVALID)
 	return AbilityValidationResult.accepted()
@@ -296,12 +296,15 @@ func _complete_cast(sim_tick: int, context: AbilityExecutionContext) -> Array[En
 	var impact_tick := state.cast_impact_tick
 	var ability := _get_cast_ability(ability_id, context)
 	if ability == null or not has_resources_for(ability):
+		var cancel_reason := AbilityConstants.CANCEL_INVALID
+		if ability != null and not has_resources_for(ability):
+			cancel_reason = AbilityConstants.CANCEL_INSUFFICIENT_RESOURCES
 		if _active_scheduled_use != null:
 			_active_scheduled_use.canceled = true
 			_active_scheduled_use = null
 		state.clear_cast()
 		return [
-			EntityEvents.ability_canceled(source_entity_id, ability_id, AbilityConstants.CANCEL_INVALID)
+			EntityEvents.ability_canceled(source_entity_id, ability_id, cancel_reason)
 		]
 
 	spend_resources_for(ability)

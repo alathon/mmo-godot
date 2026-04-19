@@ -58,17 +58,17 @@ func _on_entity_event_received(event) -> void:
 func _on_ability_use_rejected(rejection) -> void:
 	if not _enabled or rejection == null:
 		return
-	var ability_id: int = rejection.get_ability_id()
+	var request_id: int = rejection.get_request_id()
+	var ability_id: int = _game_manager.get_local_predicted_ability_id_for_request(request_id) if _game_manager != null else 0
+	var ability_text := _ability_name_for_effect(ability_id) if ability_id > 0 else "cast"
 	var entry: CombatLogEntry = _new_entry(
-		rejection.get_requested_tick(),
+		0,
 		&"cast",
-		"%s failed: %s." % [
-			_ability_name(ability_id),
-			_cancel_reason_text(rejection.get_reason()),
-		],
+		"Your %s failed: %s." % [ability_text, _cancel_reason_text(rejection.get_cancel_reason())],
 		&"warning")
 	entry.source_entity_id = _game_manager.get_local_player_id() if _game_manager != null else 0
 	entry.ability_id = ability_id
+	entry.message = "%s (request %d)" % [entry.message.trim_suffix("."), request_id]
 	entry.raw_event = rejection
 	_publish_entry(entry)
 
@@ -398,5 +398,7 @@ func _cancel_reason_text(reason: int) -> String:
 			return "target died"
 		4:
 			return "invalid target"
+		5:
+			return "insufficient resources"
 		_:
 			return "canceled"

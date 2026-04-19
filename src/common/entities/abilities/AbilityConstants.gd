@@ -11,3 +11,4 @@ const CANCEL_INTERRUPTED: int = 1
 const CANCEL_STUNNED: int = 2
 const CANCEL_TARGET_DIED: int = 3
 const CANCEL_INVALID: int = 4
+const CANCEL_INSUFFICIENT_RESOURCES: int = 5

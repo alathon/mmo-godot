@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://naetria54hrc" path="res://src/client/Player/Player.gd" id="1_keeya"]
 [ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="2_0ciy7"]
 [ext_resource type="Script" uid="uid://bpd6m32l31yfn" path="res://src/client/Player/LocalInput.gd" id="2_ag42k"]
+[ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="2_eo6pr"]
 [ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="2_fhs4s"]
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_nx6lr"]
 [ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="2_y04i8"]
@@ -100,3 +101,10 @@ mesh = SubResource("CapsuleMesh_ymcag")
 unique_name_in_owner = true
 script = ExtResource("2_y04i8")
 Body = NodePath("../Body")
+
+[node name="UIAnchor" type="Node3D" parent="VisualSmoother" unique_id=1099969842]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5519361, 0)
+
+[node name="HealthBar" parent="VisualSmoother/UIAnchor" unique_id=2111706901 instance=ExtResource("2_eo6pr")]
+unique_name_in_owner = true

@@ -1,7 +1,7 @@
 class_name TargetSelectionIndicator
 extends Node
 
-const TargetDecalScene := preload("res://src/client/ui/TargetDecal.tscn")
+const TargetDecalScene := preload("res://src/client/ui/entities/TargetDecal.tscn")
 const TARGET_DECAL_OFFSET := Vector3(0, -0.95, 0)
 
 var _decal: Node3D = null

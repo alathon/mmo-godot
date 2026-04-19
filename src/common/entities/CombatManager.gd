@@ -1,9 +1,6 @@
 class_name CombatManager
 extends Node
 
-const ResolvedAbilityEffectSnapshot = preload("res://src/common/entities/abilities/ResolvedAbilityEffectSnapshot.gd")
-const ResolvedAbilityUseSnapshot = preload("res://src/common/entities/abilities/ResolvedAbilityUseSnapshot.gd")
-
 @onready var stats: Stats = %Stats
 @onready var hostility: Node = %DetermineHostility
 @onready var entity: Node = get_parent()

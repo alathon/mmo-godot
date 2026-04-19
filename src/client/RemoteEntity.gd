@@ -6,6 +6,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _interpolator: RemoteInterpolator = %RemoteInterpolator
 @onready var _ability_presentation: Node = %AbilityPresentation
 @onready var stats: Stats = %Stats
+@onready var _hp_bar: HealthBar = $UIAnchor/HealthBar
 
 var id: int
 var is_local: bool = false
@@ -35,6 +36,8 @@ func _ready() -> void:
 	set_physics_process(false)
 	set_process(false)
 	NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
+	if stats != null and _hp_bar != null:
+		_hp_bar.set_values(stats.hp, stats.max_hp)
 
 func initialize_position(pos: Vector3, rot_y: float) -> void:
 	global_position = pos
@@ -43,6 +46,8 @@ func initialize_position(pos: Vector3, rot_y: float) -> void:
 func apply_world_state(state: Proto.EntityState) -> void:
 	if stats != null:
 		stats.apply_world_state(state)
+		if _hp_bar != null:
+			_hp_bar.set_values(stats.hp, stats.max_hp)
 
 func on_ability_started(event, event_tick: int) -> void:
 	_ability_presentation.on_authoritative_ability_started(event, event_tick)

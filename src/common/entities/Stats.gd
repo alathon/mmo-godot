@@ -34,3 +34,5 @@ func apply_world_state(state: Proto.EntityState) -> void:
 	max_mana = state.get_max_mana()
 	stamina = state.get_stamina()
 	max_stamina = state.get_max_stamina()
+	
+	

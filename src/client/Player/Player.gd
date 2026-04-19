@@ -13,6 +13,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var _ability_manager: AbilityManager = %AbilityManager
 @onready var _ability_presentation: Node = %AbilityPresentation
 @onready var stats: Stats = %Stats
+@onready var _hp_bar: HealthBar = %HealthBar as HealthBar
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
@@ -32,12 +33,16 @@ func get_target_entity_id() -> int:
 func apply_world_state(state: Proto.EntityState) -> void:
 	if stats != null:
 		stats.apply_world_state(state)
+		if _hp_bar != null:
+			_hp_bar.set_values(stats.hp, stats.max_hp)
 
 func clear_target() -> void:
 	_target_state.clear_target()
 
 func _ready() -> void:
 	NetworkTime.on_tick.connect(_on_network_tick)
+	if stats != null and _hp_bar != null:
+		_hp_bar.set_values(stats.hp, stats.max_hp)
 
 func _on_network_tick(delta: float, current_tick: int) -> void:
 	if frozen:
@@ -97,6 +102,11 @@ func on_ability_accepted(ack: Proto.AbilityUseAccepted) -> void:
 
 func on_ability_rejected(rejection: Proto.AbilityUseRejected) -> void:
 	_ability_presentation.reject_ability_started(rejection)
+
+func get_predicted_ability_id_for_request(request_id: int) -> int:
+	if _ability_presentation != null and _ability_presentation.has_method("get_predicted_ability_id_for_request"):
+		return int(_ability_presentation.get_predicted_ability_id_for_request(request_id))
+	return 0
 
 func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 	_ability_presentation.on_ability_resolved(resolved)

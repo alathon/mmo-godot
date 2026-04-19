@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://bsixclqvc04lf"]
+
+[ext_resource type="Script" uid="uid://dvi642epqyx07" path="res://src/client/ui/entities/HealthBar.gd" id="1_fovqc"]
+[ext_resource type="PackedScene" uid="uid://cy0h3n5ag0klo" path="res://src/client/ui/entities/HealthBarComponent.tscn" id="2_1obv2"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_eo6pr"]
+viewport_path = NodePath("SubViewport")
+
+[node name="HealthBar" type="Node3D" unique_id=2065858836]
+script = ExtResource("1_fovqc")
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1682910804]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(260, 40)
+
+[node name="HealthBar" parent="SubViewport" unique_id=845497441 instance=ExtResource("2_1obv2")]
+
+[node name="HealthBarSprite" type="Sprite3D" parent="." unique_id=1801285399]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0)
+billboard = 1
+texture = SubResource("ViewportTexture_eo6pr")

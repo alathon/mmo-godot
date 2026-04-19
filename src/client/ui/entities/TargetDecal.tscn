@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dwycdnj18unbc"]
 
 [ext_resource type="Texture2D" uid="uid://0jvl5khxd382" path="res://assets/effects/target_decal.png" id="1_hpo51"]
-[ext_resource type="Script" uid="uid://ca3x4po0qcrb2" path="res://src/client/ui/TargetDecal.gd" id="1_saji2"]
+[ext_resource type="Script" uid="uid://ca3x4po0qcrb2" path="res://src/client/ui/entities/TargetDecal.gd" id="1_saji2"]
 
 [node name="TargetDecal" type="Node3D" unique_id=2120811344]
 script = ExtResource("1_saji2")

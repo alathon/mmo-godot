@@ -129,6 +129,12 @@ func on_authoritative_ability_canceled(event, _event_tick: int) -> void:
 		_clear_prediction()
 
 
+func get_predicted_ability_id_for_request(request_id: int) -> int:
+	if _matches_prediction(request_id):
+		return _predicted_ability_id
+	return 0
+
+
 func _matches_prediction(request_id: int) -> bool:
 	return request_id > 0 and _predicted_request_id == request_id
 
