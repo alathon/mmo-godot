@@ -114,7 +114,7 @@ func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 		_local_player = (load("res://src/client/Player/BotPlayer.tscn")).instantiate() as Player
 	else:
 		_local_player = LocalPlayerScene.instantiate() as Player
-	
+
 	_zone_container.add_entity(_local_player)
 	_local_player.setCharacterModel("Wizard")
 	_local_player.name = "LocalPlayer"
@@ -178,7 +178,7 @@ func _on_world_positions(diff: Proto.WorldPositions) -> void:
 	var local_id := multiplayer.get_unique_id() # TODO: Are we sure it should be the unique ID from this node?? Feels iffy.
 	var tick: int = diff.get_tick()
 	_clock_new.on_world_positions_tick(tick)
-	
+
 	var seen_ids := {}
 	for entity in diff.get_entities():
 		var id := entity.get_entity_id()
@@ -291,8 +291,8 @@ func _dispatch_entity_event(event) -> void:
 
 
 func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: Variant) -> void:
-	if not _debug:
-		return
+	# if not _debug:
+	# 	return
 	var resolved_detail := str(detail)
 	if detail is int:
 		var detail_id := int(detail)

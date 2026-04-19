@@ -2,9 +2,6 @@ class_name CombatSystem
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
-const ResolvedAbilityEffectSnapshot = preload("res://src/common/entities/abilities/ResolvedAbilityEffectSnapshot.gd")
-const ResolvedAbilityUseSnapshot = preload("res://src/common/entities/abilities/ResolvedAbilityUseSnapshot.gd")
-const ScheduledAbilityUse = preload("res://src/common/entities/abilities/ScheduledAbilityUse.gd")
 
 var _zone: Node = null
 var _targeting: CombatTargeting = null
