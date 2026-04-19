@@ -132,6 +132,20 @@ func get_local_player_id() -> int:
 func get_entity_by_id(entity_id: int) -> Node:
 	return _get_entity(entity_id)
 
+
+func get_entity_names(entity_ids: Array) -> Dictionary:
+	var names := {}
+	for entity_id in entity_ids:
+		var resolved_id := int(entity_id)
+		if resolved_id <= 0:
+			continue
+		var entity := _get_entity(resolved_id)
+		if entity != null and is_instance_valid(entity) and not entity.name.is_empty():
+			names[resolved_id] = entity.name
+		else:
+			names[resolved_id] = str(resolved_id)
+	return names
+
 func select_target_at_screen_position(screen_position: Vector2) -> void:
 	var entity_id := _get_nearest_target_entity_id(screen_position)
 	select_target_entity(entity_id)

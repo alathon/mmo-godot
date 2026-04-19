@@ -76,9 +76,10 @@ func _on_ability_use_rejected(rejection) -> void:
 func _entry_from_world_state_event(event) -> CombatLogEntry:
 	var tick: int = event.get_tick()
 	var primary_entity_id: int = _event_entity_id(event)
-	var primary_entity: Node = _entity_node(primary_entity_id)
-	var primary_is_local: bool = primary_entity != null and bool(primary_entity.get("is_local"))
-	var primary_name: String = _entity_name(primary_entity, primary_entity_id, primary_is_local)
+	var entity_ids: Array = _event_entity_ids(event)
+	var entity_names: Dictionary = _game_manager.get_entity_names(entity_ids) if _game_manager != null else {}
+	var primary_is_local: bool = _is_local_id(primary_entity_id)
+	var primary_name: String = _entity_name(entity_names, primary_entity_id, primary_is_local)
 	if event.has_ability_use_started():
 		var payload = event.get_ability_use_started()
 		var ability_name := _ability_name(payload.get_ability_id())
@@ -121,7 +122,7 @@ func _entry_from_world_state_event(event) -> CombatLogEntry:
 			"%s %s %s for %d." % [
 				_possessive_entity_name(primary_name, primary_is_local),
 				_ability_name_for_effect(payload.get_ability_id()),
-				_verb_for_target_hit(_entity_object_name(payload.get_target_entity_id())),
+				_verb_for_target_hit(_entity_object_name(entity_names, payload.get_target_entity_id())),
 				int(round(payload.get_amount())),
 			],
 			&"important")
@@ -139,7 +140,7 @@ func _entry_from_world_state_event(event) -> CombatLogEntry:
 			"%s %s %s for %d." % [
 				_possessive_entity_name(primary_name, primary_is_local),
 				_ability_name_for_effect(payload.get_ability_id()),
-				_verb_for_target_heal(_entity_object_name(payload.get_target_entity_id())),
+				_verb_for_target_heal(_entity_object_name(entity_names, payload.get_target_entity_id())),
 				int(round(payload.get_amount())),
 			])
 		entry.source_entity_id = payload.get_source_entity_id()
@@ -212,7 +213,7 @@ func _entry_from_world_state_event(event) -> CombatLogEntry:
 		return entry
 	if event.has_combatant_died():
 		var payload = event.get_combatant_died()
-		var killer_name := str(payload.get_killer_entity_id()) if payload.get_killer_entity_id() > 0 else "Unknown"
+		var killer_name := _entity_name(entity_names, payload.get_killer_entity_id(), _is_local_id(payload.get_killer_entity_id())) if payload.get_killer_entity_id() > 0 else "Unknown"
 		var entry: CombatLogEntry = _new_entry(
 			tick,
 			&"death",
@@ -253,20 +254,18 @@ func _new_entry(
 	return entry
 
 
-func _entity_name(entity: Node, entity_id: int, is_local: bool) -> String:
-	if entity == null:
-		return str(entity_id) if entity_id > 0 else "Unknown"
+func _entity_name(entity_names: Dictionary, entity_id: int, is_local: bool) -> String:
+	if entity_id <= 0:
+		return "Unknown"
 	if is_local:
 		return "You"
-	if not entity.name.is_empty():
-		return entity.name
-	return str(entity_id)
+	return str(entity_names.get(entity_id, str(entity_id)))
 
 
-func _entity_object_name(entity_id: int) -> String:
+func _entity_object_name(entity_names: Dictionary, entity_id: int) -> String:
 	if _is_local_id(entity_id):
 		return "you"
-	return str(entity_id)
+	return _entity_name(entity_names, entity_id, false)
 
 
 func _possessive_entity_name(entity_name: String, is_local: bool) -> String:
@@ -290,16 +289,7 @@ func _verb_for_target_heal(target_name: String) -> String:
 
 
 func _is_local_id(entity_id: int) -> bool:
-	return _game_manager != null and entity_id == _game_manager.get_local_player_id()
-
-
-func _entity_node(entity_id: int) -> Node:
-	if entity_id <= 0 or _game_manager == null:
-		return null
-	var entity = _game_manager.get_entity_by_id(entity_id)
-	if entity == null or not is_instance_valid(entity):
-		return null
-	return entity
+	return entity_id > 0 and entity_id == multiplayer.get_unique_id()
 
 
 func _event_entity_id(event) -> int:
@@ -328,6 +318,54 @@ func _event_entity_id(event) -> int:
 	if event.has_combatant_died():
 		return event.get_combatant_died().get_entity_id()
 	return 0
+
+
+func _event_entity_ids(event) -> Array:
+	var ids: Array = []
+	if event == null:
+		return ids
+	if event.has_ability_use_started():
+		var payload = event.get_ability_use_started()
+		_append_entity_id(ids, payload.get_source_entity_id())
+		_append_entity_id(ids, payload.get_target_entity_id())
+	elif event.has_ability_use_canceled():
+		_append_entity_id(ids, event.get_ability_use_canceled().get_source_entity_id())
+	elif event.has_ability_use_completed():
+		_append_entity_id(ids, event.get_ability_use_completed().get_source_entity_id())
+	elif event.has_damage_taken():
+		var payload = event.get_damage_taken()
+		_append_entity_id(ids, payload.get_source_entity_id())
+		_append_entity_id(ids, payload.get_target_entity_id())
+	elif event.has_healing_received():
+		var payload = event.get_healing_received()
+		_append_entity_id(ids, payload.get_source_entity_id())
+		_append_entity_id(ids, payload.get_target_entity_id())
+	elif event.has_buff_applied():
+		var payload = event.get_buff_applied()
+		_append_entity_id(ids, payload.get_source_entity_id())
+		_append_entity_id(ids, payload.get_target_entity_id())
+	elif event.has_debuff_applied():
+		var payload = event.get_debuff_applied()
+		_append_entity_id(ids, payload.get_source_entity_id())
+		_append_entity_id(ids, payload.get_target_entity_id())
+	elif event.has_status_effect_removed():
+		_append_entity_id(ids, event.get_status_effect_removed().get_entity_id())
+	elif event.has_combat_started():
+		var payload = event.get_combat_started()
+		_append_entity_id(ids, payload.get_entity_id())
+		_append_entity_id(ids, payload.get_source_entity_id())
+	elif event.has_combat_ended():
+		_append_entity_id(ids, event.get_combat_ended().get_entity_id())
+	elif event.has_combatant_died():
+		var payload = event.get_combatant_died()
+		_append_entity_id(ids, payload.get_entity_id())
+		_append_entity_id(ids, payload.get_killer_entity_id())
+	return ids
+
+
+func _append_entity_id(ids: Array, entity_id: int) -> void:
+	if entity_id > 0 and not ids.has(entity_id):
+		ids.append(entity_id)
 
 
 func _ability_name(ability_id: int) -> String:
