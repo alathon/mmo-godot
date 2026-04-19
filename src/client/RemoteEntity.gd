@@ -8,6 +8,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var stats: Stats = %Stats
 
 var id: int
+var is_local: bool = false
 
 # Mimic CharacterBody3D-exposed things
 var velocity: Vector3 = Vector3.ZERO

@@ -119,6 +119,7 @@ func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	_local_player.setCharacterModel("Wizard")
 	_local_player.name = "LocalPlayer"
 	_local_player.id = multiplayer.get_unique_id()
+	_local_player.is_local = true
 	var body = _local_player.get_node("Body");
 	body.position = pos
 	body.rotation.y = rot_y
@@ -126,6 +127,10 @@ func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 
 func get_local_player_id() -> int:
 	return multiplayer.get_unique_id()
+
+
+func get_entity_by_id(entity_id: int) -> Node:
+	return _get_entity(entity_id)
 
 func select_target_at_screen_position(screen_position: Vector2) -> void:
 	var entity_id := _get_nearest_target_entity_id(screen_position)
@@ -163,6 +168,7 @@ func _spawn_remote_player(id: int, pos: Vector3, rot_y: float) -> void:
 	_zone_container.add_entity(node)
 	node.name = "RemotePlayer_%d" % id
 	node.id = id
+	node.is_local = false
 	_remote_players[id] = node
 	node.initialize_position(pos, rot_y)
 	node.setCharacterModel("Wizard")  # TODO: Get model name from server

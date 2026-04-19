@@ -21,6 +21,7 @@ var _next_ability_request_id: int = 1
 
 var frozen: bool = true
 var id: int
+var is_local: bool = false
 
 func set_target_entity_id(entity_id: int) -> void:
 	_target_state.set_target_entity_id(entity_id)
