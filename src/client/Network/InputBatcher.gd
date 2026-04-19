@@ -28,7 +28,7 @@ func queue_input(
 		jump_pressed: bool,
 		rot_y: float,
 		tick: int,
-		ability_id: String = "",
+		ability_id: int = 0,
 		target_entity_id: int = 0,
 		ground_position: Vector3 = Vector3.ZERO,
 		ability_request_id: int = 0) -> void:
@@ -62,7 +62,7 @@ func _flush() -> void:
 	for entry in _current_batch:
 		_add_input(batch, entry)
 
-	var has_input := _current_batch.any(func(e): return e["input_x"] != 0.0 or e["input_z"] != 0.0 or e["jump_pressed"] or e.get("ability_id", "") != "")
+	var has_input := _current_batch.any(func(e): return e["input_x"] != 0.0 or e["input_z"] != 0.0 or e["jump_pressed"] or int(e.get("ability_id", 0)) > 0)
 	if has_input and (_debug or _timing_debug):
 		var ticks := _current_batch.map(func(e): return e["tick"])
 		var estimated_server_tick := -1
@@ -93,8 +93,8 @@ func _add_input(batch: Proto.InputBatch, entry: Dictionary) -> void:
 	input.set_jump_pressed(entry["jump_pressed"])
 	input.set_rot_y(entry["rot_y"])
 	input.set_tick(entry["tick"])
-	var ability_id := String(entry.get("ability_id", ""))
-	if ability_id != "":
+	var ability_id := int(entry.get("ability_id", 0))
+	if ability_id > 0:
 		var ability_input = input.new_ability_input()
 		var ground_position := entry.get("ground_position", Vector3.ZERO) as Vector3
 		var target_entity_id := int(entry.get("target_entity_id", 0))

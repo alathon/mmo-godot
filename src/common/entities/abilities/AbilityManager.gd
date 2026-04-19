@@ -1,8 +1,6 @@
 class_name AbilityManager
 extends Node
 
-const ScheduledAbilityUse = preload("res://src/common/entities/abilities/ScheduledAbilityUse.gd")
-
 @onready var state: AbilityState = %AbilityState
 @onready var cooldowns: AbilityCooldowns = %AbilityCooldowns
 @onready var stats: Stats = %Stats
@@ -38,11 +36,18 @@ func tick(delta: float, sim_tick: int, context: AbilityExecutionContext) -> Arra
 
 
 func use_ability(
-		ability_id: StringName,
+		ability_id: int,
 		target: AbilityTargetSpec,
 		requested_tick: int,
 		request_id: int,
 		context: AbilityExecutionContext) -> AbilityUseResult:
+	if ability_id <= 0:
+		return AbilityUseResult.rejected_result(
+				ability_id,
+				requested_tick,
+				AbilityConstants.CANCEL_INVALID,
+				[],
+				request_id)
 	if context == null or context.ability_db == null:
 		_log_ability("Reject ability (server)", 0, ability_id, 0, {
 			"request": request_id,
@@ -180,7 +185,7 @@ func get_gcd_remaining() -> float:
 	return state.gcd_remaining
 
 
-func get_cooldown_remaining(ability_id: StringName) -> float:
+func get_cooldown_remaining(ability_id: int) -> float:
 	return cooldowns.get_ability_remaining(ability_id)
 
 
@@ -318,7 +323,7 @@ func _complete_cast(sim_tick: int, context: AbilityExecutionContext) -> Array[En
 	return events
 
 
-func _get_cast_ability(ability_id: StringName, context: AbilityExecutionContext) -> AbilityResource:
+func _get_cast_ability(ability_id: int, context: AbilityExecutionContext) -> AbilityResource:
 	if context == null or context.ability_db == null:
 		return null
 	return context.ability_db.get_ability(ability_id)
@@ -456,7 +461,7 @@ func _event_ground_position(target: AbilityTargetSpec) -> Vector3:
 func _log_ability(
 		label: String,
 		tick: int,
-		ability_id: StringName,
+		ability_id: int,
 		entity_id: int,
 		details: Dictionary = {}) -> void:
 	var message := "[ABILITY] %s tick=%d time=%s entity=%d ability=%s" % [

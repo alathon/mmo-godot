@@ -5,7 +5,7 @@ const EntityEvents = preload("res://src/common/EntityEvents.gd")
 
 var accepted: bool = false
 var request_id: int = 0
-var ability_id: StringName = &""
+var ability_id: int = 0
 var requested_tick: int = 0
 var start_tick: int = 0
 var resolve_tick: int = 0
@@ -16,7 +16,7 @@ var events: Array[EntityEvents] = []
 
 
 static func accepted_result(
-		ability_id: StringName,
+		ability_id: int,
 		requested_tick: int,
 		start_tick: int,
 		events: Array[EntityEvents] = [],
@@ -38,7 +38,7 @@ static func accepted_result(
 
 
 static func rejected_result(
-		ability_id: StringName,
+		ability_id: int,
 		requested_tick: int,
 		reject_reason: int,
 		events: Array[EntityEvents] = [],
@@ -54,7 +54,7 @@ static func rejected_result(
 
 
 static func from_validation(
-		ability_id: StringName,
+		ability_id: int,
 		requested_tick: int,
 		validation: AbilityValidationResult) -> AbilityUseResult:
 	if validation != null and validation.ok:

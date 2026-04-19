@@ -5,7 +5,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 var _owner: Node = null
 var _predicted_request_id: int = 0
-var _predicted_ability_id: StringName = &""
+var _predicted_ability_id: int = 0
 var _predicted_requested_tick: int = -1
 var _predicted_target_entity_id: int = 0
 var _predicted_start_tick: int = 0
@@ -13,18 +13,20 @@ var _predicted_resolve_tick: int = 0
 var _predicted_finish_tick: int = 0
 var _predicted_impact_tick: int = 0
 var _prediction_confirmed := false
+var _ability_db: AbilityDatabase = AbilityDatabase.new()
 
 
 func _ready() -> void:
 	_owner = get_parent()
+	_ability_db.load_all()
 
 
 func predict_ability_started(
 		request_id: int,
-		ability_id: StringName,
+		ability_id: int,
 		target_entity_id: int,
 		requested_tick: int) -> void:
-	if ability_id == &"":
+	if ability_id <= 0:
 		return
 	_predicted_request_id = request_id
 	_predicted_ability_id = ability_id
@@ -63,9 +65,8 @@ func confirm_ability_started(ack: Proto.AbilityUseAccepted) -> void:
 func reject_ability_started(rejection: Proto.AbilityUseRejected) -> void:
 	if rejection == null or not _matches_prediction(rejection.get_request_id()):
 		return
-	_log_ability("Ability ACK rejected (local)", rejection.get_requested_tick(), StringName(rejection.get_ability_id()), {
+	_log_ability("Ability ACK rejected (local)", _predicted_start_tick, _predicted_ability_id, {
 		"request": rejection.get_request_id(),
-		"requested": rejection.get_requested_tick(),
 		"reason": rejection.get_cancel_reason(),
 	})
 	_clear_prediction()
@@ -74,9 +75,8 @@ func reject_ability_started(rejection: Proto.AbilityUseRejected) -> void:
 func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 	if resolved == null:
 		return
-	_log_ability("Ability resolved (local)", resolved.get_resolve_tick(), StringName(resolved.get_ability_id()), {
+	_log_ability("Ability resolved (local)", resolved.get_resolve_tick(), resolved.get_ability_id(), {
 		"request": resolved.get_request_id(),
-		"requested": resolved.get_requested_tick(),
 		"start": resolved.get_start_tick(),
 		"resolve": resolved.get_resolve_tick(),
 		"finish": resolved.get_finish_tick(),
@@ -91,7 +91,7 @@ func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 
 
 func on_authoritative_ability_started(event, event_tick: int) -> void:
-	var ability_id := StringName(event.get_ability_id())
+	var ability_id: int = event.get_ability_id()
 	if _has_active_prediction() and _matches_active_prediction(ability_id):
 		return
 	var cast_ticks := _seconds_to_ticks(event.get_cast_time())
@@ -105,7 +105,7 @@ func on_authoritative_ability_started(event, event_tick: int) -> void:
 
 
 func on_authoritative_ability_completed(event, event_tick: int) -> void:
-	var ability_id := StringName(event.get_ability_id())
+	var ability_id: int = event.get_ability_id()
 	var is_local_prediction := _matches_active_prediction(ability_id)
 	var label := "Complete ability (local)" if is_local_prediction else "Complete ability (remote player)"
 	var details := {}
@@ -124,7 +124,7 @@ func on_authoritative_ability_completed(event, event_tick: int) -> void:
 
 
 func on_authoritative_ability_canceled(event, _event_tick: int) -> void:
-	var ability_id := StringName(event.get_ability_id())
+	var ability_id: int = event.get_ability_id()
 	if _matches_active_prediction(ability_id):
 		_clear_prediction()
 
@@ -134,10 +134,10 @@ func _matches_prediction(request_id: int) -> bool:
 
 
 func _has_active_prediction() -> bool:
-	return _predicted_ability_id != &""
+	return _predicted_ability_id > 0
 
 
-func _matches_active_prediction(ability_id: StringName) -> bool:
+func _matches_active_prediction(ability_id: int) -> bool:
 	return _predicted_ability_id == ability_id
 
 
@@ -172,15 +172,18 @@ func _get_client_id() -> int:
 func _log_ability(
 		label: String,
 		tick: int,
-		ability_id: StringName,
+		ability_id: int,
 		details: Dictionary = {}) -> void:
-	var message := "[ABILITY] %s tick=%d time=%s client=%d entity=%d ability=%s" % [
+	var ability_name := _ability_db.get_ability_name(ability_id)
+	var message := "[ABILITY] %s tick=%d time=%s client=%d entity=%d ability_id=%d ability_name=%s" % [
 		label,
 		tick,
 		_timestamp(),
 		_get_client_id(),
 		_get_owner_entity_id(),
-		ability_id]
+		ability_id,
+		ability_name
+	]
 	for key in details:
 		message += " %s=%s" % [key, str(details[key])]
 	print(message)
@@ -203,7 +206,7 @@ func _timestamp() -> String:
 
 func _clear_prediction() -> void:
 	_predicted_request_id = 0
-	_predicted_ability_id = &""
+	_predicted_ability_id = 0
 	_predicted_requested_tick = -1
 	_predicted_target_entity_id = 0
 	_predicted_start_tick = 0

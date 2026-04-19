@@ -16,10 +16,10 @@ var kind: Kind = Kind.DAMAGE
 var phase: Phase = Phase.IMPACT
 var source_entity_id: int = 0
 var target_entity_id: int = 0
-var ability_id: StringName = &""
+var ability_id: int = 0
 var hit_type: int = 0
 var amount: int = 0
-var status_effect_id: StringName = &""
+var status_id: int = 0
 var duration: float = 0.0
 var is_debuff: bool = false
 var aggro_modifier: float = 1.0
@@ -28,7 +28,7 @@ var aggro_modifier: float = 1.0
 static func damage(
 		source_id: int,
 		target_id: int,
-		resolved_ability_id: StringName,
+		resolved_ability_id: int,
 		resolved_amount: int,
 		resolved_aggro_modifier: float,
 		resolved_hit_type: int = 0) -> ResolvedAbilityEffectSnapshot:
@@ -46,7 +46,7 @@ static func damage(
 static func heal(
 		source_id: int,
 		target_id: int,
-		resolved_ability_id: StringName,
+		resolved_ability_id: int,
 		resolved_amount: int,
 		resolved_aggro_modifier: float,
 		resolved_hit_type: int = 0) -> ResolvedAbilityEffectSnapshot:
@@ -64,8 +64,8 @@ static func heal(
 static func status(
 		source_id: int,
 		target_id: int,
-		resolved_ability_id: StringName,
-		status_id: StringName,
+		resolved_ability_id: int,
+		resolved_status_id: int,
 		resolved_duration: float,
 		resolved_is_debuff: bool,
 		resolved_hit_type: int = 0) -> ResolvedAbilityEffectSnapshot:
@@ -74,7 +74,7 @@ static func status(
 	effect.source_entity_id = source_id
 	effect.target_entity_id = target_id
 	effect.ability_id = resolved_ability_id
-	effect.status_effect_id = status_id
+	effect.status_id = resolved_status_id
 	effect.duration = resolved_duration
 	effect.is_debuff = resolved_is_debuff
 	effect.hit_type = resolved_hit_type

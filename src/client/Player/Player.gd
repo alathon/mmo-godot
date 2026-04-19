@@ -60,10 +60,10 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 		print("[TRACE:Player %d] t=%s tick=%d input_gathered x=%.2f z=%.2f jump=%s" % [id,
 			Globals.ts(), current_tick,
 			input["input_x"], input["input_z"], input["jump_pressed"]])
-	var ability_id := StringName(input.get("ability_id", ""))
+	var ability_id := int(input.get("ability_id", 0))
 	var target_entity_id := get_target_entity_id()
 	var ability_request_id := 0
-	if ability_id != &"":
+	if ability_id > 0:
 		ability_request_id = _next_ability_request_id
 		_next_ability_request_id += 1
 		_ability_presentation.predict_ability_started(
@@ -77,7 +77,7 @@ func _on_network_tick(delta: float, current_tick: int) -> void:
 			input["jump_pressed"],
 			_body.rotation.y,
 			current_tick,
-			input.get("ability_id", ""),
+			int(input.get("ability_id", 0)),
 			target_entity_id,
 			Vector3.ZERO,
 			ability_request_id)

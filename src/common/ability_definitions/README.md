@@ -13,7 +13,7 @@ This document describes how to design abilities using the resource-based ability
 
 1. Right-click `resources/abilities/` in the FileSystem panel.
 2. Create New Resource, pick **AbilityResource**, and save it (e.g. `fireball.tres`).
-3. Fill in the inspector fields. The filename becomes the ability's canonical ID.
+3. Fill in the inspector fields, including `ability_id` and `ability_name`.
 4. Add effects by expanding the `effects` array and picking a subclass (DamageEffect, HealEffect, etc.).
 
 ---
@@ -24,7 +24,8 @@ The top-level resource that defines a single ability. One `.tres` file per abili
 
 | Field | Type | Description |
 |---|---|---|
-| `display_name` | String | The name shown to players. |
+| `ability_id` | int | Stable numeric ability ID used in runtime state and network packets. Must be unique and greater than 0. |
+| `ability_name` | String | Human-readable ability name used for UI/logging. |
 | `group_tags` | PackedStringArray | Grouping labels for this ability (e.g. `["fire_spell", "aoe_spell"]`). Used by AbilityModifiers to target groups of abilities at once. |
 | `tags` | PackedStringArray | Descriptive tags for the ability itself (e.g. `["magic", "fire"]`). |
 | `hit_type` | PHYSICAL / MAGICAL | Determines whether the ability uses the physical hit/miss system or the magical resist system. Must be set explicitly. |
@@ -46,7 +47,7 @@ The top-level resource that defines a single ability. One `.tres` file per abili
 | `aoe_shape` | NONE / CIRCLE / CONE | The shape of the area-of-effect. Only relevant for GROUND-targeted abilities. |
 | `aoe_radius` | float | Radius (or size) of the AoE area. |
 
-**Ability ID:** The ability's ID is derived automatically from its filename. `fireball.tres` has the ID `"fireball"`. You never set this manually.
+**Ability ID:** Set `ability_id` explicitly in the resource. Keep it stable once shipped.
 
 ---
 

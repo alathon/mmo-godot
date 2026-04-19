@@ -2,6 +2,7 @@ class_name ApplyStatusEffect
 extends AbilityEffect
 
 @export var display_name: String = ""
+@export var status_id: int = 0
 @export var icon: Texture2D
 @export var is_debuff: bool = false
 @export var duration: float = 0.0           # 0 = permanent

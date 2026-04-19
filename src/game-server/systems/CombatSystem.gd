@@ -317,14 +317,12 @@ func _send_ability_resolved(resolved_use: ResolvedAbilityUseSnapshot) -> void:
 
 	var packet := Proto.Packet.new()
 	var resolved_msg := packet.new_ability_resolved()
-	resolved_msg.set_ability_id(String(resolved_use.ability_id))
-	resolved_msg.set_requested_tick(resolved_use.requested_tick)
+	resolved_msg.set_ability_id(resolved_use.ability_id)
 	resolved_msg.set_start_tick(resolved_use.start_tick)
 	resolved_msg.set_request_id(resolved_use.request_id)
 	resolved_msg.set_resolve_tick(resolved_use.resolve_tick)
 	resolved_msg.set_finish_tick(resolved_use.finish_tick)
 	resolved_msg.set_impact_tick(resolved_use.impact_tick)
-	resolved_msg.set_source_entity_id(resolved_use.source_entity_id)
 	for resolved_effect in resolved_use.effects:
 		_write_resolved_effect(resolved_msg.add_effects(), resolved_effect)
 	multiplayer.send_bytes(
@@ -339,12 +337,10 @@ func _write_resolved_effect(effect_msg, resolved_effect: ResolvedAbilityEffectSn
 		return
 	effect_msg.set_kind(resolved_effect.kind)
 	effect_msg.set_phase(resolved_effect.phase)
-	effect_msg.set_source_entity_id(resolved_effect.source_entity_id)
 	effect_msg.set_target_entity_id(resolved_effect.target_entity_id)
-	effect_msg.set_ability_id(String(resolved_effect.ability_id))
 	effect_msg.set_hit_type(resolved_effect.hit_type)
 	effect_msg.set_amount(resolved_effect.amount)
-	effect_msg.set_status_id(String(resolved_effect.status_effect_id))
+	effect_msg.set_status_id(resolved_effect.status_id)
 	effect_msg.set_duration(resolved_effect.duration)
 	effect_msg.set_is_debuff(resolved_effect.is_debuff)
 
@@ -352,7 +348,7 @@ func _write_resolved_effect(effect_msg, resolved_effect: ResolvedAbilityEffectSn
 func _log_ability(
 		label: String,
 		tick: int,
-		ability_id: StringName,
+		ability_id: int,
 		entity_id: int,
 		details: Dictionary = {}) -> void:
 	var message := "[ABILITY] %s tick=%d time=%s entity=%d ability=%s" % [
@@ -366,7 +362,7 @@ func _log_ability(
 	print(message)
 
 
-func _log_death(tick: int, entity_id: int, killer_entity_id: int, ability_id: StringName) -> void:
+func _log_death(tick: int, entity_id: int, killer_entity_id: int, ability_id: int) -> void:
 	print("[COMBAT] Combatant died tick=%d time=%s entity=%d killer=%d ability=%s" % [
 		tick,
 		_timestamp(),

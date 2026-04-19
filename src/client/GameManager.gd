@@ -40,8 +40,10 @@ var _awaiting_initial_clock_sync: bool = true
 var _local_player: Player
 var _remote_players: Dictionary[int, RemoteEntity]
 var _debug: bool = false
+var _ability_db: AbilityDatabase = AbilityDatabase.new()
 
 func _ready() -> void:
+	_ability_db.load_all()
 	if "--bot" in OS.get_cmdline_user_args():
 		BotMode = true
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
@@ -288,11 +290,16 @@ func _dispatch_entity_event(event) -> void:
 		_log_entity_event(event.get_tick(), "combatant_died", payload.get_entity_id(), "")
 
 
-func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: String) -> void:
+func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: Variant) -> void:
 	if not _debug:
 		return
+	var resolved_detail := str(detail)
+	if detail is int:
+		var ability_name := _ability_db.get_ability_name(int(detail))
+		if ability_name != "":
+			resolved_detail = "%d (%s)" % [int(detail), ability_name]
 	print("[CLIENT_EVENT] tick=%d event=%s entity=%d detail=%s" % [
-		tick, event_name, entity_id, detail])
+		tick, event_name, entity_id, resolved_detail])
 
 
 func _dispatch_ability_started_to_entity(payload, event_tick: int) -> void:

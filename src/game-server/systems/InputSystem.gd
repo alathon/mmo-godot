@@ -73,7 +73,7 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 		"input_x": input.get_input_x(),
 		"input_z": input.get_input_z(),
 		"jump_pressed": input.get_jump_pressed(),
-		"ability_id": "",
+		"ability_id": 0,
 		"ability_request_id": 0,
 		"target_entity_id": 0,
 		"ground_x": 0.0, "ground_y": 0.0, "ground_z": 0.0,
@@ -141,7 +141,7 @@ func tick(tick: int, ctx: Dictionary) -> void:
 				abs(input.get("input_x", 0.0)) <= 0.01
 				and abs(input.get("input_z", 0.0)) <= 0.01
 				and not input.get("jump_pressed", false)
-				and input.get("ability_id", "") == ""
+				and int(input.get("ability_id", 0)) == 0
 			)
 			if _timing_debug and not is_idle_replay:
 				var buffered_ticks := buf.keys()
@@ -156,7 +156,7 @@ func tick(tick: int, ctx: Dictionary) -> void:
 
 		inputs[peer_id] = input
 
-		if input.get("ability_id", "") != "":
+		if int(input.get("ability_id", 0)) > 0:
 			ability_inputs[peer_id] = {
 				"ability_id": input["ability_id"],
 				"ability_request_id": input.get("ability_request_id", 0),
@@ -171,7 +171,7 @@ func tick(tick: int, ctx: Dictionary) -> void:
 		if is_real_input:
 			state.last_input = input.duplicate()
 			state.last_input["jump_pressed"] = false
-			state.last_input["ability_id"] = ""
+			state.last_input["ability_id"] = 0
 			state.last_input["ability_request_id"] = 0
 
 	# Prune inputs older than sim_tick

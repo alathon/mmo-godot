@@ -26,7 +26,8 @@ enum VarianceProfile {
 	WEIGHTED_LOW_HIGH,
 }
 
-@export var display_name: String = ""
+@export var ability_id: int = 0
+@export var ability_name: String = ""
 @export var group_tags: PackedStringArray = []  # e.g. ["fire_spell", "aoe_spell"]; used by AbilityModifier targeting
 @export var tags: PackedStringArray = []
 @export var hit_type: HitType = HitType.MAGICAL
@@ -52,6 +53,13 @@ enum VarianceProfile {
 @export var aoe_radius: float = 0.0
 
 
-# The canonical ability ID is the resource filename without extension.
-func get_ability_id() -> StringName:
+func get_ability_id() -> int:
+	return ability_id
+
+
+func get_ability_name() -> String:
+	return ability_name
+
+
+func get_ability_key() -> StringName:
 	return StringName(resource_path.get_file().get_basename())

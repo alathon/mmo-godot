@@ -3,7 +3,7 @@ extends RefCounted
 
 var source_entity_id: int = 0
 var request_id: int = 0
-var ability_id: StringName = &""
+var ability_id: int = 0
 var requested_tick: int = 0
 var start_tick: int = 0
 var lock_tick: int = 0

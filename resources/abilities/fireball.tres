@@ -30,7 +30,8 @@ target_narrower = 1
 
 [resource]
 script = ExtResource("2_546e4")
-display_name = "Fireball"
+ability_id = 1
+ability_name = "Fireball"
 tags = ["magic", "fire"]
 cast_time = 1.5
 cast_lock_time = 1.0

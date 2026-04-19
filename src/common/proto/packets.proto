@@ -17,7 +17,7 @@ message Impulse {
 // ─── Ability Input (client → server) ───────────────────────────────────────
 
 message AbilityInput {
-  string ability_id = 1;
+  uint32 ability_id = 1;
   uint32 target_entity_id = 2; // 0 if self or ground
   float ground_x = 3;          // Only for ground target type
   float ground_y = 4;
@@ -34,20 +34,17 @@ message TargetSelect {
 // ─── Ability Accepted / Rejected (server → casting player only) ────────────
 
 message AbilityUseAccepted {
-  string ability_id = 1;
-  uint32 requested_tick = 2;
-  uint32 start_tick = 3;
-  uint32 request_id = 4;
-  uint32 resolve_tick = 5;
-  uint32 finish_tick = 6;
-  uint32 impact_tick = 7;
+  uint32 ability_id = 1;
+  uint32 start_tick = 2;
+  uint32 request_id = 3;
+  uint32 resolve_tick = 4;
+  uint32 finish_tick = 5;
+  uint32 impact_tick = 6;
 }
 
 message AbilityUseRejected {
-  string ability_id = 1;
-  uint32 requested_tick = 2;
-  uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
-  uint32 request_id = 4;
+  uint32 cancel_reason = 1; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
+  uint32 request_id = 2;
 }
 
 enum ResolvedAbilityEffectKind {
@@ -64,26 +61,22 @@ enum ResolvedAbilityEffectPhase {
 message ResolvedAbilityEffect {
   ResolvedAbilityEffectKind kind = 1;
   ResolvedAbilityEffectPhase phase = 2;
-  uint32 source_entity_id = 3;
-  uint32 target_entity_id = 4;
-  string ability_id = 5;
-  HitType hit_type = 6;
-  uint32 amount = 7;
-  string status_id = 8;
-  float duration = 9;
-  bool is_debuff = 10;
+  uint32 target_entity_id = 3;
+  HitType hit_type = 4;
+  uint32 amount = 5;
+  uint32 status_id = 6;
+  float duration = 7;
+  bool is_debuff = 8;
 }
 
 message AbilityUseResolved {
-  string ability_id = 1;
-  uint32 requested_tick = 2;
-  uint32 start_tick = 3;
-  uint32 request_id = 4;
-  uint32 resolve_tick = 5;
-  uint32 finish_tick = 6;
-  uint32 impact_tick = 7;
-  uint32 source_entity_id = 8;
-  repeated ResolvedAbilityEffect effects = 9;
+  uint32 ability_id = 1;
+  uint32 start_tick = 2;
+  uint32 request_id = 3;
+  uint32 resolve_tick = 4;
+  uint32 finish_tick = 5;
+  uint32 impact_tick = 6;
+  repeated ResolvedAbilityEffect effects = 7;
 }
 
 // ─── Entity Events (server → all clients in zone, per tick) ─────────────────
@@ -99,7 +92,7 @@ enum HitType {
 
 message EntityEvent_AbilityUseStarted {
   uint32 source_entity_id = 1;
-  string ability_id = 2;
+  uint32 ability_id = 2;
   uint32 target_entity_id = 3;
   float ground_x = 4;
   float ground_y = 5;
@@ -109,35 +102,35 @@ message EntityEvent_AbilityUseStarted {
 
 message EntityEvent_AbilityUseCanceled {
   uint32 source_entity_id = 1;
-  string ability_id = 2;
+  uint32 ability_id = 2;
   uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid
 }
 
 message EntityEvent_AbilityUseCompleted {
   uint32 source_entity_id = 1;
-  string ability_id = 2;
+  uint32 ability_id = 2;
   HitType hit_type = 3;
 }
 
 message EntityEvent_DamageTaken {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
-  string ability_id = 3;
+  uint32 ability_id = 3;
   float amount = 4;
 }
 
 message EntityEvent_HealingReceived {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
-  string ability_id = 3;
+  uint32 ability_id = 3;
   float amount = 4;
 }
 
 message EntityEvent_BuffApplied {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
-  string ability_id = 3;
-  string status_id = 4;
+  uint32 ability_id = 3;
+  uint32 status_id = 4;
   uint32 stacks = 5;
   float remaining_duration = 6; // 0 = permanent
 }
@@ -145,15 +138,15 @@ message EntityEvent_BuffApplied {
 message EntityEvent_DebuffApplied {
   uint32 source_entity_id = 1;
   uint32 target_entity_id = 2;
-  string ability_id = 3;
-  string status_id = 4;
+  uint32 ability_id = 3;
+  uint32 status_id = 4;
   uint32 stacks = 5;
   float remaining_duration = 6;
 }
 
 message EntityEvent_StatusEffectRemoved {
   uint32 entity_id = 1;
-  string status_id = 2;
+  uint32 status_id = 2;
   uint32 remove_reason = 3; // 0=expired, 1=dispelled, 2=consumed
 }
 
@@ -189,7 +182,7 @@ message EntityEvent {
 }
 
 message StatusEffectState {
-  string status_id = 1;
+  uint32 status_id = 1;
   uint32 source_entity_id = 2;
   uint32 stacks = 3;
   float remaining_duration = 4; // 0 = permanent

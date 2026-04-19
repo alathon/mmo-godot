@@ -3,14 +3,14 @@ extends RefCounted
 
 var source_entity_id: int = 0
 var request_id: int = 0
-var ability_id: StringName = &""
+var ability_id: int = 0
 var target: AbilityTargetSpec = null
 var requested_tick: int = 0
 
 
 static func create(
 		source_entity_id: int,
-		ability_id: StringName,
+		ability_id: int,
 		target: AbilityTargetSpec,
 		requested_tick: int,
 		request_id: int = 0) -> AbilityUseRequest:

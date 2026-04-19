@@ -3,7 +3,7 @@ extends RefCounted
 
 var source_entity_id: int = 0
 var request_id: int = 0
-var ability_id: StringName = &""
+var ability_id: int = 0
 var target: AbilityTargetSpec = null
 var requested_tick: int = 0
 var start_tick: int = 0
@@ -19,7 +19,7 @@ var resolved_use: RefCounted = null
 
 static func create(
 		source_id: int,
-		impact_ability_id: StringName,
+		impact_ability_id: int,
 		target_spec: AbilityTargetSpec,
 		original_requested_tick: int,
 		original_start_tick: int,

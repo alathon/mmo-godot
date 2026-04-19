@@ -21,7 +21,7 @@ func tick(delta: float) -> void:
 			_group[group_id] = remaining
 
 
-func is_ready(ability_id: StringName, cooldown_group: StringName) -> bool:
+func is_ready(ability_id: int, cooldown_group: StringName) -> bool:
 	if get_ability_remaining(ability_id) > 0.0:
 		return false
 	if cooldown_group != &"" and get_group_remaining(cooldown_group) > 0.0:
@@ -29,7 +29,7 @@ func is_ready(ability_id: StringName, cooldown_group: StringName) -> bool:
 	return true
 
 
-func start(ability_id: StringName, cooldown: float, cooldown_group: StringName) -> void:
+func start(ability_id: int, cooldown: float, cooldown_group: StringName) -> void:
 	if cooldown <= 0.0:
 		return
 	_ability[ability_id] = cooldown
@@ -37,13 +37,13 @@ func start(ability_id: StringName, cooldown: float, cooldown_group: StringName) 
 		_group[cooldown_group] = cooldown
 
 
-func cancel(ability_id: StringName, cooldown_group: StringName) -> void:
+func cancel(ability_id: int, cooldown_group: StringName) -> void:
 	_ability.erase(ability_id)
 	if cooldown_group != &"":
 		_group.erase(cooldown_group)
 
 
-func get_ability_remaining(ability_id: StringName) -> float:
+func get_ability_remaining(ability_id: int) -> float:
 	return _ability.get(ability_id, 0.0)
 
 

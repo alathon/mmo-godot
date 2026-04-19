@@ -35,8 +35,8 @@ func handle_ability_input(entity_id: int, input: Dictionary, sim_tick: int) -> v
 	if manager == null:
 		return
 
-	var ability_id := StringName(input.get("ability_id", ""))
-	if ability_id == &"":
+	var ability_id := int(input.get("ability_id", 0))
+	if ability_id <= 0:
 		return
 
 	var target := _target_spec_from_input(input)
@@ -135,8 +135,7 @@ func _flush_ack_queue() -> void:
 		var packet := Proto.Packet.new()
 		if result.accepted:
 			var accepted = packet.new_ability_accepted()
-			accepted.set_ability_id(String(result.ability_id))
-			accepted.set_requested_tick(result.requested_tick)
+			accepted.set_ability_id(result.ability_id)
 			accepted.set_start_tick(result.start_tick)
 			accepted.set_request_id(result.request_id)
 			accepted.set_resolve_tick(result.resolve_tick)
@@ -144,8 +143,6 @@ func _flush_ack_queue() -> void:
 			accepted.set_impact_tick(result.impact_tick)
 		else:
 			var rejected = packet.new_ability_rejected()
-			rejected.set_ability_id(String(result.ability_id))
-			rejected.set_requested_tick(result.requested_tick)
 			rejected.set_cancel_reason(result.reject_reason)
 			rejected.set_request_id(result.request_id)
 		multiplayer.send_bytes(packet.to_bytes(), entity_id, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
