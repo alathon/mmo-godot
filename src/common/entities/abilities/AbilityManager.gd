@@ -201,7 +201,6 @@ func cancel_casting(reason: int, context: AbilityExecutionContext) -> Array[Enti
 		"lock": state.cast_lock_tick,
 		"finish": state.cast_finish_tick,
 	})
-	_cancel_cast_cooldown(ability_id, context)
 	if _active_scheduled_use != null:
 		_active_scheduled_use.canceled = true
 		_active_scheduled_use = null
@@ -254,7 +253,7 @@ func _start_cast(request: AbilityUseRequest, ability: AbilityResource, sim_tick:
 
 	_apply_gcd(ability)
 	state.anim_lock_remaining = AbilityConstants.ANIMATION_LOCK_DURATION
-	_apply_cooldown(ability)
+	_apply_internal_cooldown_if_needed(ability)
 	_log_ability("Start casting (server)", sim_tick, request.ability_id, request.source_entity_id, {
 		"request": request.request_id,
 		"requested": request.requested_tick,
@@ -301,6 +300,7 @@ func _complete_cast(sim_tick: int, context: AbilityExecutionContext) -> Array[En
 		]
 
 	spend_resources_for(ability)
+	_apply_cooldown(ability)
 	_log_ability("Complete ability (server)", sim_tick, ability_id, source_entity_id, {
 		"request": request_id,
 		"requested": requested_tick,
@@ -410,16 +410,13 @@ func _apply_cooldown(ability: AbilityResource) -> void:
 	cooldowns.start(ability.get_ability_id(), ability.cooldown, StringName(ability.cooldown_group))
 
 
-func _cancel_cooldown(ability: AbilityResource) -> void:
-	if ability == null:
+func _apply_internal_cooldown_if_needed(ability: AbilityResource) -> void:
+	if ability == null or ability.cast_time > 0.0:
 		return
-	cooldowns.cancel(ability.get_ability_id(), StringName(ability.cooldown_group))
-
-
-func _cancel_cast_cooldown(ability_id: StringName, context: AbilityExecutionContext) -> void:
-	var ability := _get_cast_ability(ability_id, context)
-	if ability != null:
-		_cancel_cooldown(ability)
+	cooldowns.start(
+			ability.get_ability_id(),
+			AbilityConstants.INTERNAL_COOLDOWN_DURATION,
+			StringName(ability.cooldown_group))
 
 
 func _seconds_to_ticks(seconds: float) -> int:

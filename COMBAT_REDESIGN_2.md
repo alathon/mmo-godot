@@ -8,7 +8,7 @@
 - [x] Replace `CompletedAbilityUse` with scheduled impact application at `impact_tick`.
 - [x] Add `ScheduledAbilityUse` with `resolve_tick`, add `ResolvedAbilityUse` / `ResolvedAbilityEffect` snapshots, and send `AbilityUseResolved` when effects are known.
 - [x] Add `ApplicationPhase.EARLY` and `cast_locked` behavior.
-- [ ] Split `cooldown` into instant internal cooldown semantics vs cast-time behavior.
+- [x] Split `cooldown` into instant internal cooldown semantics vs cast-time behavior.
 
 Here is how I’d reshape the current system to match that model.
 

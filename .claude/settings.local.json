@@ -26,7 +26,8 @@
       "Bash(cmd.exe /c \"netstat -ano | findstr \"\"7000 7001 9000\"\"\")",
       "Bash(cmd.exe /c \"taskkill /PID 27856 /PID 14036 /PID 3192 /F\")",
       "mcp__godot-mcp-win__godot_validate_script",
-      "mcp__godot-mcp-win__godot_get_editor_errors"
+      "mcp__godot-mcp-win__godot_get_editor_errors",
+      "mcp__godot-mcp-win__godot_*"
     ]
   }
 }
