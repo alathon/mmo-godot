@@ -1548,27 +1548,32 @@ class EntityEvent_AbilityUseStarted:
 		service.field = __ability_id
 		data[__ability_id.tag] = service
 		
-		__target_entity_id = PBField.new("target_entity_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		__request_id = PBField.new("request_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __request_id
+		data[__request_id.tag] = service
+		
+		__target_entity_id = PBField.new("target_entity_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = __target_entity_id
 		data[__target_entity_id.tag] = service
 		
-		__ground_x = PBField.new("ground_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		__ground_x = PBField.new("ground_x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
 		service = PBServiceField.new()
 		service.field = __ground_x
 		data[__ground_x.tag] = service
 		
-		__ground_y = PBField.new("ground_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		__ground_y = PBField.new("ground_y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
 		service = PBServiceField.new()
 		service.field = __ground_y
 		data[__ground_y.tag] = service
 		
-		__ground_z = PBField.new("ground_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		__ground_z = PBField.new("ground_z", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
 		service = PBServiceField.new()
 		service.field = __ground_z
 		data[__ground_z.tag] = service
 		
-		__cast_time = PBField.new("cast_time", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
+		__cast_time = PBField.new("cast_time", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT])
 		service = PBServiceField.new()
 		service.field = __cast_time
 		data[__cast_time.tag] = service
@@ -1601,6 +1606,19 @@ class EntityEvent_AbilityUseStarted:
 	func set_ability_id(value : int) -> void:
 		__ability_id.value = value
 	
+	var __request_id: PBField
+	func has_request_id() -> bool:
+		if __request_id.value != null:
+			return true
+		return false
+	func get_request_id() -> int:
+		return __request_id.value
+	func clear_request_id() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__request_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_request_id(value : int) -> void:
+		__request_id.value = value
+	
 	var __target_entity_id: PBField
 	func has_target_entity_id() -> bool:
 		if __target_entity_id.value != null:
@@ -1609,7 +1627,7 @@ class EntityEvent_AbilityUseStarted:
 	func get_target_entity_id() -> int:
 		return __target_entity_id.value
 	func clear_target_entity_id() -> void:
-		data[3].state = PB_SERVICE_STATE.UNFILLED
+		data[4].state = PB_SERVICE_STATE.UNFILLED
 		__target_entity_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_target_entity_id(value : int) -> void:
 		__target_entity_id.value = value
@@ -1622,7 +1640,7 @@ class EntityEvent_AbilityUseStarted:
 	func get_ground_x() -> float:
 		return __ground_x.value
 	func clear_ground_x() -> void:
-		data[4].state = PB_SERVICE_STATE.UNFILLED
+		data[5].state = PB_SERVICE_STATE.UNFILLED
 		__ground_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_ground_x(value : float) -> void:
 		__ground_x.value = value
@@ -1635,7 +1653,7 @@ class EntityEvent_AbilityUseStarted:
 	func get_ground_y() -> float:
 		return __ground_y.value
 	func clear_ground_y() -> void:
-		data[5].state = PB_SERVICE_STATE.UNFILLED
+		data[6].state = PB_SERVICE_STATE.UNFILLED
 		__ground_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_ground_y(value : float) -> void:
 		__ground_y.value = value
@@ -1648,7 +1666,7 @@ class EntityEvent_AbilityUseStarted:
 	func get_ground_z() -> float:
 		return __ground_z.value
 	func clear_ground_z() -> void:
-		data[6].state = PB_SERVICE_STATE.UNFILLED
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__ground_z.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_ground_z(value : float) -> void:
 		__ground_z.value = value
@@ -1661,7 +1679,7 @@ class EntityEvent_AbilityUseStarted:
 	func get_cast_time() -> float:
 		return __cast_time.value
 	func clear_cast_time() -> void:
-		data[7].state = PB_SERVICE_STATE.UNFILLED
+		data[8].state = PB_SERVICE_STATE.UNFILLED
 		__cast_time.value = DEFAULT_VALUES_3[PB_DATA_TYPE.FLOAT]
 	func set_cast_time(value : float) -> void:
 		__cast_time.value = value
@@ -1706,6 +1724,11 @@ class EntityEvent_AbilityUseCanceled:
 		service.field = __cancel_reason
 		data[__cancel_reason.tag] = service
 		
+		__request_id = PBField.new("request_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __request_id
+		data[__request_id.tag] = service
+		
 	var data = {}
 	
 	var __source_entity_id: PBField
@@ -1747,6 +1770,19 @@ class EntityEvent_AbilityUseCanceled:
 	func set_cancel_reason(value : int) -> void:
 		__cancel_reason.value = value
 	
+	var __request_id: PBField
+	func has_request_id() -> bool:
+		if __request_id.value != null:
+			return true
+		return false
+	func get_request_id() -> int:
+		return __request_id.value
+	func clear_request_id() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		__request_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_request_id(value : int) -> void:
+		__request_id.value = value
+	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
 		
@@ -1768,7 +1804,7 @@ class EntityEvent_AbilityUseCanceled:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
-class EntityEvent_AbilityUseCompleted:
+class EntityEvent_AbilityUseFinished:
 	func _init():
 		var service
 		
@@ -1782,10 +1818,10 @@ class EntityEvent_AbilityUseCompleted:
 		service.field = __ability_id
 		data[__ability_id.tag] = service
 		
-		__hit_type = PBField.new("hit_type", PB_DATA_TYPE.ENUM, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM])
+		__request_id = PBField.new("request_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
-		service.field = __hit_type
-		data[__hit_type.tag] = service
+		service.field = __request_id
+		data[__request_id.tag] = service
 		
 	var data = {}
 	
@@ -1815,18 +1851,99 @@ class EntityEvent_AbilityUseCompleted:
 	func set_ability_id(value : int) -> void:
 		__ability_id.value = value
 	
-	var __hit_type: PBField
-	func has_hit_type() -> bool:
-		if __hit_type.value != null:
+	var __request_id: PBField
+	func has_request_id() -> bool:
+		if __request_id.value != null:
 			return true
 		return false
-	func get_hit_type():
-		return __hit_type.value
-	func clear_hit_type() -> void:
+	func get_request_id() -> int:
+		return __request_id.value
+	func clear_request_id() -> void:
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__hit_type.value = DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM]
-	func set_hit_type(value) -> void:
-		__hit_type.value = value
+		__request_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_request_id(value : int) -> void:
+		__request_id.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class EntityEvent_AbilityUseImpact:
+	func _init():
+		var service
+		
+		__source_entity_id = PBField.new("source_entity_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __source_entity_id
+		data[__source_entity_id.tag] = service
+		
+		__ability_id = PBField.new("ability_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __ability_id
+		data[__ability_id.tag] = service
+		
+		__request_id = PBField.new("request_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = __request_id
+		data[__request_id.tag] = service
+		
+	var data = {}
+	
+	var __source_entity_id: PBField
+	func has_source_entity_id() -> bool:
+		if __source_entity_id.value != null:
+			return true
+		return false
+	func get_source_entity_id() -> int:
+		return __source_entity_id.value
+	func clear_source_entity_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		__source_entity_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_source_entity_id(value : int) -> void:
+		__source_entity_id.value = value
+	
+	var __ability_id: PBField
+	func has_ability_id() -> bool:
+		if __ability_id.value != null:
+			return true
+		return false
+	func get_ability_id() -> int:
+		return __ability_id.value
+	func clear_ability_id() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__ability_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_ability_id(value : int) -> void:
+		__ability_id.value = value
+	
+	var __request_id: PBField
+	func has_request_id() -> bool:
+		if __request_id.value != null:
+			return true
+		return false
+	func get_request_id() -> int:
+		return __request_id.value
+	func clear_request_id() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__request_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_request_id(value : int) -> void:
+		__request_id.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -2590,55 +2707,61 @@ class EntityEvent:
 		service.func_ref = Callable(self, "new_ability_use_canceled")
 		data[__ability_use_canceled.tag] = service
 		
-		__ability_use_completed = PBField.new("ability_use_completed", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__ability_use_finished = PBField.new("ability_use_finished", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
-		service.field = __ability_use_completed
-		service.func_ref = Callable(self, "new_ability_use_completed")
-		data[__ability_use_completed.tag] = service
+		service.field = __ability_use_finished
+		service.func_ref = Callable(self, "new_ability_use_finished")
+		data[__ability_use_finished.tag] = service
 		
-		__damage_taken = PBField.new("damage_taken", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__ability_use_impact = PBField.new("ability_use_impact", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = __ability_use_impact
+		service.func_ref = Callable(self, "new_ability_use_impact")
+		data[__ability_use_impact.tag] = service
+		
+		__damage_taken = PBField.new("damage_taken", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = __damage_taken
 		service.func_ref = Callable(self, "new_damage_taken")
 		data[__damage_taken.tag] = service
 		
-		__healing_received = PBField.new("healing_received", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__healing_received = PBField.new("healing_received", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = __healing_received
 		service.func_ref = Callable(self, "new_healing_received")
 		data[__healing_received.tag] = service
 		
-		__buff_applied = PBField.new("buff_applied", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__buff_applied = PBField.new("buff_applied", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = __buff_applied
 		service.func_ref = Callable(self, "new_buff_applied")
 		data[__buff_applied.tag] = service
 		
-		__debuff_applied = PBField.new("debuff_applied", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__debuff_applied = PBField.new("debuff_applied", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 9, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = __debuff_applied
 		service.func_ref = Callable(self, "new_debuff_applied")
 		data[__debuff_applied.tag] = service
 		
-		__status_effect_removed = PBField.new("status_effect_removed", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 9, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__status_effect_removed = PBField.new("status_effect_removed", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 10, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = __status_effect_removed
 		service.func_ref = Callable(self, "new_status_effect_removed")
 		data[__status_effect_removed.tag] = service
 		
-		__combatant_died = PBField.new("combatant_died", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 10, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__combatant_died = PBField.new("combatant_died", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 11, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = __combatant_died
 		service.func_ref = Callable(self, "new_combatant_died")
 		data[__combatant_died.tag] = service
 		
-		__combat_started = PBField.new("combat_started", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 11, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__combat_started = PBField.new("combat_started", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 12, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = __combat_started
 		service.func_ref = Callable(self, "new_combat_started")
 		data[__combat_started.tag] = service
 		
-		__combat_ended = PBField.new("combat_ended", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 12, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		__combat_ended = PBField.new("combat_ended", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 13, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = __combat_ended
 		service.func_ref = Callable(self, "new_combat_ended")
@@ -2673,24 +2796,26 @@ class EntityEvent:
 		data[2].state = PB_SERVICE_STATE.FILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_started.value = EntityEvent_AbilityUseStarted.new()
 		return __ability_use_started.value
 	
@@ -2708,61 +2833,102 @@ class EntityEvent:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		data[3].state = PB_SERVICE_STATE.FILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = EntityEvent_AbilityUseCanceled.new()
 		return __ability_use_canceled.value
 	
-	var __ability_use_completed: PBField
-	func has_ability_use_completed() -> bool:
-		if __ability_use_completed.value != null:
+	var __ability_use_finished: PBField
+	func has_ability_use_finished() -> bool:
+		if __ability_use_finished.value != null:
 			return true
 		return false
-	func get_ability_use_completed() -> EntityEvent_AbilityUseCompleted:
-		return __ability_use_completed.value
-	func clear_ability_use_completed() -> void:
+	func get_ability_use_finished() -> EntityEvent_AbilityUseFinished:
+		return __ability_use_finished.value
+	func clear_ability_use_finished() -> void:
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-	func new_ability_use_completed() -> EntityEvent_AbilityUseCompleted:
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_ability_use_finished() -> EntityEvent_AbilityUseFinished:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
 		data[4].state = PB_SERVICE_STATE.FILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = EntityEvent_AbilityUseCompleted.new()
-		return __ability_use_completed.value
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_use_finished.value = EntityEvent_AbilityUseFinished.new()
+		return __ability_use_finished.value
+	
+	var __ability_use_impact: PBField
+	func has_ability_use_impact() -> bool:
+		if __ability_use_impact.value != null:
+			return true
+		return false
+	func get_ability_use_impact() -> EntityEvent_AbilityUseImpact:
+		return __ability_use_impact.value
+	func clear_ability_use_impact() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_ability_use_impact() -> EntityEvent_AbilityUseImpact:
+		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		data[5].state = PB_SERVICE_STATE.FILLED
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		__ability_use_impact.value = EntityEvent_AbilityUseImpact.new()
+		return __ability_use_impact.value
 	
 	var __damage_taken: PBField
 	func has_damage_taken() -> bool:
@@ -2772,30 +2938,32 @@ class EntityEvent:
 	func get_damage_taken() -> EntityEvent_DamageTaken:
 		return __damage_taken.value
 	func clear_damage_taken() -> void:
-		data[5].state = PB_SERVICE_STATE.UNFILLED
+		data[6].state = PB_SERVICE_STATE.UNFILLED
 		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_damage_taken() -> EntityEvent_DamageTaken:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		data[5].state = PB_SERVICE_STATE.FILLED
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		data[6].state = PB_SERVICE_STATE.FILLED
 		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__damage_taken.value = EntityEvent_DamageTaken.new()
 		return __damage_taken.value
 	
@@ -2807,30 +2975,32 @@ class EntityEvent:
 	func get_healing_received() -> EntityEvent_HealingReceived:
 		return __healing_received.value
 	func clear_healing_received() -> void:
-		data[6].state = PB_SERVICE_STATE.UNFILLED
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_healing_received() -> EntityEvent_HealingReceived:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		data[6].state = PB_SERVICE_STATE.FILLED
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		data[7].state = PB_SERVICE_STATE.FILLED
 		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__healing_received.value = EntityEvent_HealingReceived.new()
 		return __healing_received.value
 	
@@ -2842,30 +3012,32 @@ class EntityEvent:
 	func get_buff_applied() -> EntityEvent_BuffApplied:
 		return __buff_applied.value
 	func clear_buff_applied() -> void:
-		data[7].state = PB_SERVICE_STATE.UNFILLED
+		data[8].state = PB_SERVICE_STATE.UNFILLED
 		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_buff_applied() -> EntityEvent_BuffApplied:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		data[7].state = PB_SERVICE_STATE.FILLED
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		data[8].state = PB_SERVICE_STATE.FILLED
 		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__buff_applied.value = EntityEvent_BuffApplied.new()
 		return __buff_applied.value
 	
@@ -2877,30 +3049,32 @@ class EntityEvent:
 	func get_debuff_applied() -> EntityEvent_DebuffApplied:
 		return __debuff_applied.value
 	func clear_debuff_applied() -> void:
-		data[8].state = PB_SERVICE_STATE.UNFILLED
+		data[9].state = PB_SERVICE_STATE.UNFILLED
 		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_debuff_applied() -> EntityEvent_DebuffApplied:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		data[8].state = PB_SERVICE_STATE.FILLED
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		data[9].state = PB_SERVICE_STATE.FILLED
 		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__debuff_applied.value = EntityEvent_DebuffApplied.new()
 		return __debuff_applied.value
 	
@@ -2912,30 +3086,32 @@ class EntityEvent:
 	func get_status_effect_removed() -> EntityEvent_StatusEffectRemoved:
 		return __status_effect_removed.value
 	func clear_status_effect_removed() -> void:
-		data[9].state = PB_SERVICE_STATE.UNFILLED
+		data[10].state = PB_SERVICE_STATE.UNFILLED
 		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_status_effect_removed() -> EntityEvent_StatusEffectRemoved:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		data[9].state = PB_SERVICE_STATE.FILLED
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		data[10].state = PB_SERVICE_STATE.FILLED
 		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__status_effect_removed.value = EntityEvent_StatusEffectRemoved.new()
 		return __status_effect_removed.value
 	
@@ -2947,30 +3123,32 @@ class EntityEvent:
 	func get_combatant_died() -> EntityEvent_CombatantDied:
 		return __combatant_died.value
 	func clear_combatant_died() -> void:
-		data[10].state = PB_SERVICE_STATE.UNFILLED
+		data[11].state = PB_SERVICE_STATE.UNFILLED
 		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_combatant_died() -> EntityEvent_CombatantDied:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		data[10].state = PB_SERVICE_STATE.FILLED
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		data[11].state = PB_SERVICE_STATE.FILLED
 		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[11].state = PB_SERVICE_STATE.UNFILLED
-		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[12].state = PB_SERVICE_STATE.UNFILLED
+		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__combatant_died.value = EntityEvent_CombatantDied.new()
 		return __combatant_died.value
 	
@@ -2982,30 +3160,32 @@ class EntityEvent:
 	func get_combat_started() -> EntityEvent_CombatStarted:
 		return __combat_started.value
 	func clear_combat_started() -> void:
-		data[11].state = PB_SERVICE_STATE.UNFILLED
+		data[12].state = PB_SERVICE_STATE.UNFILLED
 		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_combat_started() -> EntityEvent_CombatStarted:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		data[11].state = PB_SERVICE_STATE.FILLED
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		data[12].state = PB_SERVICE_STATE.FILLED
 		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[12].state = PB_SERVICE_STATE.UNFILLED
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__combat_started.value = EntityEvent_CombatStarted.new()
 		return __combat_started.value
 	
@@ -3017,30 +3197,32 @@ class EntityEvent:
 	func get_combat_ended() -> EntityEvent_CombatEnded:
 		return __combat_ended.value
 	func clear_combat_ended() -> void:
-		data[12].state = PB_SERVICE_STATE.UNFILLED
+		data[13].state = PB_SERVICE_STATE.UNFILLED
 		__combat_ended.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_combat_ended() -> EntityEvent_CombatEnded:
 		__ability_use_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__ability_use_canceled.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[3].state = PB_SERVICE_STATE.UNFILLED
-		__ability_use_completed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_finished.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[4].state = PB_SERVICE_STATE.UNFILLED
-		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__ability_use_impact.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[5].state = PB_SERVICE_STATE.UNFILLED
-		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__damage_taken.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[6].state = PB_SERVICE_STATE.UNFILLED
-		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__healing_received.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[7].state = PB_SERVICE_STATE.UNFILLED
-		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__buff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
-		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__debuff_applied.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__status_effect_removed.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		__combatant_died.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
-		data[12].state = PB_SERVICE_STATE.FILLED
+		__combat_started.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		data[13].state = PB_SERVICE_STATE.FILLED
 		__combat_ended.value = EntityEvent_CombatEnded.new()
 		return __combat_ended.value
 	

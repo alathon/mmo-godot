@@ -79,7 +79,7 @@ func _end_left_click_or_drag() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	call_deferred("_request_mouse_restore")
 	if should_select:
-		_game_manager.select_target_at_screen_position(select_position)
+		_game_manager.handle_primary_click(select_position)
 
 
 func _rotate_from_mouse_motion(relative: Vector2) -> void:

@@ -7,7 +7,9 @@
 [ext_resource type="Script" uid="uid://btwk3jl7m60fc" path="res://src/common/ability_definitions/conditions/ConditionResource.gd" id="3_bj8ij"]
 [ext_resource type="Script" uid="uid://b3q0o4drbc13f" path="res://src/common/ability_definitions/StatComponent.gd" id="4_x5uhx"]
 [ext_resource type="Script" uid="uid://bjo3ueuo52uk1" path="res://src/common/ability_definitions/ValueFormula.gd" id="5_cdij5"]
+[ext_resource type="Script" uid="uid://currxkbtxe2xr" path="res://src/common/ability_definitions/effects/ApplyStatusEffect.gd" id="7_cdij5"]
 [ext_resource type="Script" uid="uid://hov2wk7no4jb" path="res://src/common/ability_definitions/target_selectors/TargetSelector.gd" id="8_bj8ij"]
+[ext_resource type="Script" uid="uid://crhsf4e2wsdf2" path="res://src/common/ability_definitions/StatusResource.gd" id="8_tvv5y"]
 
 [sub_resource type="Resource" id="Resource_tvv5y"]
 script = ExtResource("3_bj8ij")
@@ -29,6 +31,18 @@ formula = SubResource("Resource_bj8ij")
 target_narrower = 1
 metadata/_custom_type_script = "uid://dn45bp34f1hv1"
 
+[sub_resource type="Resource" id="Resource_qbf3x"]
+script = ExtResource("8_tvv5y")
+status_id = 1
+status_name = "TestBuff"
+metadata/_custom_type_script = "uid://crhsf4e2wsdf2"
+
+[sub_resource type="Resource" id="Resource_pk5yj"]
+script = ExtResource("7_cdij5")
+status = SubResource("Resource_qbf3x")
+application_phase = 1
+metadata/_custom_type_script = "uid://currxkbtxe2xr"
+
 [resource]
 script = ExtResource("2_546e4")
 ability_id = 1
@@ -38,5 +52,5 @@ cast_time = 1.5
 cast_lock_time = 1.0
 range = 30.0
 mana_cost = 5
-effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_x5uhx")])
+effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_x5uhx"), SubResource("Resource_pk5yj")])
 conditional_effects = Array[ExtResource("1_sosh0")]([SubResource("Resource_8aqol")])

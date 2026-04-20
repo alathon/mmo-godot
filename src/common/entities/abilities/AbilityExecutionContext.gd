@@ -8,6 +8,5 @@ var ability: AbilityResource = null
 var ability_id: int = 0
 var source_stats: Dictionary = {}
 
-var ability_system: Node = null
 var combat_system: Node = null
-var ability_db: AbilityDatabase = null
+var target_resolver = null

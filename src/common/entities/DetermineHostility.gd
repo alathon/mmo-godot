@@ -7,10 +7,19 @@ enum HostilityState {
 }
 
 var _aggro_by_entity: Dictionary[int, Dictionary] = {}
+@export var target: NodePath
+
+
+func _ready() -> void:
+	if target.is_empty():
+		push_error("DetermineHostility requires target to be set")
+		return
+	if get_node_or_null(target) == null:
+		push_error("DetermineHostility target does not resolve: %s" % str(target))
 
 
 func get_hostility_state(target_entity: Node) -> int:
-	if target_entity == null or target_entity == get_parent():
+	if target_entity == null or target_entity == _get_target():
 		return HostilityState.FRIENDLY
 	if has_aggro_for(target_entity):
 		return HostilityState.HOSTILE
@@ -28,13 +37,13 @@ func is_friendly_to(target_entity: Node) -> bool:
 
 
 func attacked_by(target_entity: Node, aggro_amount: float = 1.0) -> void:
-	if target_entity == null or target_entity == get_parent():
+	if target_entity == null or target_entity == _get_target():
 		return
 	add_aggro(target_entity, aggro_amount)
 
 
 func add_aggro(target_entity: Node, aggro_amount: float) -> void:
-	if target_entity == null or target_entity == get_parent():
+	if target_entity == null or target_entity == _get_target():
 		return
 	var entity_id := target_entity.get_instance_id()
 	_aggro_by_entity[entity_id] = {
@@ -114,3 +123,7 @@ func _clear_missing_aggro_targets() -> void:
 		var target_ref := entry.get("entity", null) as WeakRef
 		if target_ref == null or target_ref.get_ref() == null:
 			_aggro_by_entity.erase(entity_id)
+
+
+func _get_target() -> Node:
+	return get_node_or_null(target)

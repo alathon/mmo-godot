@@ -58,14 +58,21 @@ func apply_world_state(state: Proto.EntityState) -> void:
 		if _hp_bar != null:
 			_hp_bar.set_values(stats.hp, stats.max_hp)
 
-func on_ability_started(event, event_tick: int) -> void:
-	_ability_event_controller.on_authoritative_ability_started(event, event_tick)
 
-func on_ability_completed(event, event_tick: int) -> void:
-	_ability_event_controller.on_authoritative_ability_completed(event, event_tick)
+func get_ability_event_controller() -> AbilityEventController:
+	return _ability_event_controller
+
+func on_ability_started(event, event_tick: int) -> void:
+	_ability_event_controller.on_ability_started(event, event_tick)
+
+func on_ability_finished(event, event_tick: int) -> void:
+	_ability_event_controller.on_ability_finished(event, event_tick)
+
+func on_ability_impact(event, event_tick: int) -> void:
+	_ability_event_controller.on_ability_impact(event, event_tick)
 
 func on_ability_canceled(event, event_tick: int) -> void:
-	_ability_event_controller.on_authoritative_ability_canceled(event, event_tick)
+	_ability_event_controller.on_ability_canceled(event, event_tick)
 
 func setCharacterModel(model_name: String) -> void:
 	var model = (load("res://assets/entities/character_models/%s.tscn" % model_name)).instantiate()

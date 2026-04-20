@@ -4,7 +4,8 @@ extends RefCounted
 enum Type {
 	ABILITY_USE_STARTED,
 	ABILITY_USE_CANCELED,
-	ABILITY_USE_COMPLETED,
+	ABILITY_USE_FINISHED,
+	ABILITY_USE_IMPACT,
 	DAMAGE_TAKEN,
 	HEALING_RECEIVED,
 	COMBAT_STARTED,
@@ -20,6 +21,7 @@ var source_entity_id: int = 0
 var target_entity_id: int = 0
 var entity_id: int = 0
 var ability_id: int = 0
+var request_id: int = 0
 var amount: float = 0.0
 var cancel_reason: int = 0
 var hit_type: int = 0
@@ -33,6 +35,7 @@ var remove_reason: int = 0
 static func ability_started(
 		source_entity_id: int,
 		ability_id: int,
+		request_id: int = 0,
 		target_entity_id: int = 0,
 		ground_position: Vector3 = Vector3.ZERO,
 		cast_time: float = 0.0) -> EntityEvents:
@@ -41,26 +44,41 @@ static func ability_started(
 	event.source_entity_id = source_entity_id
 	event.target_entity_id = target_entity_id
 	event.ability_id = ability_id
+	event.request_id = request_id
 	event.ground_position = ground_position
 	event.cast_time = cast_time
 	return event
 
 
-static func ability_canceled(source_entity_id: int, ability_id: int, cancel_reason: int) -> EntityEvents:
+static func ability_canceled(
+		source_entity_id: int,
+		ability_id: int,
+		cancel_reason: int,
+		request_id: int = 0) -> EntityEvents:
 	var event := EntityEvents.new()
 	event.type = Type.ABILITY_USE_CANCELED
 	event.source_entity_id = source_entity_id
 	event.ability_id = ability_id
 	event.cancel_reason = cancel_reason
+	event.request_id = request_id
 	return event
 
 
-static func ability_completed(source_entity_id: int, ability_id: int, hit_type: int = 0) -> EntityEvents:
+static func ability_finished(source_entity_id: int, ability_id: int, request_id: int = 0) -> EntityEvents:
 	var event := EntityEvents.new()
-	event.type = Type.ABILITY_USE_COMPLETED
+	event.type = Type.ABILITY_USE_FINISHED
 	event.source_entity_id = source_entity_id
 	event.ability_id = ability_id
-	event.hit_type = hit_type
+	event.request_id = request_id
+	return event
+
+
+static func ability_impact(source_entity_id: int, ability_id: int, request_id: int = 0) -> EntityEvents:
+	var event := EntityEvents.new()
+	event.type = Type.ABILITY_USE_IMPACT
+	event.source_entity_id = source_entity_id
+	event.ability_id = ability_id
+	event.request_id = request_id
 	return event
 
 

@@ -6,10 +6,14 @@ extends Node
 var movement: Vector3 = Vector3.ZERO
 var jump_pressed: bool = false
 var ability_id: int = 0
+var primary_click_pressed: bool = false
+var primary_click_position: Vector2 = Vector2.ZERO
 
 # Latch: set any time jump is pressed between tick loops, consumed on next tick.
 var _jump_latch: bool = false
 var _ability_latch: int = 0
+var _primary_click_latch: bool = false
+var _primary_click_position_latch: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
@@ -34,6 +38,15 @@ func _on_before_tick_loop(tick: int) -> void:
 	_jump_latch = false
 	ability_id = _ability_latch
 	_ability_latch = 0
+	primary_click_pressed = _primary_click_latch
+	primary_click_position = _primary_click_position_latch
+	_primary_click_latch = false
+	_primary_click_position_latch = Vector2.ZERO
+
+
+func capture_primary_click(screen_position: Vector2) -> void:
+	_primary_click_latch = true
+	_primary_click_position_latch = screen_position
 
 func getInput() -> Dictionary:
 	return {
@@ -41,4 +54,6 @@ func getInput() -> Dictionary:
 		"input_z": movement.z,
 		"jump_pressed": jump_pressed,
 		"ability_id": ability_id,
+		"primary_click_pressed": primary_click_pressed,
+		"primary_click_position": primary_click_position,
 	}

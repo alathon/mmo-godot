@@ -1,4 +1,5 @@
 class_name AbilityDatabase
+extends Node
 
 const ABILITIES_DIR: String = "res://resources/abilities/"
 
@@ -6,6 +7,8 @@ var _abilities_by_id: Dictionary = {} # int -> AbilityResource
 var _abilities_by_key: Dictionary = {} # StringName -> AbilityResource
 var _status_db: StatusDatabase = StatusDatabase.new()
 
+func _ready():
+	load_all()
 
 func load_all() -> void:
 	_abilities_by_id.clear()
@@ -22,6 +25,7 @@ func load_all() -> void:
 			_load_file(ABILITIES_DIR + file_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
+	_status_db.register_embedded_statuses_from_abilities(_abilities_by_id.values())
 	if not _status_db.validate_ability_references(_abilities_by_id.values()):
 		push_error("AbilityDatabase: status validation failed")
 

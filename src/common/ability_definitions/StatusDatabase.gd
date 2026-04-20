@@ -25,6 +25,19 @@ func load_all() -> void:
 	dir.list_dir_end()
 
 
+func register_embedded_statuses_from_abilities(abilities: Array) -> void:
+	for ability in abilities:
+		if ability == null:
+			continue
+		var ability_key: StringName = ability.get_ability_key()
+		var ability_label := "%s(id=%d)" % [ability_key, ability.get_ability_id()]
+		_register_embedded_statuses_in_effects(ability.effects, ability_label)
+		for conditional_effect in ability.conditional_effects:
+			if conditional_effect == null or conditional_effect.mod == null:
+				continue
+			_register_embedded_statuses_in_effects(conditional_effect.mod.added_effects, ability_label)
+
+
 func validate_ability_references(abilities: Array) -> bool:
 	var ok := true
 	for ability in abilities:
@@ -72,18 +85,7 @@ func _load_file(path: String) -> void:
 	if not res is StatusResource:
 		push_error("StatusDatabase: resource at %s is not a StatusResource" % path)
 		return
-	var status := res as StatusResource
-	var status_id := status.status_id
-	if status_id <= 0:
-		push_error("StatusDatabase: invalid status_id=%d in %s" % [status_id, path])
-		return
-	if status.status_name.strip_edges() == "":
-		push_error("StatusDatabase: empty status_name in %s" % path)
-		return
-	if _statuses_by_id.has(status_id):
-		push_error("StatusDatabase: duplicate status_id=%d in %s" % [status_id, path])
-		return
-	_statuses_by_id[status_id] = status
+	_register_status(res as StatusResource, path)
 
 
 func _validate_effect_references(effects: Array, ability_label: String) -> bool:
@@ -112,3 +114,38 @@ func _validate_effect_references(effects: Array, ability_label: String) -> bool:
 
 func _is_valid_referenced_status_id(status_id: int) -> bool:
 	return status_id > 0 and _statuses_by_id.has(status_id)
+
+
+func _register_embedded_statuses_in_effects(effects: Array, ability_label: String) -> void:
+	for effect in effects:
+		if effect == null:
+			continue
+		if effect is ApplyStatusEffect:
+			var apply_status := effect as ApplyStatusEffect
+			if apply_status.status != null:
+				_register_status(apply_status.status, "%s embedded status" % ability_label)
+			_register_embedded_statuses_in_effects(apply_status.tick_effects, ability_label)
+		elif effect is ConsumeStacksEffect:
+			var consume_stacks := effect as ConsumeStacksEffect
+			_register_embedded_statuses_in_effects(consume_stacks.per_stack_effects, ability_label)
+
+
+func _register_status(status: StatusResource, source_label: String) -> void:
+	if status == null:
+		return
+	var status_id := status.status_id
+	if status_id <= 0:
+		push_error("StatusDatabase: invalid status_id=%d in %s" % [status_id, source_label])
+		return
+	if status.status_name.strip_edges() == "":
+		push_error("StatusDatabase: empty status_name in %s" % source_label)
+		return
+	if _statuses_by_id.has(status_id):
+		var existing := _statuses_by_id[status_id] as StatusResource
+		if existing == status:
+			return
+		if existing != null and existing.status_name == status.status_name:
+			return
+		push_error("StatusDatabase: duplicate status_id=%d in %s" % [status_id, source_label])
+		return
+	_statuses_by_id[status_id] = status

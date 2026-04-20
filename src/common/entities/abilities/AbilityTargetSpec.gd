@@ -5,26 +5,11 @@ enum Kind {
 	NONE,
 	ENTITY,
 	GROUND,
-	SELF,
-	CURRENT_TARGET,
 }
 
 var kind: Kind = Kind.NONE
-var entity_id: int = 0
+var entity_id: int = -1
 var ground_position: Vector3 = Vector3.ZERO
-
-
-static func self_target() -> AbilityTargetSpec:
-	var target := AbilityTargetSpec.new()
-	target.kind = Kind.SELF
-	return target
-
-
-static func current_target() -> AbilityTargetSpec:
-	var target := AbilityTargetSpec.new()
-	target.kind = Kind.CURRENT_TARGET
-	return target
-
 
 static func entity(entity_id: int) -> AbilityTargetSpec:
 	var target := AbilityTargetSpec.new()
@@ -38,3 +23,15 @@ static func ground(position: Vector3) -> AbilityTargetSpec:
 	target.kind = Kind.GROUND
 	target.ground_position = position
 	return target
+
+
+func get_entity_id() -> int:
+	if kind != Kind.ENTITY:
+		return -1
+	return entity_id
+
+
+func get_ground_position() -> Vector3:
+	if kind != Kind.GROUND:
+		return Vector3.ZERO
+	return ground_position

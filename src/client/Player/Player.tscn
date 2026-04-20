@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://bpd6m32l31yfn" path="res://src/client/Player/LocalInput.gd" id="2_ag42k"]
 [ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="2_eo6pr"]
 [ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="2_fhs4s"]
+[ext_resource type="Script" uid="uid://cv4vd2mi47olv" path="res://src/client/Player/GroundTargetingMode.gd" id="2_ground_targeting_mode"]
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_nx6lr"]
 [ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="2_y04i8"]
 [ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="3_txxbj"]
@@ -13,9 +14,9 @@
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="6_nx6lr"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="7_2n468"]
 [ext_resource type="Script" uid="uid://c5t8r2h0stlty" path="res://src/common/entities/DetermineHostility.gd" id="7_ijb4o"]
+[ext_resource type="Script" path="res://src/common/entities/Mob.gd" id="7_mob"]
 [ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="8_8cp3o"]
-[ext_resource type="Script" path="res://src/client/LocalAbilityPrediction.gd" id="9_local_ability_prediction"]
-[ext_resource type="Script" path="res://src/client/AbilityEventController.gd" id="14_ability_event_controller"]
+[ext_resource type="Script" uid="uid://cp0o75ae4u8qe" path="res://src/client/AbilityEventController.gd" id="14_ability_event_controller"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ag42k"]
 radius = 0.2
@@ -40,6 +41,10 @@ unique_name_in_owner = true
 script = ExtResource("3_txxbj")
 metadata/_custom_type_script = "uid://cgpkux7vh2jsk"
 
+[node name="GroundTargetingMode" type="Node" parent="." unique_id=1337001001]
+unique_name_in_owner = true
+script = ExtResource("2_ground_targeting_mode")
+
 [node name="CSP" type="Node" parent="." unique_id=1481725419 node_paths=PackedStringArray("_body")]
 unique_name_in_owner = true
 script = ExtResource("2_fhs4s")
@@ -54,18 +59,10 @@ script = ExtResource("8_8cp3o")
 unique_name_in_owner = true
 script = ExtResource("14_ability_event_controller")
 
-[node name="LocalAbilityPrediction" type="Node" parent="." unique_id=166000002]
-unique_name_in_owner = true
-script = ExtResource("9_local_ability_prediction")
-
 [node name="CombatManager" type="Node" parent="." unique_id=1103717583]
 unique_name_in_owner = true
 script = ExtResource("6_8cp3o")
 metadata/_custom_type_script = "uid://1r8f5frqejnq"
-
-[node name="DetermineHostility" type="Node" parent="." unique_id=450433658]
-unique_name_in_owner = true
-script = ExtResource("7_ijb4o")
 
 [node name="EntityTarget" type="Node" parent="." unique_id=1679356008]
 unique_name_in_owner = true
@@ -74,6 +71,12 @@ metadata/_custom_type_script = "uid://cxfc7mmvov22x"
 
 [node name="Mob" type="Node" parent="." unique_id=2124211284]
 unique_name_in_owner = true
+script = ExtResource("7_mob")
+
+[node name="DetermineHostility" type="Node" parent="Mob" unique_id=450433658]
+unique_name_in_owner = true
+script = ExtResource("7_ijb4o")
+target = NodePath("../..")
 
 [node name="Stats" type="Node" parent="Mob" unique_id=1928103712]
 unique_name_in_owner = true

@@ -2,47 +2,78 @@ class_name AbilityEventController
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
+const LOCAL_REQUEST_TTL_TICKS := 20 * Globals.TICK_RATE
+
+signal ability_started(event, event_tick)
+signal ability_finished(event, event_tick)
+signal ability_impact(event, event_tick)
+signal ability_canceled(event, event_tick)
+signal ability_resolved(resolved)
 
 var _owner: Node = null
-var _ability_db: AbilityDatabase = AbilityDatabase.new()
+var _local_requests: Dictionary = {}
 
 
 func _ready() -> void:
 	_owner = get_parent()
-	_ability_db.load_all()
 
 
-func on_predicted_ability_started(prediction: Dictionary) -> void:
-	if prediction.is_empty():
+func add_local_request(request_id: int, entity_id: int, ability_id: int, started_tick: int) -> void:
+	if request_id <= 0 or entity_id <= 0 or ability_id <= 0:
 		return
-	var ability_id := int(prediction.get("ability_id", 0))
-	if ability_id <= 0:
-		return
-	_log_ability("Local action: predicted cast start", int(prediction.get("requested_tick", 0)), ability_id, {
-		"request": int(prediction.get("request_id", 0)),
-		"target": int(prediction.get("target_entity_id", 0)),
-		"requested": int(prediction.get("requested_tick", 0)),
-		"predicted_start": int(prediction.get("start_tick", 0)),
+	_local_requests[request_id] = {
+		"entity_id": entity_id,
+		"ability_id": ability_id,
+		"tick": started_tick,
+	}
+	_prune_local_requests(started_tick)
+	_log_ability("Track local request", started_tick, ability_id, {
+		"request": request_id,
+		"tracked_entity": entity_id,
 	})
 
 
-func on_authoritative_ability_started(event, event_tick: int) -> void:
-	pass
+func on_ability_started(event, event_tick: int) -> void:
+	_prune_local_requests(event_tick)
+	if should_ignore_request_event(event, event_tick, false, true):
+		return
+	_log_event_emit("Emit ability_started", event, event_tick)
+	ability_started.emit(event, event_tick)
 
 
-func on_authoritative_ability_completed(event, event_tick: int) -> void:
-	pass
+func on_ability_finished(event, event_tick: int) -> void:
+	_prune_local_requests(event_tick)
+	if should_ignore_request_event(event, event_tick, false, true):
+		return
+	_log_event_emit("Emit ability_finished", event, event_tick)
+	ability_finished.emit(event, event_tick)
 
 
-func on_authoritative_ability_canceled(event, event_tick: int) -> void:
-	pass
+func on_ability_impact(event, event_tick: int) -> void:
+	_prune_local_requests(event_tick)
+	if should_ignore_request_event(event, event_tick, true, true):
+		return
+	_log_event_emit("Emit ability_impact", event, event_tick)
+	ability_impact.emit(event, event_tick)
+	_mark_request_impact_seen(_event_request_id(event))
 
 
-func on_authoritative_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
+func on_ability_canceled(event, event_tick: int) -> void:
+	_prune_local_requests(event_tick)
+	var request_id := _event_request_id(event)
+	if request_id > 0:
+		_local_requests.erase(request_id)
+	_log_event_emit("Emit ability_canceled", event, event_tick)
+	ability_canceled.emit(event, event_tick)
+
+
+func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 	if resolved == null:
 		return
+	_prune_local_requests(resolved.get_resolve_tick())
+	var request_id := resolved.get_request_id()
 	_log_ability(_get_resolved_label(), resolved.get_resolve_tick(), resolved.get_ability_id(), {
-		"request": resolved.get_request_id(),
+		"request": request_id,
 		"start": resolved.get_start_tick(),
 		"resolve": resolved.get_resolve_tick(),
 		"finish": resolved.get_finish_tick(),
@@ -54,10 +85,108 @@ func on_authoritative_ability_resolved(resolved: Proto.AbilityUseResolved) -> vo
 		"heal_amount": _sum_amounts(resolved, Proto.ResolvedAbilityEffectKind.RESOLVED_EFFECT_HEAL),
 		"status_effects": _count_effects(resolved, Proto.ResolvedAbilityEffectKind.RESOLVED_EFFECT_STATUS),
 	})
+	if request_id > 0:
+		_mark_request_resolved_seen(request_id)
+		_log_ability("Emit ability_resolved", resolved.get_resolve_tick(), resolved.get_ability_id(), {
+			"request": request_id,
+			"source": _get_owner_entity_id(),
+		})
+	ability_resolved.emit(resolved)
 
 
 func _get_resolved_label() -> String:
-	return "Received Packet.ability_resolved"
+	return "Received ability_resolved"
+
+
+func should_ignore_request_event(
+		event,
+		event_tick: int,
+		consume: bool = false,
+		log_decision: bool = false) -> bool:
+	var request_id := _packet_request_id(event)
+	if request_id <= 0:
+		return false
+	var tracked_value = _local_requests.get(request_id, null)
+	var tracked: Dictionary = tracked_value if tracked_value is Dictionary else {}
+	if tracked.is_empty():
+		return false
+	var entity_id := int(tracked.get("entity_id", 0))
+	var ability_id := int(tracked.get("ability_id", 0))
+	if _event_source_entity_id(event) != entity_id:
+		return false
+	if _event_ability_id(event) != ability_id:
+		return false
+	if consume:
+		_mark_request_impact_seen(request_id)
+	if log_decision:
+		_log_ability("Ignore local request event", event_tick, ability_id, {
+			"request": request_id,
+			"source": entity_id,
+		})
+	return true
+
+
+func _prune_local_requests(current_tick: int) -> void:
+	if current_tick <= 0 or _local_requests.is_empty():
+		return
+	var expired: Array = []
+	for request_id in _local_requests:
+		var tracked := _local_requests[request_id] as Dictionary
+		var tracked_tick := int(tracked.get("tick", 0))
+		if tracked_tick > 0 and current_tick - tracked_tick > LOCAL_REQUEST_TTL_TICKS:
+			expired.append(request_id)
+	for request_id in expired:
+		_local_requests.erase(request_id)
+
+
+func _event_request_id(event) -> int:
+	if event != null and event.has_method("get_request_id"):
+		return int(event.get_request_id())
+	if event is EntityEvents:
+		return int(event.request_id)
+	return 0
+
+
+func _packet_request_id(event) -> int:
+	if event != null and event.has_method("get_request_id"):
+		return int(event.get_request_id())
+	return 0
+
+
+func _mark_request_impact_seen(request_id: int) -> void:
+	if request_id <= 0:
+		return
+	var tracked_value = _local_requests.get(request_id, null)
+	if not tracked_value is Dictionary:
+		return
+	var tracked := tracked_value as Dictionary
+	tracked["impact_seen"] = true
+
+
+func _mark_request_resolved_seen(request_id: int) -> void:
+	if request_id <= 0:
+		return
+	var tracked_value = _local_requests.get(request_id, null)
+	if not tracked_value is Dictionary:
+		return
+	var tracked := tracked_value as Dictionary
+	tracked["resolved_seen"] = true
+
+
+func _event_source_entity_id(event) -> int:
+	if event != null and event.has_method("get_source_entity_id"):
+		return int(event.get_source_entity_id())
+	if event is EntityEvents:
+		return int(event.source_entity_id)
+	return 0
+
+
+func _event_ability_id(event) -> int:
+	if event != null and event.has_method("get_ability_id"):
+		return int(event.get_ability_id())
+	if event is EntityEvents:
+		return int(event.ability_id)
+	return 0
 
 
 func _is_local_owner() -> bool:
@@ -81,10 +210,12 @@ func _log_ability(
 		tick: int,
 		ability_id: int,
 		details: Dictionary = {}) -> void:
-	var ability_name := _ability_db.get_ability_name(ability_id)
-	var message := "%s %s [ABILITY] %s client=%d entity=%d ability_id=%d ability_name=%s" % [
+	var ability_name := AbilityDB.get_ability_name(ability_id)
+	var source_tag := _get_source_tag(label)
+	var message := "%s %s %s %s client=%d entity=%d ability_id=%d ability_name=%s" % [
 		_format_tick_prefix(tick),
 		_get_log_prefix(),
+		source_tag,
 		label,
 		_get_client_id(),
 		_get_owner_entity_id(),
@@ -98,6 +229,24 @@ func _log_ability(
 
 func _get_log_prefix() -> String:
 	return "[PLAYER %d]" % _get_client_id()
+
+
+func _get_source_tag(label: String) -> String:
+	if label.begins_with("Received "):
+		return "[PACKET_RX]"
+	if label.begins_with("Track ") or label.begins_with("Ignore "):
+		return "[ABILITY_LOCAL]"
+	if label.begins_with("Emit "):
+		return "[ABILITY_EMIT]"
+	return "[ABILITY_EVENT]"
+
+
+func _log_event_emit(label: String, event, event_tick: int) -> void:
+	var ability_id := _event_ability_id(event)
+	_log_ability(label, event_tick, ability_id, {
+		"request": _event_request_id(event),
+		"source": _event_source_entity_id(event),
+	})
 
 
 func _format_tick_prefix(tick: int) -> String:

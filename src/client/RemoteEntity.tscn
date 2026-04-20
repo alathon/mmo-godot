@@ -6,8 +6,10 @@
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="2_mflae"]
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="3_mflae"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="4_fb5u3"]
-[ext_resource type="Script" path="res://src/client/AbilityEventController.gd" id="5_ability_event_controller"]
+[ext_resource type="Script" uid="uid://cp0o75ae4u8qe" path="res://src/client/AbilityEventController.gd" id="5_ability_event_controller"]
 [ext_resource type="Script" uid="uid://caygriu4reiyk" path="res://src/client/RemoteEntityBody.gd" id="6_remote_body"]
+[ext_resource type="Script" uid="uid://c5t8r2h0stlty" path="res://src/common/entities/DetermineHostility.gd" id="8_determine_hostility"]
+[ext_resource type="Script" uid="uid://1vieeccv4ht8" path="res://src/common/entities/Mob.gd" id="9_mob"]
 
 [node name="RemoteEntity" type="Node" unique_id=989911963]
 script = ExtResource("1_548v2")
@@ -28,6 +30,13 @@ script = ExtResource("2_al5b1")
 target = NodePath("..")
 
 [node name="Mob" type="Node" parent="." unique_id=1730442433]
+unique_name_in_owner = true
+script = ExtResource("9_mob")
+
+[node name="DetermineHostility" type="Node" parent="Mob" unique_id=922000002]
+unique_name_in_owner = true
+script = ExtResource("8_determine_hostility")
+target = NodePath("../..")
 
 [node name="Stats" type="Node" parent="Mob" unique_id=259758511]
 unique_name_in_owner = true

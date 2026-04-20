@@ -17,7 +17,8 @@ signal ability_use_resolved(resolved)
 signal entity_event_received(event)
 signal ability_use_started(event)
 signal ability_use_canceled(event)
-signal ability_use_completed(event)
+signal ability_use_finished(event)
+signal ability_use_impact(event)
 signal damage_taken(event)
 signal healing_received(event)
 signal buff_applied(event)
@@ -40,10 +41,8 @@ var _awaiting_initial_clock_sync: bool = true
 var _local_player: Player
 var _remote_players: Dictionary[int, RemoteEntity]
 var _debug: bool = false
-var _ability_db: AbilityDatabase = AbilityDatabase.new()
 
 func _ready() -> void:
-	_ability_db.load_all()
 	if "--bot" in OS.get_cmdline_user_args():
 		BotMode = true
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
@@ -129,8 +128,32 @@ func get_local_player_id() -> int:
 	return multiplayer.get_unique_id()
 
 
+func get_local_player() -> Player:
+	return _local_player
+
+
+func get_remote_players() -> Array[RemoteEntity]:
+	var players: Array[RemoteEntity] = []
+	for entity_id in _remote_players:
+		var entity := _remote_players[entity_id]
+		if entity != null:
+			players.append(entity)
+	return players
+
+
 func get_entity_by_id(entity_id: int) -> Entity:
 	return _get_entity(entity_id)
+
+
+func get_all_entities() -> Array[Node]:
+	var entities: Array[Node] = []
+	if _local_player != null:
+		entities.append(_local_player)
+	for entity_id in _remote_players:
+		var entity := _remote_players[entity_id]
+		if entity != null:
+			entities.append(entity)
+	return entities
 
 
 func get_entity_names(entity_ids: Array) -> Dictionary:
@@ -152,9 +175,25 @@ func get_local_predicted_ability_id_for_request(request_id: int) -> int:
 		return _local_player.get_predicted_ability_id_for_request(request_id)
 	return 0
 
+
+func should_ignore_local_request_event(
+		event,
+		event_tick: int,
+		consume: bool = false,
+		log_decision: bool = false) -> bool:
+	if _local_player != null and _local_player.has_method("should_ignore_request_event"):
+		return _local_player.should_ignore_request_event(event, event_tick, consume, log_decision)
+	return false
+
 func select_target_at_screen_position(screen_position: Vector2) -> void:
 	var entity_id := _get_nearest_target_entity_id(screen_position)
 	select_target_entity(entity_id)
+
+
+func handle_primary_click(screen_position: Vector2) -> void:
+	if _local_player != null and _local_player.capture_primary_click(screen_position):
+		return
+	select_target_at_screen_position(screen_position)
 
 func select_target_entity(entity_id: int) -> void:
 	if _local_player == null:
@@ -281,27 +320,36 @@ func _dispatch_entity_event(event) -> void:
 		ability_use_canceled.emit(payload)
 		_dispatch_ability_canceled_to_entity(payload, event.get_tick())
 		_log_entity_event(event.get_tick(), "ability_use_canceled", payload.get_source_entity_id(), payload.get_ability_id())
-	elif event.has_ability_use_completed():
-		var payload = event.get_ability_use_completed()
-		ability_use_completed.emit(payload)
-		_dispatch_ability_completed_to_entity(payload, event.get_tick())
-		_log_entity_event(event.get_tick(), "ability_use_completed", payload.get_source_entity_id(), payload.get_ability_id())
+	elif event.has_ability_use_finished():
+		var payload = event.get_ability_use_finished()
+		ability_use_finished.emit(payload)
+		_dispatch_ability_finished_to_entity(payload, event.get_tick())
+		_log_entity_event(event.get_tick(), "ability_use_finished", payload.get_source_entity_id(), payload.get_ability_id())
+	elif event.has_ability_use_impact():
+		var payload = event.get_ability_use_impact()
+		ability_use_impact.emit(payload)
+		_dispatch_ability_impact_to_entity(payload, event.get_tick())
+		_log_entity_event(event.get_tick(), "ability_use_impact", payload.get_source_entity_id(), payload.get_ability_id())
 	elif event.has_damage_taken():
 		var payload = event.get_damage_taken()
 		damage_taken.emit(payload)
-		_log_entity_event(event.get_tick(), "damage_taken", payload.get_target_entity_id(), payload.get_ability_id())
+		if not _should_suppress_world_event_log("damage_taken", payload):
+			_log_entity_event(event.get_tick(), "damage_taken", payload.get_target_entity_id(), payload.get_ability_id())
 	elif event.has_healing_received():
 		var payload = event.get_healing_received()
 		healing_received.emit(payload)
-		_log_entity_event(event.get_tick(), "healing_received", payload.get_target_entity_id(), payload.get_ability_id())
+		if not _should_suppress_world_event_log("healing_received", payload):
+			_log_entity_event(event.get_tick(), "healing_received", payload.get_target_entity_id(), payload.get_ability_id())
 	elif event.has_buff_applied():
 		var payload = event.get_buff_applied()
 		buff_applied.emit(payload)
-		_log_entity_event(event.get_tick(), "buff_applied", payload.get_target_entity_id(), payload.get_status_id())
+		if not _should_suppress_world_event_log("buff_applied", payload):
+			_log_entity_event(event.get_tick(), "buff_applied", payload.get_target_entity_id(), payload.get_status_id())
 	elif event.has_debuff_applied():
 		var payload = event.get_debuff_applied()
 		debuff_applied.emit(payload)
-		_log_entity_event(event.get_tick(), "debuff_applied", payload.get_target_entity_id(), payload.get_status_id())
+		if not _should_suppress_world_event_log("debuff_applied", payload):
+			_log_entity_event(event.get_tick(), "debuff_applied", payload.get_target_entity_id(), payload.get_status_id())
 	elif event.has_status_effect_removed():
 		var payload = event.get_status_effect_removed()
 		status_effect_removed.emit(payload)
@@ -326,14 +374,14 @@ func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: Va
 	var resolved_detail := str(detail)
 	if detail is int:
 		var detail_id := int(detail)
-		var ability_name := _ability_db.get_ability_name(detail_id)
+		var ability_name := AbilityDB.get_ability_name(detail_id)
 		if ability_name != "":
 			resolved_detail = "%d (%s)" % [detail_id, ability_name]
 		elif event_name == "buff_applied" or event_name == "debuff_applied" or event_name == "status_effect_removed":
-			var status_name := _ability_db.get_status_name(detail_id)
+			var status_name := AbilityDB.get_status_name(detail_id)
 			if status_name != "":
 				resolved_detail = "%d (%s)" % [detail_id, status_name]
-	print("%s %s [CLIENT_EVENT] event=%s entity=%d detail=%s" % [
+	print("%s %s [WORLD_EVENT_RX] event=%s entity=%d detail=%s" % [
 		_format_tick_prefix(tick), _get_log_prefix(), event_name, entity_id, resolved_detail])
 
 
@@ -343,16 +391,32 @@ func _dispatch_ability_started_to_entity(payload, event_tick: int) -> void:
 		entity.on_ability_started(payload, event_tick)
 
 
-func _dispatch_ability_completed_to_entity(payload, event_tick: int) -> void:
+func _dispatch_ability_finished_to_entity(payload, event_tick: int) -> void:
 	var entity := _get_entity(payload.get_source_entity_id())
-	if entity != null and entity.has_method("on_ability_completed"):
-		entity.on_ability_completed(payload, event_tick)
+	if entity != null and entity.has_method("on_ability_finished"):
+		entity.on_ability_finished(payload, event_tick)
+
+
+func _dispatch_ability_impact_to_entity(payload, event_tick: int) -> void:
+	var entity := _get_entity(payload.get_source_entity_id())
+	if entity != null and entity.has_method("on_ability_impact"):
+		entity.on_ability_impact(payload, event_tick)
 
 
 func _dispatch_ability_canceled_to_entity(payload, event_tick: int) -> void:
 	var entity := _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_canceled"):
 		entity.on_ability_canceled(payload, event_tick)
+
+
+func _should_suppress_world_event_log(event_name: String, payload) -> bool:
+	if payload == null or _local_player == null:
+		return false
+	match event_name:
+		"damage_taken", "healing_received", "buff_applied", "debuff_applied":
+			if payload.has_method("get_source_entity_id"):
+				return int(payload.get_source_entity_id()) == _local_player.id
+	return false
 
 
 func _get_log_prefix() -> String:

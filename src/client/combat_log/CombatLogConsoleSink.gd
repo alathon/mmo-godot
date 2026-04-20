@@ -11,7 +11,7 @@ func _init(owner: Node = null) -> void:
 func write_entry(entry) -> void:
 	if entry == null:
 		return
-	print("%s %s [COMBAT_LOG] category=%s message=%s" % [
+	print("%s %s [COMBAT_LOG_EVENT] category=%s message=%s" % [
 		_format_tick_prefix(entry.tick),
 		_get_log_prefix(),
 		String(entry.category),

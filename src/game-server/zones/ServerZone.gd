@@ -379,3 +379,14 @@ func _find_peer_for_body(body: Node3D) -> int:
 		if players[peer_id].body == body:
 			return peer_id
 	return -1
+
+
+func get_entity_by_id(entity_id: int) -> Node:
+	return players.get(entity_id, null)
+
+
+func get_all_entities() -> Array[Node]:
+	var entities: Array[Node] = []
+	for entity_id in players:
+		entities.append(players[entity_id])
+	return entities

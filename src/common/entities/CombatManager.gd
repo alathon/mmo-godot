@@ -439,8 +439,8 @@ func _get_combat_manager(target_entity: Node) -> CombatManager:
 
 
 func _get_entity_by_id(entity_id: int, context: AbilityExecutionContext) -> Node:
-	if context != null and context.ability_system != null:
-		return context.ability_system.get_entity(entity_id)
+	if context != null and context.target_resolver != null and context.target_resolver.has_method("get_entity_by_id"):
+		return context.target_resolver.get_entity_by_id(entity_id)
 	return null
 
 

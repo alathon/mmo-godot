@@ -20,6 +20,7 @@ static func write_event(msg, event: EntityEvents, sim_tick: int) -> void:
 			var started = msg.new_ability_use_started()
 			started.set_source_entity_id(event.source_entity_id)
 			started.set_ability_id(event.ability_id)
+			started.set_request_id(event.request_id)
 			started.set_target_entity_id(event.target_entity_id)
 			started.set_ground_x(event.ground_position.x)
 			started.set_ground_y(event.ground_position.y)
@@ -29,12 +30,18 @@ static func write_event(msg, event: EntityEvents, sim_tick: int) -> void:
 			var canceled = msg.new_ability_use_canceled()
 			canceled.set_source_entity_id(event.source_entity_id)
 			canceled.set_ability_id(event.ability_id)
+			canceled.set_request_id(event.request_id)
 			canceled.set_cancel_reason(event.cancel_reason)
-		EntityEvents.Type.ABILITY_USE_COMPLETED:
-			var completed = msg.new_ability_use_completed()
-			completed.set_source_entity_id(event.source_entity_id)
-			completed.set_ability_id(event.ability_id)
-			completed.set_hit_type(event.hit_type)
+		EntityEvents.Type.ABILITY_USE_FINISHED:
+			var finished = msg.new_ability_use_finished()
+			finished.set_source_entity_id(event.source_entity_id)
+			finished.set_ability_id(event.ability_id)
+			finished.set_request_id(event.request_id)
+		EntityEvents.Type.ABILITY_USE_IMPACT:
+			var impact = msg.new_ability_use_impact()
+			impact.set_source_entity_id(event.source_entity_id)
+			impact.set_ability_id(event.ability_id)
+			impact.set_request_id(event.request_id)
 		EntityEvents.Type.DAMAGE_TAKEN:
 			var damage = msg.new_damage_taken()
 			damage.set_source_entity_id(event.source_entity_id)

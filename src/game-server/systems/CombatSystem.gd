@@ -210,6 +210,12 @@ func _get_combat_manager_for_entity(entity: Node) -> CombatManager:
 	return null
 
 
+func _get_ability_manager_for_entity(entity: Node) -> AbilityManager:
+	if entity is SimulatedEntity:
+		return (entity as SimulatedEntity).ability_manager
+	return null
+
+
 func _get_combat_managers() -> Array[CombatManager]:
 	var managers: Array[CombatManager] = []
 	if _zone == null:
@@ -224,7 +230,7 @@ func _get_combat_managers() -> Array[CombatManager]:
 func _resolve_scheduled_ability_use(
 		use: ScheduledAbilityUse,
 		context: AbilityExecutionContext) -> void:
-	if use == null or context == null or context.ability_db == null:
+	if use == null or context == null:
 		return
 
 	var resolved_use := ResolvedAbilityUseSnapshot.from_scheduled_use(use)
@@ -235,7 +241,7 @@ func _resolve_scheduled_ability_use(
 		_send_ability_resolved(resolved_use)
 		return
 
-	var ability := context.ability_db.get_ability(use.ability_id)
+	var ability := AbilityDB.get_ability(use.ability_id)
 	if ability == null:
 		use.resolved_use = resolved_use
 		use.resolved = true
@@ -243,15 +249,13 @@ func _resolve_scheduled_ability_use(
 		return
 
 	var target_entities: Array[Node] = []
-	if context.ability_system != null and context.ability_system.is_in_range(source_entity, ability, use.target):
-		target_entities = context.ability_system.resolve_targets(
-				source_entity,
-				ability,
-				use.target)
+	var source_ability_manager := _get_ability_manager_for_entity(source_entity)
+	if source_ability_manager != null and source_ability_manager.is_in_range(ability, use.target, context):
+		target_entities = source_ability_manager.resolve_targets(ability, use.target, context)
 
-	var source_manager := _get_combat_manager_for_entity(source_entity)
-	if source_manager != null:
-		resolved_use = source_manager.resolve_ability_use_snapshot(
+	var source_combat_manager := _get_combat_manager_for_entity(source_entity)
+	if source_combat_manager != null:
+		resolved_use = source_combat_manager.resolve_ability_use_snapshot(
 				source_entity,
 				target_entities,
 				ability,
@@ -260,7 +264,7 @@ func _resolve_scheduled_ability_use(
 	use.resolved_use = resolved_use
 	use.resolved = true
 
-	_log_ability("Resolve ability use (server)", context.sim_tick, use.ability_id, use.source_entity_id, {
+	_log_ability("Resolve ability snapshot", context.sim_tick, use.ability_id, use.source_entity_id, {
 		"request": use.request_id,
 		"requested": use.requested_tick,
 		"start": use.start_tick,
@@ -290,11 +294,14 @@ func _apply_scheduled_ability_use(
 		return []
 
 	var events := source_manager.apply_resolved_ability_use(source_entity, use.resolved_use, context, phase)
+	if phase == ResolvedAbilityEffectSnapshot.Phase.IMPACT:
+		events.push_front(EntityEvents.ability_impact(use.source_entity_id, use.ability_id, use.request_id))
 	if events.is_empty():
 		return events
 
 	var phase_label := "early" if phase == ResolvedAbilityEffectSnapshot.Phase.EARLY else "impact"
-	_log_ability("Apply ability %s (server)" % phase_label, context.sim_tick, use.ability_id, use.source_entity_id, {
+	var label := "Apply early effects" if phase == ResolvedAbilityEffectSnapshot.Phase.EARLY else "Apply impact effects"
+	_log_ability(label, context.sim_tick, use.ability_id, use.source_entity_id, {
 		"request": use.request_id,
 		"requested": use.requested_tick,
 		"start": use.start_tick,
@@ -350,7 +357,7 @@ func _log_ability(
 		ability_id: int,
 		entity_id: int,
 		details: Dictionary = {}) -> void:
-	var message := "%s [SERVER] [ABILITY] %s entity=%d ability=%s" % [
+	var message := "%s [SERVER] [ABILITY_SERVER] %s entity=%d ability=%s" % [
 		_format_tick_prefix(tick),
 		label,
 		entity_id,

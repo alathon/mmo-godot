@@ -93,23 +93,31 @@ enum HitType {
 message EntityEvent_AbilityUseStarted {
   uint32 source_entity_id = 1;
   uint32 ability_id = 2;
-  uint32 target_entity_id = 3;
-  float ground_x = 4;
-  float ground_y = 5;
-  float ground_z = 6;
-  float cast_time = 7;
+  uint32 request_id = 3;
+  uint32 target_entity_id = 4;
+  float ground_x = 5;
+  float ground_y = 6;
+  float ground_z = 7;
+  float cast_time = 8;
 }
 
 message EntityEvent_AbilityUseCanceled {
   uint32 source_entity_id = 1;
   uint32 ability_id = 2;
   uint32 cancel_reason = 3; // 0=moved, 1=interrupted, 2=stunned, 3=target_died, 4=invalid, 5=insufficient_resources
+  uint32 request_id = 4;
 }
 
-message EntityEvent_AbilityUseCompleted {
+message EntityEvent_AbilityUseFinished {
   uint32 source_entity_id = 1;
   uint32 ability_id = 2;
-  HitType hit_type = 3;
+  uint32 request_id = 3;
+}
+
+message EntityEvent_AbilityUseImpact {
+  uint32 source_entity_id = 1;
+  uint32 ability_id = 2;
+  uint32 request_id = 3;
 }
 
 message EntityEvent_DamageTaken {
@@ -169,15 +177,16 @@ message EntityEvent {
   oneof event {
     EntityEvent_AbilityUseStarted   ability_use_started   = 2;
     EntityEvent_AbilityUseCanceled  ability_use_canceled  = 3;
-    EntityEvent_AbilityUseCompleted ability_use_completed = 4;
-    EntityEvent_DamageTaken         damage_taken          = 5;
-    EntityEvent_HealingReceived     healing_received      = 6;
-    EntityEvent_BuffApplied         buff_applied          = 7;
-    EntityEvent_DebuffApplied       debuff_applied        = 8;
-    EntityEvent_StatusEffectRemoved status_effect_removed = 9;
-    EntityEvent_CombatantDied       combatant_died        = 10;
-    EntityEvent_CombatStarted       combat_started        = 11;
-    EntityEvent_CombatEnded         combat_ended          = 12;
+    EntityEvent_AbilityUseFinished  ability_use_finished  = 4;
+    EntityEvent_AbilityUseImpact    ability_use_impact    = 5;
+    EntityEvent_DamageTaken         damage_taken          = 6;
+    EntityEvent_HealingReceived     healing_received      = 7;
+    EntityEvent_BuffApplied         buff_applied          = 8;
+    EntityEvent_DebuffApplied       debuff_applied        = 9;
+    EntityEvent_StatusEffectRemoved status_effect_removed = 10;
+    EntityEvent_CombatantDied       combatant_died        = 11;
+    EntityEvent_CombatStarted       combat_started        = 12;
+    EntityEvent_CombatEnded         combat_ended          = 13;
   }
 }
 

@@ -2,18 +2,20 @@
 
 [ext_resource type="Script" uid="uid://naetria54hrc" path="res://src/client/Player/Player.gd" id="1_fg3qq"]
 [ext_resource type="Script" uid="uid://bt4wkae1gvxgb" path="res://src/client/Player/BotInput.gd" id="2_fg3qq"]
+[ext_resource type="Script" path="res://src/client/Player/GroundTargetingMode.gd" id="2_ground_targeting_mode"]
 [ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="3_pnqga"]
 [ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="4_xiffd"]
 [ext_resource type="Script" uid="uid://cenagcfbynsvi" path="res://src/common/entities/Stats.gd" id="5_pdq4c"]
 [ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="5_xiffd"]
 [ext_resource type="Script" uid="uid://1r8f5frqejnq" path="res://src/common/entities/CombatManager.gd" id="6_pdq4c"]
+[ext_resource type="Script" uid="uid://c5t8r2h0stlty" path="res://src/common/entities/DetermineHostility.gd" id="6_hostility"]
+[ext_resource type="Script" path="res://src/common/entities/Mob.gd" id="6_mob"]
 [ext_resource type="Script" uid="uid://cxfc7mmvov22x" path="res://src/common/entities/EntityTargetState.gd" id="7_6d5tf"]
 [ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="8_842t5"]
 [ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="9_ph7ab"]
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="9_xiffd"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="10_pdq4c"]
 [ext_resource type="Script" path="res://src/client/AbilityEventController.gd" id="11_ability_event_controller"]
-[ext_resource type="Script" path="res://src/client/LocalAbilityPrediction.gd" id="12_local_ability_prediction"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ag42k"]
 
@@ -36,6 +38,10 @@ unique_name_in_owner = true
 script = ExtResource("3_pnqga")
 metadata/_custom_type_script = "uid://cgpkux7vh2jsk"
 
+[node name="GroundTargetingMode" type="Node" parent="." unique_id=1337001001]
+unique_name_in_owner = true
+script = ExtResource("2_ground_targeting_mode")
+
 [node name="CSP" type="Node" parent="." unique_id=1481725419 node_paths=PackedStringArray("_body")]
 unique_name_in_owner = true
 script = ExtResource("4_xiffd")
@@ -51,10 +57,6 @@ metadata/_custom_type_script = "uid://ch0i48lswewgc"
 unique_name_in_owner = true
 script = ExtResource("11_ability_event_controller")
 
-[node name="LocalAbilityPrediction" type="Node" parent="." unique_id=166000003]
-unique_name_in_owner = true
-script = ExtResource("12_local_ability_prediction")
-
 [node name="CombatManager" type="Node" parent="." unique_id=409520076]
 unique_name_in_owner = true
 script = ExtResource("6_pdq4c")
@@ -67,6 +69,12 @@ metadata/_custom_type_script = "uid://cxfc7mmvov22x"
 
 [node name="Mob" type="Node" parent="." unique_id=2124211284]
 unique_name_in_owner = true
+script = ExtResource("6_mob")
+
+[node name="DetermineHostility" type="Node" parent="Mob" unique_id=450433658]
+unique_name_in_owner = true
+script = ExtResource("6_hostility")
+target = NodePath("../..")
 
 [node name="Stats" type="Node" parent="Mob" unique_id=1928103712]
 unique_name_in_owner = true
