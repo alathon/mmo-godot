@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/client/ui/chat/ChatPanel.gd" id="1_chat_panel"]
+
+[node name="ChatPanel" type="CanvasLayer"]
+script = ExtResource("1_chat_panel")
