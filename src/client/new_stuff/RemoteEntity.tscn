@@ -6,6 +6,10 @@
 [ext_resource type="Script" uid="uid://spcv0sciqc0t" path="res://src/client/new_stuff/RemoteBody.gd" id="2_b7qwl"]
 [ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="4_01ial"]
 
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_5gimh"]
+radius = 0.7705078
+height = 3.0385742
+
 [node name="RemoteEntity" type="Node" unique_id=978632570]
 script = ExtResource("1_5gimh")
 
@@ -31,3 +35,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 
 [node name="HealthBar" parent="Body/Model/UIAnchor" unique_id=2065858836 instance=ExtResource("4_01ial")]
 unique_name_in_owner = true
+
+[node name="TargetCollider" type="Area3D" parent="Body/Model" unique_id=570352294]
+unique_name_in_owner = true
+visible = false
+collision_layer = 4
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/Model/TargetCollider" unique_id=2089807054]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5192871, 0)
+visible = false
+shape = SubResource("CapsuleShape3D_5gimh")

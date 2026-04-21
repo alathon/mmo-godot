@@ -1,8 +1,7 @@
 class_name WorldInputService
 extends Node
 
-const TARGET_PICK_RADIUS_PX := 80.0
-const TARGET_PICK_HEIGHT := 1.0
+const TARGETABLE_COLLISION_MASK := 1 << 2 # layer 3
 
 @onready var _game_manager: GameManager = %GameManager
 @onready var _api: BackendAPI = %BackendAPI
@@ -57,24 +56,33 @@ func _pick_target_at_screen_position(screen_position: Vector2) -> Node:
 	if _camera == null:
 		return null
 
-	var nearest: Node = null
-	var nearest_distance_sq := TARGET_PICK_RADIUS_PX * TARGET_PICK_RADIUS_PX
-	for entity in _game_manager.get_remote_players():
-		if entity == null or not is_instance_valid(entity):
-			continue
+	var origin := _camera.project_ray_origin(screen_position)
+	var direction := _camera.project_ray_normal(screen_position)
 
-		var model := entity.get_node_or_null("%Model") as Node3D
-		if model == null:
-			continue
+	var query := PhysicsRayQueryParameters3D.create(
+			origin,
+			origin + direction * 10000.0)
+	query.collision_mask = TARGETABLE_COLLISION_MASK
+	query.collide_with_areas = true
+	query.collide_with_bodies = false
 
-		var target_position := model.global_position + Vector3.UP * TARGET_PICK_HEIGHT
-		if _camera.is_position_behind(target_position):
-			continue
+	var hit := _camera.get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return null
 
-		var entity_screen_position := _camera.unproject_position(target_position)
-		var distance_sq := screen_position.distance_squared_to(entity_screen_position)
-		if distance_sq < nearest_distance_sq:
-			nearest_distance_sq = distance_sq
-			nearest = entity
+	var collider = hit.get("collider", null)
+	if not collider is Node:
+		return null
 
-	return nearest
+	return _resolve_target_entity(collider as Node)
+
+
+func _resolve_target_entity(node: Node) -> Node:
+	var current := node
+	while current != null:
+		if current == _local_player:
+			return null
+		if "id" in current and current.has_node("%EntityState"):
+			return current
+		current = current.get_parent()
+	return null

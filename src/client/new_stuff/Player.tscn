@@ -18,6 +18,10 @@ albedo_color = Color(1, 0.2, 0.2, 0.3)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_lo6na"]
 
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_na21t"]
+radius = 0.7705078
+height = 3.0385742
+
 [node name="PlayerRoot" type="Node" unique_id=109742466]
 script = ExtResource("1_jxn58")
 
@@ -59,3 +63,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 
 [node name="HealthBar" parent="Body/Model/UIAnchor" unique_id=2065858836 instance=ExtResource("4_ufjvb")]
 unique_name_in_owner = true
+
+[node name="TargetCollider" type="Area3D" parent="Body/Model" unique_id=515050949]
+unique_name_in_owner = true
+visible = false
+collision_layer = 4
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/Model/TargetCollider" unique_id=1912228076]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5192871, 0)
+visible = false
+shape = SubResource("CapsuleShape3D_na21t")
