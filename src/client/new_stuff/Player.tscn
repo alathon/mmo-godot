@@ -55,6 +55,7 @@ Body = NodePath("..")
 
 [node name="UIAnchor" type="Node3D" parent="Body/Model" unique_id=1755008366]
 unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 
 [node name="HealthBar" parent="Body/Model/UIAnchor" unique_id=2065858836 instance=ExtResource("4_ufjvb")]
 unique_name_in_owner = true

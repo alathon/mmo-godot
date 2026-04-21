@@ -58,5 +58,5 @@ func capture_primary_click(pos):
 func clear_target():
 	return # TODO: Shouldn't be here.
 
-func set_target_entity(e):
+func set_target_entity_id(_entity_id: int):
 	return # TODO: Shouldn't be here

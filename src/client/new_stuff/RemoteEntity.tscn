@@ -24,10 +24,10 @@ script = ExtResource("2_b7qwl")
 
 [node name="Model" type="Node3D" parent="Body" unique_id=1536577737]
 unique_name_in_owner = true
-top_level = true
 
 [node name="UIAnchor" type="Node3D" parent="Body/Model" unique_id=742557284]
 unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 
 [node name="HealthBar" parent="Body/Model/UIAnchor" unique_id=2065858836 instance=ExtResource("4_01ial")]
 unique_name_in_owner = true

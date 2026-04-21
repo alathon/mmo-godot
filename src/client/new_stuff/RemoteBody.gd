@@ -12,10 +12,7 @@ var face_angle: float:
 	set(v): rotation.y = v
 
 var velocity: Vector3
-var _is_on_ground: bool = true
+var _is_on_floor: bool = true
 
-func is_on_ground() -> bool:
-	return true # TODO
-
-func set_grounded(value: bool):
-	_is_on_ground = value
+func is_on_floor() -> bool:
+	return _is_on_floor
