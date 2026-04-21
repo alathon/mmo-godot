@@ -9,6 +9,7 @@ const CLICK_DRAG_THRESHOLD_PX := 6.0
 
 @onready var _zone_container: ZoneContainer = $/root/Root/ZoneContainer
 @onready var _game_manager: GameManager = $/root/Root/Services/GameManager
+@onready var _world_input_service: WorldInputService = $/root/Root/Services/WorldInputService
 
 var _mouse_position_when_hidden = Vector2.ZERO
 var _left_click_position := Vector2.ZERO
@@ -79,7 +80,7 @@ func _end_left_click_or_drag() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	call_deferred("_request_mouse_restore")
 	if should_select:
-		_game_manager.handle_primary_click(select_position)
+		_world_input_service.handle_primary_click(select_position)
 
 
 func _rotate_from_mouse_motion(relative: Vector2) -> void:

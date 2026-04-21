@@ -10,9 +10,6 @@
 
 [node name="Services" parent="." unique_id=1368178531 instance=ExtResource("1_56ghg")]
 
-[node name="GameManager" parent="Services" index="1" unique_id=803377627]
-BotMode = false
-
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=914765252]
 script = ExtResource("17_debug")
 

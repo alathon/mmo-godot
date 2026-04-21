@@ -9,7 +9,7 @@ const CORRECTION_THRESHOLD = 1.0
 const TARGET_PICK_RADIUS_PX = 80.0
 const TARGET_PICK_HEIGHT = 1.0
 
-signal local_player_spawned(player: Player)
+signal local_player_spawned(player: PlayerNew)
 signal remote_player_spawned(player: RemoteEntity)
 signal ability_use_accepted(ack)
 signal ability_use_rejected(rejection)
@@ -32,9 +32,9 @@ signal combatant_died(event)
 @onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
 @onready var _clock_new: NetworkClockNew = $"/root/Root/Services/NetworkClock"
 @onready var _camera: Camera3D = $"/root/Root/CameraPivot/SpringArm3D/Camera"
-@onready var _target_indicator: TargetSelectionIndicator = %TargetSelectionIndicator
 @onready var _local_input: LocalInput = %LocalInput
 @onready var _input_batcher: InputBatcher = %InputBatcher
+@onready var _world_input_service: WorldInputService = %WorldInputService
 
 @export var BotMode: bool = false
 
@@ -235,32 +235,14 @@ func should_ignore_local_request_event(
 	return false
 
 func select_target_at_screen_position(screen_position: Vector2) -> void:
-	var entity_id := _get_nearest_target_entity_id(screen_position)
-	select_target_entity(entity_id)
+	_world_input_service.select_target_at_screen_position(screen_position)
 
 
 func handle_primary_click(screen_position: Vector2) -> void:
-	if _local_player != null and _local_player.capture_primary_click(screen_position):
-		return
-	select_target_at_screen_position(screen_position)
+	_world_input_service.handle_primary_click(screen_position)
 
 func select_target_entity(entity_id: int) -> void:
-	if _local_player == null:
-		return
-	if entity_id > 0:
-		_local_player.set_target_entity_id(entity_id)
-	else:
-		_local_player.clear_target()
-		_target_indicator.clear()
-
-	var target_entity := _get_entity(entity_id) as Entity
-	var target_visual := target_entity.get_visual() if target_entity != null else null
-	if entity_id > 0 and target_visual == null:
-		print("%s [CLIENT_TARGET] client=%d target=%d has no visual node for indicator" % [
-			_get_log_prefix(), get_local_player_id(), entity_id])
-	_target_indicator.set_target(target_visual)
-	_api.send_target_select(entity_id)
-	print("%s [CLIENT_TARGET] client=%d selected target=%d" % [_get_log_prefix(), get_local_player_id(), entity_id])
+	_world_input_service.select_target_by_id(entity_id)
 
 func _on_world_state(diff: Proto.WorldState) -> void:
 	for entity_state in diff.get_entities():
@@ -284,7 +266,9 @@ func _spawn_remote_player(id: int, pos: Vector3, rot_y: float) -> void:
 
 func _despawn_remote_player(id: int) -> void:
 	print("Despawn remote player %d called" % id)
-	_target_indicator.clear_if_target(_remote_players[id].model)
+	var target = _remote_players.get(id, null)
+	if _local_player != null and target != null and _local_player.entity_state.current_target == target:
+		_local_player.entity_state.clear_target()
 	_remote_players[id].queue_free()
 	_remote_players.erase(id)
 

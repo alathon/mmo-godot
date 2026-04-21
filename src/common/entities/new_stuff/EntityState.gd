@@ -3,6 +3,8 @@ extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
 
+signal target_changed(target: Node)
+
 @onready var _general_stats: GeneralStats = %GeneralStats
 @onready var _class_stats: ClassStats = %ClassStats
 @onready var _race_stats: RaceStats = %RaceStats
@@ -39,7 +41,18 @@ func set_in_combat(value: bool):
 	in_combat = value
 
 func set_target(node: Node):
-	current_target = node
+	if current_target != node:
+		current_target = node
+		target_changed.emit(node)
+
+func clear_target():
+	set_target(null)
+
+func has_target():
+	return current_target != null
+
+func get_target_id() -> int:
+	return current_target.id if current_target != null else -1
 
 func on_world_state(state: Proto.ServerEntityState):
 	_general_stats.hp = state.get_hp()

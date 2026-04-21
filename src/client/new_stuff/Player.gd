@@ -6,7 +6,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var body: CharacterBody3D = %Body
 @onready var csp: CSP = %CSP
 @onready var modelRoot: VisualSmoother = %Model
-@onready var _entity_state: EntityState = %EntityState
+@onready var entity_state: EntityState = %EntityState
 
 var id: int
 var _animationTree: AnimationTree
@@ -56,7 +56,7 @@ func on_server_position(pos: Vector3, vel: Vector3, rot: float, tick: int):
 	csp.setPendingServerTick(tick, pos, vel, rot)
 
 func apply_world_state(state: Proto.ServerEntityState):
-	_entity_state.on_world_state(state)
+	entity_state.on_world_state(state)
 
 func capture_primary_click(pos):
 	return false # TODO: This method shouldn't be here..

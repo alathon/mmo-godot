@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="6_mfuft"]
 [ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="7_m5ev8"]
 [ext_resource type="Script" uid="uid://cv4vd2mi47olv" path="res://src/client/Player/GroundTargetingMode.gd" id="8_43gkw"]
+[ext_resource type="Script" path="res://src/client/WorldInputService.gd" id="9_k3h1m"]
 
 [node name="Services" type="Node" unique_id=1368178531]
 
@@ -49,3 +50,7 @@ metadata/_custom_type_script = "uid://cgpkux7vh2jsk"
 unique_name_in_owner = true
 script = ExtResource("8_43gkw")
 metadata/_custom_type_script = "uid://cv4vd2mi47olv"
+
+[node name="WorldInputService" type="Node" parent="." unique_id=1158820041]
+unique_name_in_owner = true
+script = ExtResource("9_k3h1m")

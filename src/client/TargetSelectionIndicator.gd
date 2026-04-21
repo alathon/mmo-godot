@@ -5,60 +5,49 @@ const TargetDecalScene := preload("res://src/client/ui/entities/TargetDecal.tscn
 const TARGET_DECAL_OFFSET := Vector3(0, -0.95, 0)
 
 var _decal: Node3D = null
-var _target: Node3D = null
+var _target: Node = null
+var _entity_state: EntityState = null
+
+@onready var _game_manager: GameManager = %GameManager
 
 func _ready() -> void:
 	_decal = TargetDecalScene.instantiate()
 	add_child(_decal)
 	_decal.visible = false
+	
+	_game_manager.local_player_spawned.connect(_on_local_player_spawned)
 
-func set_target(target: Node3D) -> void:
-	if target == _target:
-		print("%s [TARGET_INDICATOR] target unchanged target=%s decal_parent=%s" % [
-			_get_log_prefix(),
-			_target_name(target), _target_name(_decal.get_parent())])
+func _on_local_player_spawned(player: PlayerNew):
+	if _entity_state != null and _entity_state.target_changed.is_connected(_on_target_changed):
+		_entity_state.target_changed.disconnect(_on_target_changed)
+	
+	_entity_state = player.entity_state
+	_entity_state.target_changed.connect(_on_target_changed)
+	_on_target_changed(_entity_state.current_target)
+
+func _on_target_changed(target: Node):
+	var decal_parent := target.get_node_or_null("%Model") as Node3D if target != null else null
+	if decal_parent == null:
+		_clear_decal()
 		return
 
-	_target = target
-	if _target == null:
-		clear()
-		return
+	_show_decal_on(decal_parent)
 
-	_reparent_decal(_target)
-	_decal.position = TARGET_DECAL_OFFSET
-	_decal.visible = true
-	print("%s [TARGET_INDICATOR] target=%s decal_parent=%s visible=%s position=%s" % [
-		_get_log_prefix(),
-		_target_name(_target), _target_name(_decal.get_parent()), _decal.visible, _decal.position])
+func _reparent_decal(parent: Node):
+	if _decal.get_parent() != null:
+		_decal.get_parent().remove_child(_decal)
+	
+	parent.add_child(_decal)
+	
 
-func clear() -> void:
+func _clear_decal() -> void:
 	if _decal == null:
 		return
 
-	_target = null
 	_decal.visible = false
 	_reparent_decal(self)
-	_decal.position = Vector3.ZERO
-	print("%s [TARGET_INDICATOR] clear decal_parent=%s" % [_get_log_prefix(), _target_name(_decal.get_parent())])
 
-func clear_if_target(target: Node) -> void:
-	if target == _target:
-		clear()
-
-func _reparent_decal(new_parent: Node) -> void:
-	if _decal.get_parent() == new_parent:
-		return
-
-	if _decal.get_parent() != null:
-		_decal.get_parent().remove_child(_decal)
-
-	new_parent.add_child(_decal)
-
-func _target_name(target: Node) -> String:
-	if target == null:
-		return "<null>"
-	return "%s(%s)" % [target.name, target.get_path()]
-
-
-func _get_log_prefix() -> String:
-	return "[PLAYER %d]" % multiplayer.get_unique_id()
+func _show_decal_on(parent: Node3D):
+	_reparent_decal(parent)
+	_decal.visible = true
+	_decal.position = TARGET_DECAL_OFFSET
