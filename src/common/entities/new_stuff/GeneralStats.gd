@@ -13,9 +13,11 @@ var mana: int = 100
 var max_mana: int = 100
 
 func set_hp(value: int):
+	if hp != value:
+		stat_changed.emit("hp", value)
 	hp = value
-	stat_changed.emit("hp", value)
 
 func set_max_hp(value: int):
+	if max_hp != value:
+		stat_changed.emit("max_hp", value)
 	max_hp = value
-	stat_changed.emit("max_hp", value)

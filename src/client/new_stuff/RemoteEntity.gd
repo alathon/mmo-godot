@@ -1,9 +1,12 @@
 class_name RemoteEntity
 extends Node
 
+const Proto = preload("res://src/common/proto/packets.gd")
+
 @onready var body: RemoteBody = %Body
 @onready var model: Node3D = %Model
 @onready var _interpolator: RemoteInterpolator = %RemoteInterpolator
+@onready var _entity_state: EntityState = %EntityState
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
@@ -63,6 +66,9 @@ func on_server_position(pos: Vector3, vel: Vector3, rot_y: float, is_on_floor: b
 		"velocity": _last_server_vel,
 		"_is_on_floor": _last_server_is_on_floor,
 	})
+
+func apply_world_state(state: Proto.ServerEntityState):
+	_entity_state.on_world_state(state)
 
 func _on_before_tick_loop(tick: int) -> void:
 	if _last_server_tick_received == -1 or _last_server_tick_processed == _last_server_tick_received:

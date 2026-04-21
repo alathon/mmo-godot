@@ -1,6 +1,8 @@
 class_name EntityState
 extends Node
 
+const Proto = preload("res://src/common/proto/packets.gd")
+
 @onready var _general_stats: GeneralStats = %GeneralStats
 @onready var _class_stats: ClassStats = %ClassStats
 @onready var _race_stats: RaceStats = %RaceStats
@@ -38,3 +40,9 @@ func set_in_combat(value: bool):
 
 func set_target(node: Node):
 	current_target = node
+
+func on_world_state(state: Proto.ServerEntityState):
+	_general_stats.hp = state.get_hp()
+	_general_stats.max_hp = state.get_max_hp()
+	_general_stats.mana = state.get_mana()
+	_general_stats.max_mana = state.get_max_mana()

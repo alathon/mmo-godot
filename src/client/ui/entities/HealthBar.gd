@@ -9,6 +9,7 @@ var _general_stats: GeneralStats
 func _ready():
 	_general_stats = owner.get_node("%EntityState/%GeneralStats")
 	_general_stats.stat_changed.connect(_on_stat_changed)
+	set_values(_general_stats.hp, _general_stats.max_hp)
 
 func set_values(current_hp: int, max_hp: int) -> void:
 	bar.max_value = max(max_hp, 1)
