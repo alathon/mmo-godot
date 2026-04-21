@@ -10,8 +10,8 @@ const Proto = preload("res://src/common/proto/packets.gd")
 ## How many ticks of input to accumulate before sending.
 @export var batch_size: int = 1
 
-@onready var _game_manager: GameManager = $/root/Root/Services/GameManager
-@onready var _network_clock: NetworkClockNew = $/root/Root/Services/NetworkClock
+@onready var _game_manager: GameManager = %GameManager
+@onready var _network_clock: NetworkClockNew = %NetworkClock
 
 var _current_batch: Array[Dictionary] = []
 var _previous_batch: Array[Dictionary] = []

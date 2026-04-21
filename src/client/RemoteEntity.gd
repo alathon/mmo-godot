@@ -1,4 +1,4 @@
-class_name RemoteEntity
+class_name RemoteEntityOld
 extends Entity
 
 const Proto = preload("res://src/common/proto/packets.gd")
@@ -16,17 +16,19 @@ var velocity: Vector3:
 		if _visual != null:
 			_visual.velocity = value
 
+# Server data
+var _last_server_tick_received: int = -1
+var _last_server_tick_processed: int = -1
+var _last_server_pos: Vector3
+var _last_server_rot: float
+
 func is_on_floor() -> bool:
 	return _visual != null and _visual.is_on_floor()
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
 
-# Server data
-var _last_server_tick_received: int = -1
-var _last_server_tick_processed: int = -1
-var _last_server_pos: Vector3
-var _last_server_rot: float
+
 
 
 func _ready() -> void:
@@ -52,7 +54,7 @@ func initialize_position(pos: Vector3, rot_y: float) -> void:
 	_visual.global_position = pos
 	face_angle = rot_y
 
-func apply_world_state(state: Proto.EntityState) -> void:
+func apply_world_state(state: Proto.ServerEntityState) -> void:
 	if stats != null:
 		stats.apply_world_state(state)
 		if _hp_bar != null:

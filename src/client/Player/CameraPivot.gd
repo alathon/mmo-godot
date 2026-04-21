@@ -18,7 +18,7 @@ var _left_dragging := false
 
 func _ready() -> void:
 	_zone_container.zone_before_unloading.connect(func(_id): _target = null)
-	_game_manager.local_player_spawned.connect(func(p): _target = p.get_node("%VisualSmoother"))
+	_game_manager.local_player_spawned.connect(func(p): _target = p.get_node("%Model"))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:

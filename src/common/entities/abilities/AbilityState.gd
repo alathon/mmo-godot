@@ -1,4 +1,4 @@
-class_name AbilityState
+class_name AbilityStateOld
 extends Node
 
 var gcd_remaining: float = 0.0

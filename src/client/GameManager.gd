@@ -2,8 +2,8 @@ class_name GameManager
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
-const RemoteEntityScene = preload("res://src/client/RemoteEntity.tscn")
-const LocalPlayerScene = preload("res://src/client/Player/Player.tscn")
+const RemoteEntityScene = preload("res://src/client/new_stuff/RemoteEntity.tscn")
+const LocalPlayerScene = preload("res://src/client/new_stuff/Player.tscn")
 
 const CORRECTION_THRESHOLD = 1.0
 const TARGET_PICK_RADIUS_PX = 80.0
@@ -33,12 +33,14 @@ signal combatant_died(event)
 @onready var _clock_new: NetworkClockNew = $"/root/Root/Services/NetworkClock"
 @onready var _camera: Camera3D = $"/root/Root/CameraPivot/SpringArm3D/Camera"
 @onready var _target_indicator: TargetSelectionIndicator = %TargetSelectionIndicator
+@onready var _local_input: LocalInput = %LocalInput
+@onready var _input_batcher: InputBatcher = %InputBatcher
 
 @export var BotMode: bool = false
 
 var _pending_transfer_token: String = ""
 var _awaiting_initial_clock_sync: bool = true
-var _local_player: Player
+var _local_player: PlayerNew
 var _remote_players: Dictionary[int, RemoteEntity]
 var _debug: bool = false
 
@@ -57,17 +59,65 @@ func _ready() -> void:
 	_api.connected_to_server.connect(_on_connected_to_server)
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
 	NetworkTime.after_sync.connect(_on_clock_synced)
+	NetworkTime.on_tick.connect(_on_network_tick)
+	NetworkTime.before_tick_loop.connect(_on_before_network_tick)
+
+func _on_network_tick(delta: float, current_tick: int):
+	if _local_player == null:
+		return
+
+	# Gather input
+	var input = _local_input.getInput()
+	#var ability_context := _make_ability_context(delta, current_tick)
+
+	# Apply movement input
+	_local_player.body.simulate(input, delta)
+
+	#var ability_attempt := _process_ability_input(current_tick, ability_context, input)
+	#if ability_attempt != null and ability_attempt.accepted:
+		#_predicted_ability_ids_by_request[ability_attempt.request_id] = ability_attempt.ability_id
+		#_ability_event_controller.add_local_request(
+				#ability_attempt.request_id,
+				#id,
+				#ability_attempt.ability_id,
+				#ability_attempt.requested_tick)
+		#_apply_predicted_use_result(ability_attempt)
+#
+	#var predicted_events := ability_manager.tick(ability_context)
+	#_apply_predicted_ability_events(predicted_events, current_tick)
+	#_apply_predicted_ability_events(_consume_pending_local_impacts(current_tick), current_tick)
+
+	# Client-side post-tick stuff.
+	_local_player.csp.setInputAt(current_tick, input)
+	_local_player.csp.setPredictionAt(current_tick, { "global_position" = _local_player.body.global_position })
+
+	# Batch input for server send.
+	_input_batcher.queue_input(
+			input["input_x"],
+			input["input_z"],
+			input["jump_pressed"],
+			_local_player.body.rotation.y,
+			current_tick,
+			0,0,Vector3.ZERO,0)
+			#ability_attempt.ability_id if ability_attempt != null and ability_attempt.accepted else 0,
+			#ability_attempt.get_target_entity_id() if ability_attempt != null and ability_attempt.accepted else 0,
+			#ability_attempt.get_ground_position() if ability_attempt != null and ability_attempt.accepted else Vector3.ZERO,
+			#ability_attempt.request_id if ability_attempt != null and ability_attempt.accepted else 0)
+
+
+func _on_before_network_tick(_tick):
+	return
 
 func _on_clock_synced() -> void:
 	# If this is the first 'fresh' clock sync, unfreeze player
 	if _awaiting_initial_clock_sync and _local_player:
-		_local_player.unfreeze()
+		_local_player.set_frozen(false)
 		_awaiting_initial_clock_sync = false
 
 func _on_zone_border_entered(node: Variant):
-	var player := node.get_parent() as Player if node is PhysicsBody else null
+	var player := node.get_parent() as PlayerNew if node is PhysicsBody else null
 	if player:
-		player.freeze()
+		player.set_frozen(true)
 
 func _on_zone_redirect(zone_id: String, address: String, port: int, token: String) -> void:
 	print("[CLIENT] Zone redirect → %s at %s:%d" % [zone_id, address, port])
@@ -110,16 +160,15 @@ func _on_ability_use_resolved(resolved: Proto.AbilityUseResolved) -> void:
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	if BotMode == true:
-		_local_player = (load("res://src/client/Player/BotPlayer.tscn")).instantiate() as Player
+		_local_player = (load("res://src/client/Player/BotPlayer.tscn")).instantiate() as PlayerNew
 	else:
-		_local_player = LocalPlayerScene.instantiate() as Player
+		_local_player = LocalPlayerScene.instantiate() as PlayerNew
 
 	_zone_container.add_entity(_local_player)
-	_local_player.setCharacterModel("Wizard")
+	_local_player.set_character_model("Wizard")
 	_local_player.name = "LocalPlayer"
 	_local_player.id = multiplayer.get_unique_id()
-	_local_player.is_local = true
-	var body = _local_player.get_node("Body");
+	var body = _local_player.get_node("%Body");
 	body.position = pos
 	body.rotation.y = rot_y
 	local_player_spawned.emit(_local_player)
@@ -128,7 +177,7 @@ func get_local_player_id() -> int:
 	return multiplayer.get_unique_id()
 
 
-func get_local_player() -> Player:
+func get_local_player() -> PlayerNew:
 	return _local_player
 
 
@@ -162,7 +211,7 @@ func get_entity_names(entity_ids: Array) -> Dictionary:
 		var resolved_id := int(entity_id)
 		if resolved_id <= 0:
 			continue
-		var entity := _get_entity(resolved_id)
+		var entity = _get_entity(resolved_id)
 		if entity != null and is_instance_valid(entity) and not entity.name.is_empty():
 			names[resolved_id] = entity.name
 		else:
@@ -215,7 +264,7 @@ func select_target_entity(entity_id: int) -> void:
 
 func _on_world_state(diff: Proto.WorldState) -> void:
 	for entity_state in diff.get_entities():
-		var entity := _get_entity(entity_state.get_entity_id())
+		var entity = _get_entity(entity_state.get_entity_id())
 		if entity != null and entity.has_method("apply_world_state"):
 			entity.apply_world_state(entity_state)
 	_dispatch_world_state_events(diff)
@@ -228,15 +277,14 @@ func _spawn_remote_player(id: int, pos: Vector3, rot_y: float) -> void:
 	_zone_container.add_entity(node)
 	node.name = "RemotePlayer_%d" % id
 	node.id = id
-	node.is_local = false
 	_remote_players[id] = node
 	node.initialize_position(pos, rot_y)
-	node.setCharacterModel("Wizard")  # TODO: Get model name from server
+	node.set_character_model("Wizard")  # TODO: Get model name from server
 	remote_player_spawned.emit(node)
 
 func _despawn_remote_player(id: int) -> void:
 	print("Despawn remote player %d called" % id)
-	_target_indicator.clear_if_target(_remote_players[id].get_visual())
+	_target_indicator.clear_if_target(_remote_players[id].model)
 	_remote_players[id].queue_free()
 	_remote_players.erase(id)
 
@@ -249,20 +297,18 @@ func _on_world_positions(diff: Proto.WorldPositions) -> void:
 	for entity in diff.get_entities():
 		var id := entity.get_entity_id()
 		var pos := Vector3(entity.get_pos_x(), entity.get_pos_y(), entity.get_pos_z())
-		var rot := entity.get_rot_y()
+		var vel := Vector3(entity.get_vel_x(), entity.get_vel_y(), entity.get_vel_z())
+		var rot_y := entity.get_rot_y()
+		var is_on_floor := entity.get_is_on_floor()
 		seen_ids[id] = true
 		if id == local_id:
 			if _local_player != null:
-				# TODO: Change on_entity_position_diff to not take a Proto message but the resolved
-				# values?
-				_local_player.on_entity_position_diff(entity, tick)
+				_local_player.on_server_position(pos, vel, rot_y, tick)
 		elif not _remote_players.has(id):
-			_spawn_remote_player(id, pos, rot)
+			_spawn_remote_player(id, pos, rot_y)
 		else:
-			# TODO: Change on_entity_position_diff to not take a Proto message but the resolved
-			# values?
-			_remote_players[id].on_entity_position_diff(entity, tick)
-			var vel := Vector3(entity.get_vel_x(), entity.get_vel_y(), entity.get_vel_z())
+			_remote_players[id].on_server_position(pos, vel, rot_y, is_on_floor, tick)
+			
 			if _debug and vel.length_squared() > 0.0001:
 				print("[TRACE:GameManager] t=%s tick=%d remote_entity=%d position_received vel=(%.2f,%.2f,%.2f)" % [
 					Globals.ts(), tick, id, vel.x, vel.y, vel.z])
@@ -273,7 +319,7 @@ func _on_world_positions(diff: Proto.WorldPositions) -> void:
 			_despawn_remote_player(id)
 
 
-func _get_entity(entity_id: int) -> Entity:
+func _get_entity(entity_id: int):
 	if _local_player != null and entity_id == _local_player.id:
 		return _local_player
 	return _remote_players.get(entity_id, null)
@@ -289,10 +335,10 @@ func _get_nearest_target_entity_id(screen_position: Vector2) -> int:
 		var entity: RemoteEntity = _remote_players[entity_id]
 		if entity == null or not is_instance_valid(entity):
 			continue
-		var visual := entity.get_visual()
-		if visual == null:
+		var model := entity.model
+		if model == null:
 			continue
-		var target_position := entity.get_position() + Vector3.UP * TARGET_PICK_HEIGHT
+		var target_position := model.get_position() + Vector3.UP * TARGET_PICK_HEIGHT
 		if _camera.is_position_behind(target_position):
 			continue
 		var entity_screen_position := _camera.unproject_position(target_position)
@@ -386,25 +432,25 @@ func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: Va
 
 
 func _dispatch_ability_started_to_entity(payload, event_tick: int) -> void:
-	var entity := _get_entity(payload.get_source_entity_id())
+	var entity = _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_started"):
 		entity.on_ability_started(payload, event_tick)
 
 
 func _dispatch_ability_finished_to_entity(payload, event_tick: int) -> void:
-	var entity := _get_entity(payload.get_source_entity_id())
+	var entity = _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_finished"):
 		entity.on_ability_finished(payload, event_tick)
 
 
 func _dispatch_ability_impact_to_entity(payload, event_tick: int) -> void:
-	var entity := _get_entity(payload.get_source_entity_id())
+	var entity = _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_impact"):
 		entity.on_ability_impact(payload, event_tick)
 
 
 func _dispatch_ability_canceled_to_entity(payload, event_tick: int) -> void:
-	var entity := _get_entity(payload.get_source_entity_id())
+	var entity = _get_entity(payload.get_source_entity_id())
 	if entity != null and entity.has_method("on_ability_canceled"):
 		entity.on_ability_canceled(payload, event_tick)
 

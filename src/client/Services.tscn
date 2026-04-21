@@ -3,8 +3,11 @@
 [ext_resource type="Script" uid="uid://vvo7ggrbjgrw" path="res://src/client/Network/BackendAPI.gd" id="1_4po38"]
 [ext_resource type="Script" uid="uid://dp86opdmyy36x" path="res://src/client/Network/NetworkClockNew.gd" id="3_bg4vv"]
 [ext_resource type="Script" uid="uid://d3tix8733b3qq" path="res://src/client/TargetSelectionIndicator.gd" id="4_k367o"]
-[ext_resource type="Script" path="res://src/client/combat_log/CombatLogManager.gd" id="5_combat_log"]
+[ext_resource type="Script" uid="uid://dr1e670uap0fb" path="res://src/client/combat_log/CombatLogManager.gd" id="5_combat_log"]
+[ext_resource type="Script" uid="uid://bpd6m32l31yfn" path="res://src/client/Player/LocalInput.gd" id="6_jumke"]
 [ext_resource type="Script" uid="uid://dyjg3a1a48cwy" path="res://src/client/GameManager.gd" id="6_mfuft"]
+[ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="7_m5ev8"]
+[ext_resource type="Script" uid="uid://cv4vd2mi47olv" path="res://src/client/Player/GroundTargetingMode.gd" id="8_43gkw"]
 
 [node name="Services" type="Node" unique_id=1368178531]
 
@@ -31,3 +34,18 @@ metadata/_custom_type_script = "uid://dp86opdmyy36x"
 [node name="TargetSelectionIndicator" type="Node" parent="." unique_id=1773781867]
 unique_name_in_owner = true
 script = ExtResource("4_k367o")
+
+[node name="LocalInput" type="Node" parent="." unique_id=1975837119]
+unique_name_in_owner = true
+script = ExtResource("6_jumke")
+metadata/_custom_type_script = "uid://bpd6m32l31yfn"
+
+[node name="InputBatcher" type="Node" parent="." unique_id=1573656969]
+unique_name_in_owner = true
+script = ExtResource("7_m5ev8")
+metadata/_custom_type_script = "uid://cgpkux7vh2jsk"
+
+[node name="GroundTargetingMode" type="Node" parent="." unique_id=1209316466]
+unique_name_in_owner = true
+script = ExtResource("8_43gkw")
+metadata/_custom_type_script = "uid://cv4vd2mi47olv"

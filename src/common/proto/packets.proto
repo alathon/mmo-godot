@@ -227,7 +227,7 @@ message WorldPositions {
 }
 
 // Per-entity vitals snapshot (server → all clients, reliable each tick).
-message EntityState {
+message ServerEntityState {
   uint32 entity_id = 1;
   uint32 hp = 2;
   uint32 max_hp = 3;
@@ -240,7 +240,7 @@ message EntityState {
 // Reliable per-tick broadcast: vitals + any entity events.
 message WorldState {
   uint32 tick = 1;
-  repeated EntityState entities = 2;
+  repeated ServerEntityState entities = 2;
   repeated EntityEvent events = 3;
 }
 

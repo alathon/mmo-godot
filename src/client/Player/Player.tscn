@@ -14,7 +14,7 @@
 [ext_resource type="Script" uid="uid://b0rxo4gkxgadv" path="res://src/common/entities/abilities/AbilityState.gd" id="6_nx6lr"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="7_2n468"]
 [ext_resource type="Script" uid="uid://c5t8r2h0stlty" path="res://src/common/entities/DetermineHostility.gd" id="7_ijb4o"]
-[ext_resource type="Script" path="res://src/common/entities/Mob.gd" id="7_mob"]
+[ext_resource type="Script" uid="uid://1vieeccv4ht8" path="res://src/common/entities/Mob.gd" id="7_mob"]
 [ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="8_8cp3o"]
 [ext_resource type="Script" uid="uid://cp0o75ae4u8qe" path="res://src/client/AbilityEventController.gd" id="14_ability_event_controller"]
 

@@ -3755,7 +3755,7 @@ class WorldPositions:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
-class EntityState:
+class ServerEntityState:
 	func _init():
 		var service
 		
@@ -3917,7 +3917,7 @@ class WorldState:
 		service.field = __tick
 		data[__tick.tag] = service
 		
-		var __entities_default: Array[EntityState] = []
+		var __entities_default: Array[ServerEntityState] = []
 		__entities = PBField.new("entities", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 2, true, __entities_default)
 		service = PBServiceField.new()
 		service.field = __entities
@@ -3947,13 +3947,13 @@ class WorldState:
 		__tick.value = value
 	
 	var __entities: PBField
-	func get_entities() -> Array[EntityState]:
+	func get_entities() -> Array[ServerEntityState]:
 		return __entities.value
 	func clear_entities() -> void:
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		__entities.value.clear()
-	func add_entities() -> EntityState:
-		var element = EntityState.new()
+	func add_entities() -> ServerEntityState:
+		var element = ServerEntityState.new()
 		__entities.value.append(element)
 		return element
 	

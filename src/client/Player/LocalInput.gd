@@ -43,7 +43,6 @@ func _on_before_tick_loop(tick: int) -> void:
 	_primary_click_latch = false
 	_primary_click_position_latch = Vector2.ZERO
 
-
 func capture_primary_click(screen_position: Vector2) -> void:
 	_primary_click_latch = true
 	_primary_click_position_latch = screen_position

@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://ke8s1nyajl7x"]
+
+[ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="1_15ocp"]
+[ext_resource type="Script" uid="uid://xn8t603qyhgv" path="res://src/client/new_stuff/Player.gd" id="1_jxn58"]
+[ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/new_stuff/EntityState.tscn" id="1_thboc"]
+[ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="2_sw0c6"]
+[ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="3_oyqjv"]
+[ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="4_mtsy5"]
+[ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="4_ufjvb"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xyoee"]
+radius = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mbyo8"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.2, 0.2, 0.3)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_lo6na"]
+
+[node name="PlayerRoot" type="Node" unique_id=109742466]
+script = ExtResource("1_jxn58")
+
+[node name="CSP" type="Node" parent="." unique_id=1012600230]
+unique_name_in_owner = true
+script = ExtResource("4_mtsy5")
+metadata/_custom_type_script = "uid://vp3i6edrewfe"
+
+[node name="Cooldowns" type="Node" parent="." unique_id=1939102590]
+unique_name_in_owner = true
+script = ExtResource("1_15ocp")
+
+[node name="EntityState" parent="." unique_id=377940046 instance=ExtResource("1_thboc")]
+unique_name_in_owner = true
+
+[node name="Body" type="CharacterBody3D" parent="." unique_id=780638673]
+unique_name_in_owner = true
+collision_mask = 2
+script = ExtResource("2_sw0c6")
+
+[node name="Collider" type="CollisionShape3D" parent="Body" unique_id=1618557898]
+unique_name_in_owner = true
+shape = SubResource("CapsuleShape3D_xyoee")
+
+[node name="PhysicsDebug" type="MeshInstance3D" parent="Body" unique_id=4684568]
+unique_name_in_owner = true
+material_override = SubResource("StandardMaterial3D_mbyo8")
+mesh = SubResource("CapsuleMesh_lo6na")
+
+[node name="Model" type="Node3D" parent="Body" unique_id=988787258 node_paths=PackedStringArray("Body")]
+unique_name_in_owner = true
+top_level = true
+script = ExtResource("3_oyqjv")
+Body = NodePath("..")
+
+[node name="UIAnchor" type="Node3D" parent="Body/Model" unique_id=1755008366]
+unique_name_in_owner = true
+
+[node name="HealthBar" parent="Body/Model/UIAnchor" unique_id=2065858836 instance=ExtResource("4_ufjvb")]
+unique_name_in_owner = true

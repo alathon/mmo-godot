@@ -10,7 +10,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 var _last_server_pos = Vector3.ZERO
 
-func on_entity_diff(entity: Proto.EntityState) -> void:
+func on_entity_diff(entity: Proto.ServerEntityState) -> void:
 	if !enabled:
 		pass
 

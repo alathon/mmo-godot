@@ -1,7 +1,7 @@
 class_name AbilityManager
 extends Node
 
-@onready var state: AbilityState = %AbilityState
+@onready var state: AbilityStateOld = %AbilityState
 @onready var cooldowns: AbilityCooldowns = %AbilityCooldowns
 @onready var stats: Stats = %Stats
 @onready var mob: Mob = %Mob

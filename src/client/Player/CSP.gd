@@ -21,7 +21,7 @@ var _pending_server_pos: Vector3 = Vector3.ZERO
 var _pending_server_vel: Vector3 = Vector3.ZERO
 var _pending_server_rot: float = 0.0
 
-@export var _body: CharacterBody3D
+@onready var _body: CharacterBody3D = %Body
 @export var EnableReconciliation: bool = true
 
 func _ready() -> void:

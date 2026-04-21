@@ -28,7 +28,7 @@ func _get_face_angle() -> float:
 func _set_face_angle(value: float) -> void:
 	_body.face_angle = value
 
-func apply_world_state(state: Proto.EntityState) -> void:
+func apply_world_state(state: Proto.ServerEntityState) -> void:
 	if stats != null:
 		stats.apply_world_state(state)
 		if _hp_bar != null:

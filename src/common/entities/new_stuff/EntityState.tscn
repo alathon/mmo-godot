@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://cicysylc0oug8"]
+
+[ext_resource type="Script" uid="uid://cxsc3ssaeedk5" path="res://src/common/entities/new_stuff/EntityState.gd" id="1_s8f4j"]
+[ext_resource type="Script" uid="uid://duvw74nu8tcmb" path="res://src/common/entities/new_stuff/GeneralStats.gd" id="2_xiqw5"]
+[ext_resource type="Script" uid="uid://xvwtan1j2201" path="res://src/common/entities/new_stuff/ClassStats.gd" id="3_6vx1w"]
+[ext_resource type="Script" uid="uid://cho5pju2v3r8i" path="res://src/common/entities/new_stuff/RaceStats.gd" id="4_4c4e0"]
+[ext_resource type="Script" uid="uid://dfeo3gniirk4t" path="res://src/common/entities/new_stuff/AggroState.gd" id="5_p8eca"]
+[ext_resource type="Script" uid="uid://bx7pjmcgfl722" path="res://src/common/entities/new_stuff/AbilityState.gd" id="6_6vx1w"]
+
+[node name="EntityState" type="Node" unique_id=377940046]
+script = ExtResource("1_s8f4j")
+
+[node name="GeneralStats" type="Node" parent="." unique_id=1734097895]
+unique_name_in_owner = true
+script = ExtResource("2_xiqw5")
+
+[node name="ClassStats" type="Node" parent="." unique_id=149396308]
+unique_name_in_owner = true
+script = ExtResource("3_6vx1w")
+
+[node name="RaceStats" type="Node" parent="." unique_id=2111065320]
+unique_name_in_owner = true
+script = ExtResource("4_4c4e0")
+
+[node name="AggroState" type="Node" parent="." unique_id=438126161]
+unique_name_in_owner = true
+script = ExtResource("5_p8eca")
+
+[node name="AbilityState" type="Node" parent="." unique_id=1278613776]
+unique_name_in_owner = true
+script = ExtResource("6_6vx1w")

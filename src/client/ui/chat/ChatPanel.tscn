@@ -1,6 +1,50 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dw1t8jxnvimgh"]
 
-[ext_resource type="Script" path="res://src/client/ui/chat/ChatPanel.gd" id="1_chat_panel"]
+[ext_resource type="Script" uid="uid://cgtlprhf4j0ut" path="res://src/client/ui/chat/ChatPanel.gd" id="1_chat_panel"]
 
-[node name="ChatPanel" type="CanvasLayer"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k3sk3"]
+bg_color = Color(0.011764706, 0.015686275, 0.011764706, 0.23529412)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3100922, 0.35522386, 0.38894102, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="ChatPanel" type="CanvasLayer" unique_id=195533597]
 script = ExtResource("1_chat_panel")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=2100549932]
+custom_minimum_size = Vector2(460, 220)
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = -239.0
+offset_right = 474.0
+offset_bottom = -19.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_k3sk3")
+
+[node name="Content" type="VBoxContainer" parent="Panel" unique_id=1470581277]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Panel/Content" unique_id=2136860821]
+layout_mode = 2
+text = "Combat"
+
+[node name="Transcript" type="RichTextLabel" parent="Panel/Content" unique_id=2023195655]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+bbcode_enabled = true

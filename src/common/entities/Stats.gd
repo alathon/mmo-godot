@@ -25,7 +25,7 @@ func _ready() -> void:
 		energy = max_energy
 
 
-func apply_world_state(state: Proto.EntityState) -> void:
+func apply_world_state(state: Proto.ServerEntityState) -> void:
 	if state == null:
 		return
 	hp = state.get_hp()
