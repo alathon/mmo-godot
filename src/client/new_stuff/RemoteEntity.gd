@@ -7,6 +7,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var model: Node3D = %Model
 @onready var _interpolator: RemoteInterpolator = %RemoteInterpolator
 @onready var entity_state: EntityState = %EntityState
+@onready var animation_controller = %CharacterAnimationController
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
@@ -47,13 +48,10 @@ func set_character_model(name) -> void:
 	# 0,0,0. So offset the y position accordingly so we're not floating in the air.
 	new_model.position.y = -1
 
-	# Connect the AnimationTree to the Body (must be relative path from the AnimationTree node)
 	var anim_tree: AnimationTree = new_model.get_node("%AnimationTree") as AnimationTree
-	anim_tree.advance_expression_base_node = anim_tree.get_path_to(self)
-	anim_tree.active = true
-
 	_animationTree = anim_tree
 	_animationPlayer = new_model.get_node("%AnimationPlayer") as AnimationPlayer
+	animation_controller.bind_model(_animationTree, _animationPlayer, self)
 
 func on_server_position(pos: Vector3, vel: Vector3, rot_y: float, is_on_floor: bool, tick: int):
 	_last_server_tick_received = tick
@@ -74,9 +72,11 @@ func apply_world_state(state: Proto.ServerEntityState):
 
 func on_ability_event(event: EntityEvents, event_tick: int) -> void:
 	entity_state.apply_entity_event(event, event_tick)
+	animation_controller.on_entity_event(event, event_tick)
 
 func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 	entity_state.apply_ability_resolved(resolved)
+	animation_controller.on_ability_resolved(resolved)
 
 func _on_before_tick_loop(tick: int) -> void:
 	if _last_server_tick_received == -1 or _last_server_tick_processed == _last_server_tick_received:

@@ -55,6 +55,13 @@ states/Staff_Attack/position = Vector2(241, 270)
 transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_wpms7"), "Idle", "Run", SubResource("AnimationNodeStateMachineTransition_jsd04"), "Run", "Idle", SubResource("AnimationNodeStateMachineTransition_yn530"), "Idle", "Idle_Weapon", SubResource("AnimationNodeStateMachineTransition_yhstn"), "Idle_Weapon", "Idle", SubResource("AnimationNodeStateMachineTransition_qi72c"), "Idle_Weapon", "Run", SubResource("AnimationNodeStateMachineTransition_1ru7o"), "Run", "Idle_Weapon", SubResource("AnimationNodeStateMachineTransition_vwnbs")]
 graph_offset = Vector2(60, -60)
 
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_1ru7o"]
+graph_offset = Vector2(-191, -52)
+nodes/output/position = Vector2(540, 100)
+nodes/Locomotion/node = SubResource("AnimationNodeStateMachine_1ru7o")
+nodes/Locomotion/position = Vector2(60, 80)
+node_connections = [&"output", 0, &"Locomotion"]
+
 [node name="BaseCharacter" unique_id=1600053189 instance=ExtResource("1_yhstn")]
 
 [node name="CharacterArmature" parent="." index="0" unique_id=434203895]
@@ -117,6 +124,6 @@ unique_name_in_owner = true
 [node name="AnimationTree" type="AnimationTree" parent="." index="2" unique_id=2106885785]
 unique_name_in_owner = true
 root_node = NodePath("%AnimationTree/..")
-tree_root = SubResource("AnimationNodeStateMachine_1ru7o")
+tree_root = SubResource("AnimationNodeBlendTree_1ru7o")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../AnimationPlayer")

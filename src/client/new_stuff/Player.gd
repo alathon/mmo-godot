@@ -8,6 +8,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var modelRoot: VisualSmoother = %Model
 @onready var entity_state: EntityState = %EntityState
 @onready var ability_manager: AbilityManager = %AbilityManager
+@onready var animation_controller = %CharacterAnimationController
 
 var id: int
 var _animationTree: AnimationTree
@@ -44,13 +45,10 @@ func set_character_model(name) -> void:
 	new_model.position.y = -1
 
 	
-	# Connect the AnimationTree to the Body (must be relative path from the AnimationTree node)
 	var anim_tree: AnimationTree = new_model.get_node("%AnimationTree") as AnimationTree
-	anim_tree.advance_expression_base_node = anim_tree.get_path_to(self)
-	anim_tree.active = true
-
 	_animationTree = anim_tree
 	_animationPlayer = new_model.get_node("%AnimationPlayer") as AnimationPlayer
+	animation_controller.bind_model(_animationTree, _animationPlayer, self)
 
 func on_server_position(pos: Vector3, vel: Vector3, rot: float, tick: int):
 	if frozen:
@@ -63,9 +61,11 @@ func apply_world_state(state: Proto.ServerEntityState):
 
 func on_ability_event(event: EntityEvents, event_tick: int) -> void:
 	entity_state.apply_entity_event(event, event_tick)
+	animation_controller.on_entity_event(event, event_tick)
 
 func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 	entity_state.apply_ability_resolved(resolved)
+	animation_controller.on_ability_resolved(resolved)
 
 func capture_primary_click(pos):
 	return false # TODO: This method shouldn't be here..

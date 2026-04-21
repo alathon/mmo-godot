@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bkwdipv3pktbk" path="res://src/client/new_stuff/RemoteEntity.gd" id="1_5gimh"]
 [ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/new_stuff/EntityState.tscn" id="1_12vag"]
+[ext_resource type="Script" uid="uid://d2r67jknii081" path="res://src/client/new_stuff/CharacterAnimationController.gd" id="1_v0r18"]
 [ext_resource type="Script" uid="uid://cocfhahrnkgmx" path="res://src/client/Player/RemoteInterpolator.gd" id="2_01ial"]
 [ext_resource type="Script" uid="uid://spcv0sciqc0t" path="res://src/client/new_stuff/RemoteBody.gd" id="2_b7qwl"]
 [ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="4_01ial"]
@@ -15,6 +16,10 @@ script = ExtResource("1_5gimh")
 
 [node name="EntityState" parent="." unique_id=377940046 instance=ExtResource("1_12vag")]
 unique_name_in_owner = true
+
+[node name="CharacterAnimationController" type="Node" parent="." unique_id=151685377]
+unique_name_in_owner = true
+script = ExtResource("1_v0r18")
 
 [node name="RemoteInterpolator" type="Node" parent="." unique_id=2103407171 node_paths=PackedStringArray("target")]
 unique_name_in_owner = true

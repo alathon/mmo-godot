@@ -29,6 +29,12 @@ states/Run/position = Vector2(487, 100)
 transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_ijb4o"), "Idle", "Run", SubResource("AnimationNodeStateMachineTransition_55nq0"), "Run", "Idle", SubResource("AnimationNodeStateMachineTransition_nx6lr")]
 graph_offset = Vector2(-223, -20)
 
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_kb63m"]
+graph_offset = Vector2(-223, -20)
+nodes/Locomotion/node = SubResource("AnimationNodeStateMachine_k8ojy")
+nodes/Locomotion/position = Vector2(349, 100)
+node_connections = [&"output", 0, &"Locomotion"]
+
 [node name="BaseCharacter" unique_id=1199967037 instance=ExtResource("1_k8ojy")]
 
 [node name="CharacterArmature" parent="." index="0" unique_id=1673807515]
@@ -73,6 +79,6 @@ unique_name_in_owner = true
 [node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1104446349]
 unique_name_in_owner = true
 root_node = NodePath("%AnimationTree/..")
-tree_root = SubResource("AnimationNodeStateMachine_k8ojy")
+tree_root = SubResource("AnimationNodeBlendTree_kb63m")
 advance_expression_base_node = NodePath("../AnimationPlayer")
 anim_player = NodePath("../AnimationPlayer")
