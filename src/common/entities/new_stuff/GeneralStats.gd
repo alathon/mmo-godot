@@ -11,6 +11,8 @@ var max_hp: int = 100:
 
 var mana: int = 100
 var max_mana: int = 100
+var stamina: int = 100
+var max_stamina: int = 100
 
 func set_hp(value: int):
 	if hp != value:

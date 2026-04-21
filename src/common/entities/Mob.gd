@@ -1,7 +1,7 @@
 class_name Mob
 extends Node
 
-@onready var stats: Stats = %Stats
+@onready var stats: GeneralStats = %GeneralStats
 @onready var hostility: DetermineHostility = %DetermineHostility
 
 

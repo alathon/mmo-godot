@@ -6,7 +6,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var body: RemoteBody = %Body
 @onready var model: Node3D = %Model
 @onready var _interpolator: RemoteInterpolator = %RemoteInterpolator
-@onready var _entity_state: EntityState = %EntityState
+@onready var entity_state: EntityState = %EntityState
 
 var _animationTree: AnimationTree
 var _animationPlayer: AnimationPlayer
@@ -29,6 +29,8 @@ func set_frozen(value: bool):
 	if frozen:
 		body.velocity = Vector3.ZERO
 		model.Body = null # Stop the visual smoother.
+	else:
+		model.Body = body
 
 func set_character_model(name) -> void:
 	var new_model = (load("res://assets/entities/character_models/%s.tscn" % name)).instantiate()
@@ -68,7 +70,13 @@ func on_server_position(pos: Vector3, vel: Vector3, rot_y: float, is_on_floor: b
 	})
 
 func apply_world_state(state: Proto.ServerEntityState):
-	_entity_state.on_world_state(state)
+	entity_state.on_world_state(state)
+
+func on_ability_event(event: EntityEvents, event_tick: int) -> void:
+	entity_state.apply_entity_event(event, event_tick)
+
+func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
+	entity_state.apply_ability_resolved(resolved)
 
 func _on_before_tick_loop(tick: int) -> void:
 	if _last_server_tick_received == -1 or _last_server_tick_processed == _last_server_tick_received:

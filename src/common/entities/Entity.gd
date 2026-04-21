@@ -13,6 +13,9 @@ var face_angle: float:
 
 
 func get_visual() -> Node3D:
+	var model := get_node_or_null("%Model") as Node3D
+	if model != null:
+		return model
 	return get_node_or_null("%Visual") as Node3D
 
 

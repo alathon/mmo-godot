@@ -35,7 +35,7 @@ func select_target_at_screen_position(screen_position: Vector2) -> void:
 
 
 func select_target_by_id(entity_id: int) -> void:
-	var target := _game_manager.get_entity_by_id(entity_id) if entity_id > 0 else null
+	var target = _game_manager.get_entity_by_id(entity_id) if entity_id > 0 else null
 	select_target(target)
 
 

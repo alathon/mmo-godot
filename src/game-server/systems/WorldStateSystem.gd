@@ -25,15 +25,15 @@ func tick(tick: int, ctx: Dictionary) -> void:
 
 	for peer_id in players:
 		var player := players[peer_id] as ServerPlayer
-		var mob_stats := player.stats
+		var stats := player.entity_state.general_stats
 		var es := wstate.add_entities()
 		es.set_entity_id(peer_id)
-		es.set_hp(mob_stats.hp)
-		es.set_max_hp(mob_stats.max_hp)
-		es.set_mana(mob_stats.mana)
-		es.set_max_mana(mob_stats.max_mana)
-		es.set_stamina(mob_stats.stamina)
-		es.set_max_stamina(mob_stats.max_stamina)
+		es.set_hp(stats.hp)
+		es.set_max_hp(stats.max_hp)
+		es.set_mana(stats.mana)
+		es.set_max_mana(stats.max_mana)
+		es.set_stamina(stats.stamina)
+		es.set_max_stamina(stats.max_stamina)
 
 	if _ability_system.has_entity_events():
 		_ability_system.build_entity_events_proto(wstate, tick)

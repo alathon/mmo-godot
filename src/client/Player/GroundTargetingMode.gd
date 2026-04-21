@@ -5,6 +5,24 @@ extends Node
 @onready var _input_source: LocalInput = %LocalInput
 
 var active: bool = false
+var _ability_id: int = 0
+
+func activate(ability_id: int) -> void:
+	active = true
+	_ability_id = ability_id
+
+func deactivate() -> void:
+	active = false
+	_ability_id = 0
+
+func is_active() -> bool:
+	return active
+
+func is_active_for(ability_id: int) -> bool:
+	return active and _ability_id == ability_id
+
+func get_ability_id() -> int:
+	return _ability_id
 
 func capture_primary_click(screen_position: Vector2) -> bool:
 	if not active:
@@ -31,9 +49,8 @@ func _build_ground_target_spec(screen_position: Vector2) -> AbilityTargetSpec:
 	return AbilityTargetSpec.ground(ground_position)
 
 func _raycast_ground_position(screen_position: Vector2):
-	var mouse_pos := get_viewport().get_mouse_position()
-	var origin := _camera.project_ray_origin(mouse_pos)
-	var direction := _camera.project_ray_normal(mouse_pos)
+	var origin := _camera.project_ray_origin(screen_position)
+	var direction := _camera.project_ray_normal(screen_position)
 
 	var query := PhysicsRayQueryParameters3D.create(
 		origin,

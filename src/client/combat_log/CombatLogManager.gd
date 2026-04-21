@@ -13,7 +13,6 @@ signal entry_created(entry)
 var _entries: Array = []
 var _sinks: Array[RefCounted] = []
 var _enabled: bool = true
-var _connected_controllers: Dictionary = {}
 var _scheduled_entries: Array[CombatLogEntry] = []
 
 
@@ -49,31 +48,9 @@ func get_recent_entries(limit: int = 50) -> Array:
 func _connect_game_manager(game_manager) -> void:
 	game_manager.entity_event_received.connect(_on_entity_event_received)
 	game_manager.ability_use_rejected.connect(_on_ability_use_rejected)
-	game_manager.local_player_spawned.connect(_on_entity_spawned)
-	game_manager.remote_player_spawned.connect(_on_entity_spawned)
-	if game_manager.has_method("get_local_player"):
-		var local_player = game_manager.get_local_player()
-		if local_player != null:
-			_connect_entity_ability_controller(local_player)
-	if game_manager.has_method("get_remote_players"):
-		for player in game_manager.get_remote_players():
-			_connect_entity_ability_controller(player)
-
-
-func _on_entity_spawned(entity) -> void:
-	_connect_entity_ability_controller(entity)
-
-
-func _connect_entity_ability_controller(entity) -> void:
-	if entity == null or not entity.has_method("get_ability_event_controller"):
-		return
-	var controller = entity.get_ability_event_controller()
-	if controller == null or _connected_controllers.has(controller):
-		return
-	_connected_controllers[controller] = true
-	controller.ability_started.connect(_on_ability_started)
-	controller.ability_canceled.connect(_on_ability_canceled)
-	controller.ability_resolved.connect(_on_ability_resolved)
+	game_manager.ability_use_started.connect(_on_ability_started)
+	game_manager.ability_use_canceled.connect(_on_ability_canceled)
+	game_manager.ability_use_resolved.connect(_on_ability_resolved)
 
 
 func _on_before_tick_loop(tick: int) -> void:

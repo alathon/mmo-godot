@@ -1,9 +1,15 @@
 class_name CombatManager
 extends Node
 
-@onready var stats: Stats = %Stats
-@onready var hostility: Node = %DetermineHostility
 @onready var entity: Node = get_parent()
+
+var stats: GeneralStats:
+	get:
+		return entity.entity_state.general_stats
+
+var hostility: AggroState:
+	get:
+		return entity.entity_state.aggro_state
 
 var combat_started_tick: int = 0
 
@@ -23,8 +29,7 @@ func enter_combat(source_entity: Node, sim_tick: int) -> void:
 
 func leave_combat(sim_tick: int) -> void:
 	combat_started_tick = 0
-	if hostility != null:
-		hostility.clear_combat()
+	hostility.clear_combat()
 
 
 func can_target(
@@ -42,15 +47,15 @@ func can_target(
 
 
 func is_hostile_to(target_entity: Node) -> bool:
-	return hostility != null and hostility.is_hostile_to(target_entity)
+	return hostility.is_hostile_to(target_entity)
 
 
 func is_friendly_to(target_entity: Node) -> bool:
-	return hostility == null or hostility.is_friendly_to(target_entity)
+	return hostility.is_friendly_to(target_entity)
 
 
 func is_alive() -> bool:
-	return stats != null and stats.hp > 0
+	return stats.hp > 0
 
 
 func resolve_ability_use_snapshot(
@@ -164,8 +169,7 @@ func on_damage_taken(
 		ability: AbilityResource,
 		context: AbilityExecutionContext,
 		threat_amount: float = -1.0) -> void:
-	if hostility != null:
-		hostility.attacked_by(source_entity, amount if threat_amount < 0.0 else threat_amount)
+	hostility.attacked_by(source_entity, amount if threat_amount < 0.0 else threat_amount)
 	if context != null:
 		enter_combat(source_entity, context.sim_tick)
 
@@ -431,11 +435,9 @@ func _effect_can_apply_to_target(source_entity: Node, target_entity: Node, effec
 
 
 func _get_combat_manager(target_entity: Node) -> CombatManager:
-	if target_entity is SimulatedEntity:
-		return (target_entity as SimulatedEntity).combat_manager
-	if target_entity is ServerPlayer:
-		return (target_entity as ServerPlayer).combat_manager
-	return null
+	if target_entity == null:
+		return null
+	return target_entity.combat_manager as CombatManager
 
 
 func _get_entity_by_id(entity_id: int, context: AbilityExecutionContext) -> Node:

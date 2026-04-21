@@ -7,6 +7,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var csp: CSP = %CSP
 @onready var modelRoot: VisualSmoother = %Model
 @onready var entity_state: EntityState = %EntityState
+@onready var ability_manager: AbilityManager = %AbilityManager
 
 var id: int
 var _animationTree: AnimationTree
@@ -25,6 +26,7 @@ func set_frozen(value: bool):
 		csp._pending_server_tick = -1
 	else:
 		print("[CLIENT] Player unfrozen")
+		modelRoot.Body = body
 
 func set_character_model(name) -> void:
 	var new_model = (load("res://assets/entities/character_models/%s.tscn" % name)).instantiate()
@@ -57,6 +59,12 @@ func on_server_position(pos: Vector3, vel: Vector3, rot: float, tick: int):
 
 func apply_world_state(state: Proto.ServerEntityState):
 	entity_state.on_world_state(state)
+
+func on_ability_event(event: EntityEvents, event_tick: int) -> void:
+	entity_state.apply_entity_event(event, event_tick)
+
+func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
+	entity_state.apply_ability_resolved(resolved)
 
 func capture_primary_click(pos):
 	return false # TODO: This method shouldn't be here..

@@ -1,7 +1,6 @@
 class_name AbilityUseResult
 extends RefCounted
 
-const EntityEvents = preload("res://src/common/EntityEvents.gd")
 
 var accepted: bool = false
 var request_id: int = 0
