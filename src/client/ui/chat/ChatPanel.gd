@@ -64,7 +64,7 @@ func _rebuild_transcript() -> void:
 		if entry == null:
 			continue
 		_transcript.push_color(_color_for_entry(entry))
-		_transcript.add_text(entry.message)
+		_transcript.add_text(entry.display_text())
 		_transcript.pop()
 		_transcript.newline()
 	call_deferred("_scroll_to_bottom")

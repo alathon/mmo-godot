@@ -11,7 +11,7 @@ signal target_changed(target: Node)
 @onready var _aggro_state: AggroState = %AggroState
 @onready var _ability_state: AbilityState = %AbilityState
 
-var in_combat = true:
+var in_combat = false:
 	set = set_in_combat	
 
 var current_target: Node:
@@ -105,6 +105,10 @@ func apply_entity_event(event: EntityEvents, event_tick: int) -> void:
 		EntityEvents.Type.ABILITY_USE_CANCELED:
 			_ability_state.clear_cast(event.request_id)
 			_ability_state.clear_queue(event.request_id)
+		EntityEvents.Type.COMBAT_STARTED:
+			set_in_combat(true)
+		EntityEvents.Type.COMBAT_ENDED:
+			set_in_combat(false)
 
 func apply_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
 	if resolved == null:

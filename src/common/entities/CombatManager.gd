@@ -22,14 +22,19 @@ func is_in_combat() -> bool:
 	return combat_started_tick > 0
 
 
-func enter_combat(source_entity: Node, sim_tick: int) -> void:
+func enter_combat(source_entity: Node, sim_tick: int) -> bool:
 	if combat_started_tick <= 0:
 		combat_started_tick = sim_tick
+		return true
+	return false
 
 
-func leave_combat(sim_tick: int) -> void:
+func leave_combat(sim_tick: int) -> bool:
+	if combat_started_tick <= 0:
+		return false
 	combat_started_tick = 0
 	hostility.clear_combat()
+	return true
 
 
 func can_target(
@@ -160,7 +165,7 @@ func on_damage_dealt(
 		ability: AbilityResource,
 		context: AbilityExecutionContext) -> void:
 	if context != null:
-		enter_combat(target_entity, context.sim_tick)
+		context.combat_system.enter_combat(entity, target_entity, context.sim_tick)
 
 
 func on_damage_taken(
@@ -171,7 +176,7 @@ func on_damage_taken(
 		threat_amount: float = -1.0) -> void:
 	hostility.attacked_by(source_entity, amount if threat_amount < 0.0 else threat_amount)
 	if context != null:
-		enter_combat(source_entity, context.sim_tick)
+		context.combat_system.enter_combat(entity, source_entity, context.sim_tick)
 
 
 func on_healing_done(

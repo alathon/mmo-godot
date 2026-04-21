@@ -46,10 +46,10 @@ func add_healing_aggro(
 			continue
 		if combat_manager.hostility.has_aggro_for(healed_entity):
 			combat_manager.hostility.add_aggro(healer_entity, threat_amount)
-			combat_manager.enter_combat(healer_entity, sim_tick)
+			enter_combat(combat_manager.entity, healer_entity, sim_tick)
 			var healer_manager := _get_combat_manager_for_entity(healer_entity)
 			if healer_manager != null:
-				healer_manager.enter_combat(combat_manager.entity, sim_tick)
+				enter_combat(healer_entity, combat_manager.entity, sim_tick)
 
 
 func clear_combat_for_entity(entity: Node, sim_tick: int) -> void:
@@ -57,11 +57,27 @@ func clear_combat_for_entity(entity: Node, sim_tick: int) -> void:
 		return
 	var entity_manager := _get_combat_manager_for_entity(entity)
 	if entity_manager != null:
-		entity_manager.leave_combat(sim_tick)
+		leave_combat(entity, sim_tick)
 	for combat_manager in _get_combat_managers():
 		combat_manager.hostility.clear_aggro(entity)
 		if not combat_manager.hostility.has_aggro():
-			combat_manager.leave_combat(sim_tick)
+			leave_combat(combat_manager.entity, sim_tick)
+
+
+func enter_combat(entity: Node, source_entity: Node, sim_tick: int) -> void:
+	var combat_manager := _get_combat_manager_for_entity(entity)
+	if combat_manager == null:
+		return
+	if combat_manager.enter_combat(source_entity, sim_tick):
+		_pending_events.append(EntityEvents.combat_started(get_entity_id(entity), get_entity_id(source_entity)))
+
+
+func leave_combat(entity: Node, sim_tick: int) -> void:
+	var combat_manager := _get_combat_manager_for_entity(entity)
+	if combat_manager == null:
+		return
+	if combat_manager.leave_combat(sim_tick):
+		_pending_events.append(EntityEvents.combat_ended(get_entity_id(entity)))
 
 
 func is_valid_combat_target(

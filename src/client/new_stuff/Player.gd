@@ -43,9 +43,10 @@ func set_character_model(name) -> void:
 	# 0,0,0. So offset the y position accordingly so we're not floating in the air.
 	new_model.position.y = -1
 
+	
 	# Connect the AnimationTree to the Body (must be relative path from the AnimationTree node)
 	var anim_tree: AnimationTree = new_model.get_node("%AnimationTree") as AnimationTree
-	anim_tree.advance_expression_base_node = anim_tree.get_path_to(body)
+	anim_tree.advance_expression_base_node = anim_tree.get_path_to(self)
 	anim_tree.active = true
 
 	_animationTree = anim_tree

@@ -13,10 +13,10 @@ signal ability_use_accepted(ack)
 signal ability_use_rejected(rejection)
 signal ability_use_resolved(resolved)
 signal entity_event_received(event)
-signal ability_use_started(event)
-signal ability_use_canceled(event)
-signal ability_use_finished(event)
-signal ability_use_impact(event)
+signal ability_use_started(event, event_tick)
+signal ability_use_canceled(event, event_tick)
+signal ability_use_finished(event, event_tick)
+signal ability_use_impact(event, event_tick)
 signal damage_taken(event)
 signal healing_received(event)
 signal buff_applied(event)
@@ -437,10 +437,18 @@ func _dispatch_entity_event(event) -> void:
 		_log_entity_event(event.get_tick(), "status_effect_removed", payload.get_entity_id(), payload.get_status_id())
 	elif event.has_combat_started():
 		var payload = event.get_combat_started()
+		_apply_entity_state_event(
+				payload.get_entity_id(),
+				EntityEvents.combat_started(payload.get_entity_id(), payload.get_source_entity_id()),
+				event.get_tick())
 		combat_started.emit(payload)
 		_log_entity_event(event.get_tick(), "combat_started", payload.get_entity_id(), "")
 	elif event.has_combat_ended():
 		var payload = event.get_combat_ended()
+		_apply_entity_state_event(
+				payload.get_entity_id(),
+				EntityEvents.combat_ended(payload.get_entity_id()),
+				event.get_tick())
 		combat_ended.emit(payload)
 		_log_entity_event(event.get_tick(), "combat_ended", payload.get_entity_id(), "")
 	elif event.has_combatant_died():
@@ -472,28 +480,26 @@ func _on_ability_event_ready(event: EntityEvents, event_tick: int) -> void:
 
 	match event.type:
 		EntityEvents.Type.ABILITY_USE_STARTED:
-			ability_use_started.emit(event)
+			ability_use_started.emit(event, event_tick)
 			_log_entity_event(event_tick, "ability_use_started", event.source_entity_id, event.ability_id)
 		EntityEvents.Type.ABILITY_USE_CANCELED:
-			ability_use_canceled.emit(event)
+			ability_use_canceled.emit(event, event_tick)
 			_log_entity_event(event_tick, "ability_use_canceled", event.source_entity_id, event.ability_id)
 			if _local_ability_controller != null:
 				_local_ability_controller.clear_request_tracking(event.request_id)
 			_event_gateway.clear_request_tracking(event.request_id)
 		EntityEvents.Type.ABILITY_USE_FINISHED:
-			ability_use_finished.emit(event)
+			ability_use_finished.emit(event, event_tick)
 			_log_entity_event(event_tick, "ability_use_finished", event.source_entity_id, event.ability_id)
 		EntityEvents.Type.ABILITY_USE_IMPACT:
-			ability_use_impact.emit(event)
+			ability_use_impact.emit(event, event_tick)
 			_log_entity_event(event_tick, "ability_use_impact", event.source_entity_id, event.ability_id)
 			if _local_ability_controller != null:
 				_local_ability_controller.clear_request_tracking(event.request_id)
 		_:
 			return
 
-	var entity = _get_entity(event.source_entity_id)
-	if entity != null and entity.has_method("on_ability_event"):
-		entity.on_ability_event(event, event_tick)
+	_apply_entity_state_event(event.source_entity_id, event, event_tick)
 
 
 func _on_ability_resolved_ready(resolved: Proto.AbilityUseResolved) -> void:
@@ -502,6 +508,14 @@ func _on_ability_resolved_ready(resolved: Proto.AbilityUseResolved) -> void:
 	ability_use_resolved.emit(resolved)
 	if _local_player != null:
 		_local_player.on_ability_resolved(resolved)
+
+
+func _apply_entity_state_event(entity_id: int, event: EntityEvents, event_tick: int) -> void:
+	var entity = _get_entity(entity_id)
+	if entity == null:
+		return
+	if entity.has_method("on_ability_event"):
+		entity.on_ability_event(event, event_tick)
 
 
 func _should_suppress_world_event_log(event_name: String, payload) -> bool:

@@ -400,6 +400,7 @@ func _entry_from_resolved_effect(
 func _publish_entry(entry) -> void:
 	if entry == null or entry.message == "":
 		return
+	entry.timestamp_text = _timestamp()
 	_entries.append(entry)
 	if _entries.size() > max_entries:
 		_entries.remove_at(0)
@@ -420,6 +421,15 @@ func _new_entry(
 	entry.message = entry_message
 	entry.severity = entry_severity
 	return entry
+
+
+func _timestamp() -> String:
+	var time := Time.get_time_dict_from_system()
+	return "%02d:%02d:%02d.%03d" % [
+		int(time["hour"]),
+		int(time["minute"]),
+		int(time["second"]),
+		Time.get_ticks_msec() % 1000]
 
 
 func _entity_name(entity_names: Dictionary, entity_id: int, is_local: bool) -> String:

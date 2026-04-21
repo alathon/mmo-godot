@@ -42,7 +42,7 @@ func evaluate_activation(
 	if ability_state.is_casting():
 		if _in_cast_queue_window(requested_tick):
 			decision.outcome = AbilityDecision.Outcome.QUEUED
-			decision.earliest_activate_tick = ability_state.current_cast.finish_tick
+			decision.earliest_activate_tick = _get_cast_queue_ready_tick(ability, requested_tick)
 			return decision
 		decision.reject_reason = AbilityConstants.CANCEL_INVALID
 		return decision
@@ -50,7 +50,7 @@ func evaluate_activation(
 	if ability.uses_gcd and ability_state.is_on_gcd():
 		if _in_gcd_queue_window():
 			decision.outcome = AbilityDecision.Outcome.QUEUED
-			decision.earliest_activate_tick = requested_tick + _remaining_gcd_ticks()
+			decision.earliest_activate_tick = _get_gcd_ready_tick(requested_tick)
 			return decision
 		decision.reject_reason = AbilityConstants.CANCEL_INVALID
 		return decision
@@ -316,6 +316,17 @@ func _remaining_gcd_ticks() -> int:
 	if ability_state.gcd_remaining <= 0.0:
 		return 0
 	return int(ceil(ability_state.gcd_remaining * float(Globals.TICK_RATE)))
+
+
+func _get_gcd_ready_tick(current_tick: int) -> int:
+	return current_tick + _remaining_gcd_ticks()
+
+
+func _get_cast_queue_ready_tick(ability: AbilityResource, current_tick: int) -> int:
+	var ready_tick := ability_state.current_cast.finish_tick
+	if ability != null and ability.uses_gcd:
+		ready_tick = maxi(ready_tick, _get_gcd_ready_tick(current_tick))
+	return ready_tick
 
 
 func _in_cast_queue_window(current_tick: int) -> bool:

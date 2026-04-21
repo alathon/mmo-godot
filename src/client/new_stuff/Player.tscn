@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://ke8s1nyajl7x"]
 
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="1_15ocp"]
-[ext_resource type="Script" path="res://src/common/entities/abilities/AbilityManager.gd" id="1_r52ga"]
 [ext_resource type="Script" uid="uid://xn8t603qyhgv" path="res://src/client/new_stuff/Player.gd" id="1_jxn58"]
+[ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="1_r52ga"]
 [ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/new_stuff/EntityState.tscn" id="1_thboc"]
 [ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="2_sw0c6"]
 [ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="3_oyqjv"]
