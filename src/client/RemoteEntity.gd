@@ -5,7 +5,6 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 @onready var _visual: RemoteEntityBody = %Visual
 @onready var _interpolator: RemoteInterpolator = %RemoteInterpolator
-@onready var _ability_event_controller: AbilityEventController = %AbilityEventController
 @onready var stats: Stats = %Stats
 @onready var _hp_bar: HealthBar = $Visual/UIAnchor/HealthBar
 
@@ -60,21 +59,6 @@ func apply_world_state(state: Proto.ServerEntityState) -> void:
 		if _hp_bar != null:
 			_hp_bar.set_values(stats.hp, stats.max_hp)
 
-
-func get_ability_event_controller() -> AbilityEventController:
-	return _ability_event_controller
-
-func on_ability_started(event, event_tick: int) -> void:
-	_ability_event_controller.on_ability_started(event, event_tick)
-
-func on_ability_finished(event, event_tick: int) -> void:
-	_ability_event_controller.on_ability_finished(event, event_tick)
-
-func on_ability_impact(event, event_tick: int) -> void:
-	_ability_event_controller.on_ability_impact(event, event_tick)
-
-func on_ability_canceled(event, event_tick: int) -> void:
-	_ability_event_controller.on_ability_canceled(event, event_tick)
 
 func setCharacterModel(model_name: String) -> void:
 	var model = (load("res://assets/entities/character_models/%s.tscn" % model_name)).instantiate()

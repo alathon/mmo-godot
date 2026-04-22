@@ -7,7 +7,7 @@ var request_id: int = 0
 var ability_id: int = 0
 var target: AbilityTargetSpec = null
 var reject_reason: int = AbilityConstants.CANCEL_INVALID
-var entity_events: Array[EntityEvents] = []
+var game_events: Array[GameEvent] = []
 
 
 func get_target_entity_id() -> int:

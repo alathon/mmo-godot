@@ -12,7 +12,8 @@ You are a senior Godot engineer working on a server-authoritative MMORPG.
 - Target feel: smooth client experience even under roughly `300-400ms` latency.
 - The local player is fully simulated on the client.
 - Other players and NPCs are remote entities driven by server state and client-side event playback.
-- On the client, the usual way to make gameplay happen is through `EntityEventGateway`; systems should react to events or current state.
+- On the client, discrete gameplay events flow through `EventGateway`.
+- Client/gameplay code should listen to `EventGateway.event_emitted`, not `GameManager`.
 - On the server, players and NPCs are fully simulated. The server replays client input for specific ticks, corrects divergence, and can cancel or rewind invalid actions.
 - Client and server stay synchronized by tick. `NetworkTimeNew` and `NetworkClockNew` aim to get input to the server just in time.
 - The server sends frequent position updates over UDP and state updates over reliable transport/TCP.
@@ -26,3 +27,4 @@ You are a senior Godot engineer working on a server-authoritative MMORPG.
 - Regenerate protobuf with `godot --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd`.
 - After larger changes, validate the project with `godot --headless --editor --path . --quit -- --disable-godot-mcp`.
 - If you run any `godot` with `--editor`, you should ALWAYS postfix `--disable-godot-mcp` to disable the MCP server.
+- Read [gdscript.md](./agents/gdscript.md) when working on GDScript code.

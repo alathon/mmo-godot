@@ -11,20 +11,6 @@ signal local_player_spawned(player: PlayerNew)
 signal remote_player_spawned(player: RemoteEntity)
 signal ability_use_accepted(ack)
 signal ability_use_rejected(rejection)
-signal ability_use_resolved(resolved)
-signal entity_event_received(event)
-signal ability_use_started(event, event_tick)
-signal ability_use_canceled(event, event_tick)
-signal ability_use_finished(event, event_tick)
-signal ability_use_impact(event, event_tick)
-signal damage_taken(event)
-signal healing_received(event)
-signal buff_applied(event)
-signal debuff_applied(event)
-signal status_effect_removed(event)
-signal combat_started(event)
-signal combat_ended(event)
-signal combatant_died(event)
 
 @onready var _api: BackendAPI = %BackendAPI
 @onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
@@ -63,8 +49,6 @@ func _ready() -> void:
 	NetworkTime.on_tick.connect(_on_network_tick)
 	NetworkTime.before_tick_loop.connect(_on_before_network_tick)
 	_event_gateway.event_emitted.connect(_on_game_event_emitted)
-	_event_gateway.ability_event_ready.connect(_on_ability_event_ready)
-	_event_gateway.ability_resolved_ready.connect(_on_ability_resolved_ready)
 
 func _on_network_tick(delta: float, current_tick: int):
 	if _local_player == null:
@@ -82,12 +66,12 @@ func _on_network_tick(delta: float, current_tick: int):
 				entity_state.tick_runtime(delta)
 	var ability_attempt = _process_ability_input(current_tick, input)
 	if ability_attempt != null and ability_attempt.accepted:
-		for ability_event in ability_attempt.entity_events:
-			_event_gateway.submit_predicted_event(ability_event, current_tick)
+		for game_event in ability_attempt.game_events:
+			_event_gateway.submit_client_game_event(game_event)
 
 	if _local_ability_controller != null:
-		for ability_event in _local_ability_controller.tick(current_tick):
-			_event_gateway.submit_predicted_event(ability_event, current_tick)
+		for game_event in _local_ability_controller.tick(current_tick):
+			_event_gateway.submit_client_game_event(game_event)
 
 	# Client-side post-tick stuff.
 	_local_player.csp.setInputAt(current_tick, input)
@@ -173,12 +157,17 @@ func _on_ability_use_rejected(rejection: Proto.AbilityUseRejected) -> void:
 			rejection.get_cancel_reason(),
 			NetworkTime.tick)
 	_event_gateway.clear_request_tracking(request_id)
-	for ability_event in rollback_events:
-		_event_gateway.submit_predicted_event(ability_event, NetworkTime.tick)
+	for game_event in rollback_events:
+		_event_gateway.submit_client_game_event(game_event)
 
 
 func _on_ability_use_resolved(resolved: Proto.AbilityUseResolved) -> void:
-	_event_gateway.submit_ability_resolved(resolved)
+	if resolved == null:
+		return
+	_event_gateway.submit_server_game_event(GameEvent.create(
+			int(resolved.get_resolve_tick()),
+			GameEvent.Type.ABILITY_USE_RESOLVED,
+			AbilityUseResolvedGameEventData.from_proto(resolved)))
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	if BotMode == true:
@@ -408,54 +397,7 @@ func _dispatch_world_state_events(diff: Proto.WorldState) -> void:
 
 
 func _dispatch_entity_event(event) -> void:
-	if _event_gateway.submit_world_event(event):
-		return
-
-	entity_event_received.emit(event)
-	if event.has_damage_taken():
-		var payload = event.get_damage_taken()
-		damage_taken.emit(payload)
-		if not _should_suppress_world_event_log("damage_taken", payload):
-			_log_entity_event(event.get_tick(), "damage_taken", payload.get_target_entity_id(), payload.get_ability_id())
-	elif event.has_healing_received():
-		var payload = event.get_healing_received()
-		healing_received.emit(payload)
-		if not _should_suppress_world_event_log("healing_received", payload):
-			_log_entity_event(event.get_tick(), "healing_received", payload.get_target_entity_id(), payload.get_ability_id())
-	elif event.has_buff_applied():
-		var payload = event.get_buff_applied()
-		buff_applied.emit(payload)
-		if not _should_suppress_world_event_log("buff_applied", payload):
-			_log_entity_event(event.get_tick(), "buff_applied", payload.get_target_entity_id(), payload.get_status_id())
-	elif event.has_debuff_applied():
-		var payload = event.get_debuff_applied()
-		debuff_applied.emit(payload)
-		if not _should_suppress_world_event_log("debuff_applied", payload):
-			_log_entity_event(event.get_tick(), "debuff_applied", payload.get_target_entity_id(), payload.get_status_id())
-	elif event.has_status_effect_removed():
-		var payload = event.get_status_effect_removed()
-		status_effect_removed.emit(payload)
-		_log_entity_event(event.get_tick(), "status_effect_removed", payload.get_entity_id(), payload.get_status_id())
-	elif event.has_combat_started():
-		var payload = event.get_combat_started()
-		_apply_entity_state_event(
-				payload.get_entity_id(),
-				EntityEvents.combat_started(payload.get_entity_id(), payload.get_source_entity_id()),
-				event.get_tick())
-		combat_started.emit(payload)
-		_log_entity_event(event.get_tick(), "combat_started", payload.get_entity_id(), "")
-	elif event.has_combat_ended():
-		var payload = event.get_combat_ended()
-		_apply_entity_state_event(
-				payload.get_entity_id(),
-				EntityEvents.combat_ended(payload.get_entity_id()),
-				event.get_tick())
-		combat_ended.emit(payload)
-		_log_entity_event(event.get_tick(), "combat_ended", payload.get_entity_id(), "")
-	elif event.has_combatant_died():
-		var payload = event.get_combatant_died()
-		combatant_died.emit(payload)
-		_log_entity_event(event.get_tick(), "combatant_died", payload.get_entity_id(), "")
+	_event_gateway.submit_server_proto_event(event)
 
 
 func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: Variant) -> void:
@@ -475,34 +417,6 @@ func _log_entity_event(tick: int, event_name: String, entity_id: int, detail: Va
 		_format_tick_prefix(tick), _get_log_prefix(), event_name, entity_id, resolved_detail])
 
 
-func _on_ability_event_ready(event: EntityEvents, event_tick: int) -> void:
-	if event == null:
-		return
-
-	match event.type:
-		EntityEvents.Type.ABILITY_USE_STARTED:
-			ability_use_started.emit(event, event_tick)
-			_log_entity_event(event_tick, "ability_use_started", event.source_entity_id, event.ability_id)
-		EntityEvents.Type.ABILITY_USE_CANCELED:
-			ability_use_canceled.emit(event, event_tick)
-			_log_entity_event(event_tick, "ability_use_canceled", event.source_entity_id, event.ability_id)
-			if _local_ability_controller != null:
-				_local_ability_controller.clear_request_tracking(event.request_id)
-			_event_gateway.clear_request_tracking(event.request_id)
-		EntityEvents.Type.ABILITY_USE_FINISHED:
-			ability_use_finished.emit(event, event_tick)
-			_log_entity_event(event_tick, "ability_use_finished", event.source_entity_id, event.ability_id)
-		EntityEvents.Type.ABILITY_USE_IMPACT:
-			ability_use_impact.emit(event, event_tick)
-			_log_entity_event(event_tick, "ability_use_impact", event.source_entity_id, event.ability_id)
-			if _local_ability_controller != null:
-				_local_ability_controller.clear_request_tracking(event.request_id)
-		_:
-			return
-
-	_apply_entity_state_event(event.source_entity_id, event, event_tick)
-
-
 func _on_game_event_emitted(event: GameEvent) -> void:
 	if event == null:
 		return
@@ -510,45 +424,80 @@ func _on_game_event_emitted(event: GameEvent) -> void:
 	match event.type:
 		GameEvent.Type.ABILITY_USE_STARTED:
 			var data = event.data as AbilityUseStartedGameEventData
-			if data == null:
-				return
-			var entity_event := EntityEvents.ability_started(
-					data.source_entity_id,
-					data.ability_id,
-					data.request_id,
-					data.target_entity_id,
-					data.ground_position,
-					data.cast_time)
-			ability_use_started.emit(entity_event, event.tick)
 			_log_entity_event(event.tick, "ability_use_started", data.source_entity_id, data.ability_id)
-			_apply_entity_state_event(data.source_entity_id, entity_event, event.tick)
+			_apply_entity_game_event(data.source_entity_id, event)
+		GameEvent.Type.ABILITY_USE_CANCELED:
+			var data = event.data as AbilityUseCanceledGameEventData
+			_log_entity_event(event.tick, "ability_use_canceled", data.source_entity_id, data.ability_id)
+			if _local_ability_controller != null:
+				_local_ability_controller.clear_request_tracking(data.request_id)
+			_event_gateway.clear_request_tracking(data.request_id)
+			_apply_entity_game_event(data.source_entity_id, event)
+		GameEvent.Type.ABILITY_USE_FINISHED:
+			var data = event.data as AbilityUseSimpleGameEventData
+			_log_entity_event(event.tick, "ability_use_finished", data.source_entity_id, data.ability_id)
+			_apply_entity_game_event(data.source_entity_id, event)
+		GameEvent.Type.ABILITY_USE_IMPACT:
+			var data = event.data as AbilityUseSimpleGameEventData
+			_log_entity_event(event.tick, "ability_use_impact", data.source_entity_id, data.ability_id)
+			if _local_ability_controller != null:
+				_local_ability_controller.clear_request_tracking(data.request_id)
+			_apply_entity_game_event(data.source_entity_id, event)
+		GameEvent.Type.ABILITY_USE_RESOLVED:
+			var data = event.data as AbilityUseResolvedGameEventData
+			if _local_player != null:
+				_local_player.on_game_event(event)
+		GameEvent.Type.DAMAGE_TAKEN:
+			var data = event.data as DamageTakenGameEventData
+			if not _should_suppress_world_event_log("damage_taken", data.source_entity_id):
+				_log_entity_event(event.tick, "damage_taken", data.target_entity_id, data.ability_id)
+		GameEvent.Type.HEALING_RECEIVED:
+			var data = event.data as HealingReceivedGameEventData
+			if not _should_suppress_world_event_log("healing_received", data.source_entity_id):
+				_log_entity_event(event.tick, "healing_received", data.target_entity_id, data.ability_id)
+		GameEvent.Type.BUFF_APPLIED:
+			var data = event.data as StatusAppliedGameEventData
+			if not _should_suppress_world_event_log("buff_applied", data.source_entity_id):
+				_log_entity_event(event.tick, "buff_applied", data.target_entity_id, data.status_id)
+			_apply_entity_game_event(data.target_entity_id, event)
+		GameEvent.Type.DEBUFF_APPLIED:
+			var data = event.data as StatusAppliedGameEventData
+			if not _should_suppress_world_event_log("debuff_applied", data.source_entity_id):
+				_log_entity_event(event.tick, "debuff_applied", data.target_entity_id, data.status_id)
+			_apply_entity_game_event(data.target_entity_id, event)
+		GameEvent.Type.STATUS_EFFECT_REMOVED:
+			var data = event.data as StatusEffectRemovedGameEventData
+			_log_entity_event(event.tick, "status_effect_removed", data.entity_id, data.status_id)
+			_apply_entity_game_event(data.entity_id, event)
+		GameEvent.Type.COMBAT_STARTED:
+			var data = event.data as CombatEventGameEventData
+			_log_entity_event(event.tick, "combat_started", data.entity_id, "")
+			_apply_entity_game_event(data.entity_id, event)
+		GameEvent.Type.COMBAT_ENDED:
+			var data = event.data as CombatEventGameEventData
+			_log_entity_event(event.tick, "combat_ended", data.entity_id, "")
+			_apply_entity_game_event(data.entity_id, event)
+		GameEvent.Type.COMBATANT_DIED:
+			var data = event.data as CombatEventGameEventData
+			_log_entity_event(event.tick, "combatant_died", data.entity_id, "")
 		_:
 			return
 
 
-func _on_ability_resolved_ready(resolved: Proto.AbilityUseResolved) -> void:
-	if resolved == null:
-		return
-	ability_use_resolved.emit(resolved)
-	if _local_player != null:
-		_local_player.on_ability_resolved(resolved)
-
-
-func _apply_entity_state_event(entity_id: int, event: EntityEvents, event_tick: int) -> void:
+func _apply_entity_game_event(entity_id: int, event: GameEvent) -> void:
 	var entity = _get_entity(entity_id)
 	if entity == null:
 		return
-	if entity.has_method("on_ability_event"):
-		entity.on_ability_event(event, event_tick)
+	if entity.has_method("on_game_event"):
+		entity.on_game_event(event)
 
 
-func _should_suppress_world_event_log(event_name: String, payload) -> bool:
-	if payload == null or _local_player == null:
+func _should_suppress_world_event_log(event_name: String, source_entity_id: int) -> bool:
+	if _local_player == null:
 		return false
 	match event_name:
 		"damage_taken", "healing_received", "buff_applied", "debuff_applied":
-			if payload.has_method("get_source_entity_id"):
-				return int(payload.get_source_entity_id()) == _local_player.id
+			return source_entity_id == _local_player.id
 	return false
 
 

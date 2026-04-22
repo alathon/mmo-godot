@@ -12,7 +12,7 @@ signal target_changed(target: Node)
 @onready var _ability_state: AbilityState = %AbilityState
 
 var in_combat = false:
-	set = set_in_combat	
+	set = set_in_combat
 
 var current_target: Node:
 	set = set_target
@@ -37,7 +37,7 @@ func is_alive() -> bool:
 func is_attackable_by(target) -> bool:
 	if is_npc:
 		return true
-	
+
 	return false
 
 # kos = kill on sight
@@ -45,7 +45,7 @@ func is_kos(target) -> bool:
 	if _aggro_state != null and is_npc:
 		if _aggro_state.is_on_aggro_list(target):
 			return true
-	
+
 	# TODO: Some kind of faction/other stuff determining hostility/kill on sight or not
 	return true
 
@@ -83,37 +83,33 @@ func tick_runtime(delta: float) -> void:
 	if cooldowns != null and cooldowns.has_method("tick"):
 		cooldowns.tick(delta)
 
-func apply_entity_event(event: EntityEvents, event_tick: int) -> void:
-	if event == null:
-		return
-
+func on_game_event(event: GameEvent) -> void:
 	match event.type:
-		EntityEvents.Type.ABILITY_USE_STARTED:
-			var ability := AbilityDB.get_ability(event.ability_id)
+		GameEvent.Type.ABILITY_USE_STARTED:
+			var data = event.data as AbilityUseStartedGameEventData
+			var ability := AbilityDB.get_ability(data.ability_id)
 			if ability == null:
 				return
 			_ability_state.start_cast_from_ability(
-					event.request_id,
+					data.request_id,
 					ability,
-					_target_spec_from_event(event),
-					event_tick)
-		EntityEvents.Type.ABILITY_USE_FINISHED:
-			_ability_state.finish_cast(event.request_id)
-		EntityEvents.Type.ABILITY_USE_IMPACT:
-			_ability_state.mark_impact_emitted(event.request_id)
-			_ability_state.clear_cast(event.request_id)
-		EntityEvents.Type.ABILITY_USE_CANCELED:
-			_ability_state.clear_cast(event.request_id)
-			_ability_state.clear_queue(event.request_id)
-		EntityEvents.Type.COMBAT_STARTED:
+					_target_spec_from_game_event(data),
+					event.tick)
+		GameEvent.Type.ABILITY_USE_FINISHED:
+			_ability_state.finish_cast(int(event.data.request_id))
+		GameEvent.Type.ABILITY_USE_IMPACT:
+			_ability_state.mark_impact_emitted(int(event.data.request_id))
+			_ability_state.clear_cast(int(event.data.request_id))
+		GameEvent.Type.ABILITY_USE_CANCELED:
+			_ability_state.clear_cast(int(event.data.request_id))
+			_ability_state.clear_queue(int(event.data.request_id))
+		GameEvent.Type.COMBAT_STARTED:
 			set_in_combat(true)
-		EntityEvents.Type.COMBAT_ENDED:
+		GameEvent.Type.COMBAT_ENDED:
 			set_in_combat(false)
-
-func apply_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
-	if resolved == null:
-		return
-	_ability_state.resolve_current_cast(resolved, resolved.get_resolve_tick())
+		GameEvent.Type.ABILITY_USE_RESOLVED:
+			var resolved = event.data as AbilityUseResolvedGameEventData
+			_ability_state.resolve_current_cast(resolved, resolved.resolve_tick)
 
 func on_world_state(state: Proto.ServerEntityState):
 	_general_stats.hp = state.get_hp()
@@ -123,9 +119,9 @@ func on_world_state(state: Proto.ServerEntityState):
 	_general_stats.stamina = state.get_stamina()
 	_general_stats.max_stamina = state.get_max_stamina()
 
-func _target_spec_from_event(event: EntityEvents) -> AbilityTargetSpec:
-	if event.target_entity_id > 0:
-		return AbilityTargetSpec.entity(event.target_entity_id)
-	if event.ground_position != Vector3.ZERO:
-		return AbilityTargetSpec.ground(event.ground_position)
+func _target_spec_from_game_event(data: AbilityUseStartedGameEventData) -> AbilityTargetSpec:
+	if data.target_entity_id > 0:
+		return AbilityTargetSpec.entity(data.target_entity_id)
+	if data.ground_position != Vector3.ZERO:
+		return AbilityTargetSpec.ground(data.ground_position)
 	return null

@@ -53,3 +53,24 @@ Benefits:
 # Client/Server events
 
 TODO.
+
+# Godot resource files (.tres, .tscn)
+- NEVER manually assign or generate uid:// fields—Godot fills these in automatically
+
+# Connecting @exports in scene files
+When a script uses @export var some_node: SomeNodeType, you can assign it via a .tscn file:
+
+```
+[node name="MyNode" type="Node3D" parent="." node_paths=PackedStringArray("player", "camera")]
+script = ExtResource("1_abc123")
+player = NodePath("../Player")
+camera = NodePath("CameraPivot/Camera3D")
+```
+
+# Import new files with Godot CLI
+
+After creating a new file, run the Godot CLI with `--import` to help them get picked up by the editor:
+```
+godot --headless --import
+```
+This should be run in the project root directory (where project.godot is located). Remember that any folder containing .gdignore will be skipped during import.

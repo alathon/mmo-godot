@@ -37,23 +37,23 @@ func activate_ability(
 	result.accepted = true
 	result.should_send_to_server = true
 	if decision.is_started():
-		result.entity_events = _transitions_to_entity_events(
+		result.game_events = _transitions_to_game_events(
 				_ability_manager.start_cast(result.request_id, ability_id, target, current_tick))
 	return result
 
 
-func tick(current_tick: int) -> Array[EntityEvents]:
+func tick(current_tick: int) -> Array[GameEvent]:
 	if _ability_manager == null:
 		return []
 
-	var events: Array[EntityEvents] = []
+	var events: Array[GameEvent] = []
 	for transition in _ability_manager.tick(current_tick):
 		if transition == null:
 			continue
 		if transition.type == AbilityTransition.Type.QUEUED_REQUEST_READY:
 			events.append_array(_retry_queued_request(transition, current_tick))
 			continue
-		events.append_array(_transitions_to_entity_events([transition]))
+		events.append_array(_transitions_to_game_events([transition]))
 	return events
 
 
@@ -81,7 +81,7 @@ func on_started_ack(
 	_ability_manager.correct_cast_timing(request_id, start_tick, resolve_tick, finish_tick, impact_tick)
 
 
-func on_rejected(request_id: int, cancel_reason: int, current_tick: int) -> Array[EntityEvents]:
+func on_rejected(request_id: int, cancel_reason: int, current_tick: int) -> Array[GameEvent]:
 	if _ability_manager == null or request_id <= 0:
 		return []
 
@@ -90,7 +90,7 @@ func on_rejected(request_id: int, cancel_reason: int, current_tick: int) -> Arra
 		_ability_manager.clear_queued_request(request_id)
 		return []
 	if _ability_manager.has_active_cast_request(request_id):
-		return _transitions_to_entity_events(_ability_manager.cancel_current_cast(cancel_reason, current_tick))
+		return _transitions_to_game_events(_ability_manager.cancel_current_cast(cancel_reason, current_tick))
 	return []
 
 
@@ -121,7 +121,7 @@ func get_next_request_id() -> int:
 	return request_id
 
 
-func _retry_queued_request(transition: AbilityTransition, current_tick: int) -> Array[EntityEvents]:
+func _retry_queued_request(transition: AbilityTransition, current_tick: int) -> Array[GameEvent]:
 	if _ability_manager == null or transition == null:
 		return []
 
@@ -133,7 +133,7 @@ func _retry_queued_request(transition: AbilityTransition, current_tick: int) -> 
 	match decision.outcome:
 		AbilityDecision.Outcome.STARTED:
 			_ability_manager.clear_queued_request(transition.request_id)
-			return _transitions_to_entity_events(
+			return _transitions_to_game_events(
 					_ability_manager.start_cast(
 							transition.request_id,
 							transition.ability_id,
@@ -152,38 +152,50 @@ func _retry_queued_request(transition: AbilityTransition, current_tick: int) -> 
 			return []
 
 
-func _transitions_to_entity_events(transitions: Array) -> Array[EntityEvents]:
-	var events: Array[EntityEvents] = []
+func _transitions_to_game_events(transitions: Array) -> Array[GameEvent]:
+	var events: Array[GameEvent] = []
 	for transition_value in transitions:
 		var transition := transition_value as AbilityTransition
 		if transition == null:
 			continue
 		match transition.type:
 			AbilityTransition.Type.CAST_STARTED:
-				events.append(EntityEvents.ability_started(
-						transition.source_entity_id,
-						transition.ability_id,
-						transition.request_id,
-						_event_target_entity_id(transition.target),
-						_event_ground_position(transition.target),
-						transition.cast_time))
+				events.append(GameEvent.create(
+						transition.tick,
+						GameEvent.Type.ABILITY_USE_STARTED,
+						AbilityUseStartedGameEventData.create(
+								transition.source_entity_id,
+								transition.ability_id,
+								transition.request_id,
+								_event_target_entity_id(transition.target),
+								_event_ground_position(transition.target),
+								transition.cast_time)))
 			AbilityTransition.Type.CAST_FINISHED:
 				_ability_manager.commit_cast_costs(transition.request_id)
-				events.append(EntityEvents.ability_finished(
-						transition.source_entity_id,
-						transition.ability_id,
-						transition.request_id))
+				events.append(GameEvent.create(
+						transition.tick,
+						GameEvent.Type.ABILITY_USE_FINISHED,
+						AbilityUseSimpleGameEventData.create(
+								transition.source_entity_id,
+								transition.ability_id,
+								transition.request_id)))
 			AbilityTransition.Type.CAST_IMPACT_DUE:
-				events.append(EntityEvents.ability_impact(
-						transition.source_entity_id,
-						transition.ability_id,
-						transition.request_id))
+				events.append(GameEvent.create(
+						transition.tick,
+						GameEvent.Type.ABILITY_USE_IMPACT,
+						AbilityUseSimpleGameEventData.create(
+								transition.source_entity_id,
+								transition.ability_id,
+								transition.request_id)))
 			AbilityTransition.Type.CAST_CANCELED:
-				events.append(EntityEvents.ability_canceled(
-						transition.source_entity_id,
-						transition.ability_id,
-						transition.cancel_reason,
-						transition.request_id))
+				events.append(GameEvent.create(
+						transition.tick,
+						GameEvent.Type.ABILITY_USE_CANCELED,
+						AbilityUseCanceledGameEventData.create(
+								transition.source_entity_id,
+								transition.ability_id,
+								transition.cancel_reason,
+								transition.request_id)))
 			_:
 				pass
 	return events

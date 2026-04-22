@@ -59,13 +59,9 @@ func on_server_position(pos: Vector3, vel: Vector3, rot: float, tick: int):
 func apply_world_state(state: Proto.ServerEntityState):
 	entity_state.on_world_state(state)
 
-func on_ability_event(event: EntityEvents, event_tick: int) -> void:
-	entity_state.apply_entity_event(event, event_tick)
-	animation_controller.on_entity_event(event, event_tick)
-
-func on_ability_resolved(resolved: Proto.AbilityUseResolved) -> void:
-	entity_state.apply_ability_resolved(resolved)
-	animation_controller.on_ability_resolved(resolved)
+func on_game_event(event: GameEvent) -> void:
+	entity_state.on_game_event(event)
+	animation_controller.on_game_event(event)
 
 func capture_primary_click(pos):
 	return false # TODO: This method shouldn't be here..

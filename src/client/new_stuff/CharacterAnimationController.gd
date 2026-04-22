@@ -28,23 +28,22 @@ func bind_model(new_animation_tree: AnimationTree, new_animation_player: Animati
 	_finish_windows_by_request.clear()
 
 
-func on_entity_event(event: EntityEvents, _event_tick: int) -> void:
+func on_game_event(event: GameEvent) -> void:
 	match event.type:
-		EntityEvents.Type.ABILITY_USE_STARTED:
-			_fire_cast_start_animation(event)
-		EntityEvents.Type.ABILITY_USE_FINISHED:
-			_fire_cast_finish_animation(event)
-		EntityEvents.Type.ABILITY_USE_CANCELED:
-			_finish_windows_by_request.erase(event.request_id)
+		GameEvent.Type.ABILITY_USE_STARTED:
+			_fire_cast_start_animation(event.data as AbilityUseStartedGameEventData)
+		GameEvent.Type.ABILITY_USE_FINISHED:
+			_fire_cast_finish_animation(event.data as AbilityUseSimpleGameEventData)
+		GameEvent.Type.ABILITY_USE_CANCELED:
+			_finish_windows_by_request.erase(int(event.data.request_id))
 			_fade_out_cast_animations()
+		GameEvent.Type.ABILITY_USE_RESOLVED:
+			var resolved = event.data as AbilityUseResolvedGameEventData
+			_finish_windows_by_request[resolved.request_id] = _ticks_to_seconds(
+					resolved.impact_tick - resolved.finish_tick)
 
 
-func on_ability_resolved(resolved) -> void:
-	_finish_windows_by_request[resolved.get_request_id()] = _ticks_to_seconds(
-			resolved.get_impact_tick() - resolved.get_finish_tick())
-
-
-func _fire_cast_start_animation(event: EntityEvents) -> void:
+func _fire_cast_start_animation(event: AbilityUseStartedGameEventData) -> void:
 	if not _has_cast_start_one_shot:
 		return
 
@@ -55,7 +54,7 @@ func _fire_cast_start_animation(event: EntityEvents) -> void:
 	_request_one_shot(CAST_START_ONE_SHOT_REQUEST_PATH, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 
 
-func _fire_cast_finish_animation(event: EntityEvents) -> void:
+func _fire_cast_finish_animation(event: AbilityUseSimpleGameEventData) -> void:
 	if not _has_cast_finish_one_shot:
 		return
 

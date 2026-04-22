@@ -55,3 +55,5 @@ godot --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/p
 ## Notes
 - Prefer Godot MCP for scene/editor manipulation when you want editor-driven changes.
 - For normal scene runs and validation, use plain `godot`.
+- On the client, gameplay/UI systems should subscribe to `EventGateway.event_emitted` for discrete gameplay events.
+- `GameManager` is transport/orchestration, not the public gameplay event bus.
