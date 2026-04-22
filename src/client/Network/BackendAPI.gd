@@ -111,8 +111,14 @@ func reconnect(address: String, port: int) -> void:
 	disconnect_from_server()
 	_join(address, port)
 
+func is_server_connected() -> bool:
+	var peer = multiplayer.multiplayer_peer
+	return peer != null \
+			and not (peer is OfflineMultiplayerPeer) \
+			and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+
 func send_clock_ping(ping_id: int, client_time: float) -> void:
-	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+	if not is_server_connected():
 		return
 	var pkt = Proto.Packet.new()
 	var ping = pkt.new_clock_ping()
@@ -121,7 +127,7 @@ func send_clock_ping(ping_id: int, client_time: float) -> void:
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
 
 func send_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: float, tick: int) -> void:
-	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+	if not is_server_connected():
 		return
 	var pkt = Proto.Packet.new()
 	var input = pkt.new_player_input()
@@ -133,7 +139,7 @@ func send_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: float
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
 
 func send_zone_arrival(token: String) -> void:
-	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+	if not is_server_connected():
 		return
 	var pkt = Proto.Packet.new()
 	var arrival = pkt.new_zone_arrival()
@@ -141,7 +147,7 @@ func send_zone_arrival(token: String) -> void:
 	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
 
 func send_target_select(entity_id: int) -> void:
-	if multiplayer.multiplayer_peer == null or multiplayer.multiplayer_peer is OfflineMultiplayerPeer:
+	if not is_server_connected():
 		return
 	var pkt = Proto.Packet.new()
 	var target_select = pkt.new_target_select()

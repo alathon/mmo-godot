@@ -83,9 +83,11 @@ func _process(delta: float) -> void:
 	if _handshaking and _pings_sent < PING_COUNT:
 		_ping_timer -= delta
 		if _ping_timer <= 0.0:
-			_send_ping()
-			_pings_sent += 1
-			_ping_timer = PING_INTERVAL
+			if _send_ping():
+				_pings_sent += 1
+				_ping_timer = PING_INTERVAL
+			else:
+				_ping_timer = 0.0
 		if _pings_sent >= PING_COUNT:
 			_handshaking = false
 
@@ -105,12 +107,15 @@ func _process(delta: float) -> void:
 #  NTP burst (measures RTT, initial offset)
 # =============================================================================
 
-func _send_ping() -> void:
+func _send_ping() -> bool:
+	if not _api.is_server_connected():
+		return false
 	var id := _next_ping_id
 	_next_ping_id += 1
 	var t1 := Time.get_unix_time_from_system()
 	_pending[id] = t1
 	_api.send_clock_ping(id, t1)
+	return true
 
 func on_clock_pong(pong) -> void:
 	var t4 := Time.get_unix_time_from_system()
