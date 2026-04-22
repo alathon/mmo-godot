@@ -1,6 +1,8 @@
 @tool
 extends EditorPlugin
 
+const _DISABLE_ENV := "DISABLE_GODOT_MCP"
+const _DISABLE_ARG := "--disable-godot-mcp"
 const _MCP_AUTOLOADS: Array[Array] = [
 	["autoload/MCPScreenshot", "res://addons/godot_mcp/mcp_screenshot_service.gd"],
 	["autoload/MCPInputService", "res://addons/godot_mcp/mcp_input_service.gd"],
@@ -17,8 +19,17 @@ const _MCP_TEMP_FILES: Array[String] = [
 var websocket_server: Node
 var command_router: Node
 var status_panel: Control
+var _enabled := false
 
 func _enter_tree() -> void:
+	if _is_disabled():
+		_remove_autoloads()
+		_cleanup_temp_files()
+		print("[MCP] Disabled via %s=1 or %s" % [_DISABLE_ENV, _DISABLE_ARG])
+		return
+
+	_enabled = true
+
 	# Create command router
 	command_router = preload("res://addons/godot_mcp/command_router.gd").new()
 	command_router.name = "MCPCommandRouter"
@@ -45,6 +56,9 @@ func _enter_tree() -> void:
 
 
 func _exit_tree() -> void:
+	if not _enabled:
+		return
+
 	# Remove MCP autoloads and clean up temp files
 	_remove_autoloads()
 	_cleanup_temp_files()
@@ -63,6 +77,14 @@ func _exit_tree() -> void:
 		websocket_server.queue_free()
 
 	print("[MCP] Godot MCP Pro stopped")
+
+
+func _is_disabled() -> bool:
+	var disable_env := OS.get_environment(_DISABLE_ENV).strip_edges().to_lower()
+	if disable_env in ["1", "true", "yes", "on"]:
+		return true
+
+	return OS.get_cmdline_user_args().has(_DISABLE_ARG)
 
 
 func _inject_autoloads() -> void:

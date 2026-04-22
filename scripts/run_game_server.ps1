@@ -5,4 +5,4 @@ param(
 )
 
 Set-Location (Split-Path $PSScriptRoot -Parent)
-godot-mono --headless --scene "res://src/game-server/zones/ServerZone.tscn" -- --zone $Zone --port $Port @ExtraArgs
+godot --headless --scene "res://src/game-server/zones/ServerZone.tscn" -- --zone $Zone --port $Port @ExtraArgs
