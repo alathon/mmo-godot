@@ -8,13 +8,13 @@ const TARGETABLE_COLLISION_MASK := 1 << 2 # layer 3
 @onready var _ground_targeting_mode: GroundTargetingMode = %GroundTargetingMode
 @onready var _camera: Camera3D = $/root/Root/CameraPivot/SpringArm3D/Camera
 
-var _local_player: PlayerNew = null
+var _local_player: Player = null
 
 func _ready() -> void:
 	_game_manager.local_player_spawned.connect(_on_local_player_spawned)
 
 
-func _on_local_player_spawned(player: PlayerNew) -> void:
+func _on_local_player_spawned(player: Player) -> void:
 	_local_player = player
 
 

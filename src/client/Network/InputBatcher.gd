@@ -11,7 +11,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @export var batch_size: int = 1
 
 @onready var _game_manager: GameManager = %GameManager
-@onready var _network_clock: NetworkClockNew = %NetworkClock
+@onready var _network_clock: NetworkClock = %NetworkClock
 
 var _current_batch: Array[Dictionary] = []
 var _previous_batch: Array[Dictionary] = []

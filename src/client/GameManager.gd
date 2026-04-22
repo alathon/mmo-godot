@@ -9,14 +9,14 @@ const CORRECTION_THRESHOLD = 1.0
 const TARGET_PICK_RADIUS_PX = 80.0
 const TARGET_PICK_HEIGHT = 1.0
 
-signal local_player_spawned(player: PlayerNew)
+signal local_player_spawned(player: Player)
 signal remote_player_spawned(player: RemoteEntity)
 signal ability_use_accepted(ack)
 signal ability_use_rejected(rejection)
 
 @onready var _api: BackendAPI = %BackendAPI
 @onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
-@onready var _clock_new: NetworkClockNew = $"/root/Root/Services/NetworkClock"
+@onready var _clock_new: NetworkClock = $"/root/Root/Services/NetworkClock"
 @onready var _camera: Camera3D = $"/root/Root/CameraPivot/SpringArm3D/Camera"
 @onready var _local_input: LocalInput = %LocalInput
 @onready var _input_batcher: InputBatcher = %InputBatcher
@@ -28,7 +28,7 @@ signal ability_use_rejected(rejection)
 
 var _pending_transfer_token: String = ""
 var _awaiting_initial_clock_sync: bool = true
-var _local_player: PlayerNew
+var _local_player: Player
 var _local_ability_controller
 var _remote_players: Dictionary[int, RemoteEntity]
 var _debug: bool = false
@@ -104,7 +104,7 @@ func _on_clock_synced() -> void:
 		_awaiting_initial_clock_sync = false
 
 func _on_zone_border_entered(node: Variant):
-	var player := node.get_parent() as PlayerNew if node is PhysicsBody else null
+	var player := node.get_parent() as Player if node is PhysicsBody else null
 	if player:
 		player.set_frozen(true)
 
@@ -174,7 +174,7 @@ func _on_ability_use_resolved(resolved: Proto.AbilityUseResolved) -> void:
 			AbilityUseResolvedGameEventData.from_proto(resolved)))
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
-	_local_player = PlayerScene.instantiate() as PlayerNew
+	_local_player = PlayerScene.instantiate() as Player
 
 	_zone_container.add_entity(_local_player)
 	_local_player.set_character_model("Wizard")
@@ -211,7 +211,7 @@ func get_local_player_id() -> int:
 	return multiplayer.get_unique_id()
 
 
-func get_local_player() -> PlayerNew:
+func get_local_player() -> Player:
 	return _local_player
 
 

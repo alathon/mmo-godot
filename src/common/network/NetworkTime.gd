@@ -1,12 +1,12 @@
 extends Node
 
-## Tick loop driven by continuous drift feedback from NetworkClockNew.
+## Tick loop driven by continuous drift feedback from NetworkClock.
 ##
-## Stretch is driven by NetworkClockNew.get_drift() — a smoothed EMA fed by every WorldPositions
+## Stretch is driven by NetworkClock.get_drift() — a smoothed EMA fed by every WorldPositions
 ## packet (~20/s). This makes clock discipline continuous and responsive.
 ##
 ## Server: identical to NetworkTime — no clock reference, stretch = 1.0.
-## Client: drift comes from NetworkClockNew.get_drift().
+## Client: drift comes from NetworkClock.get_drift().
 
 signal before_tick_loop(tick: int)
 signal on_tick(delta: float, tick: int)
@@ -34,7 +34,7 @@ var is_active: bool = false
 var physics_factor: float:
 	get: return Globals.TICK_INTERVAL * Engine.physics_ticks_per_second
 
-var _clock: NetworkClockNew = null
+var _clock: NetworkClock = null
 
 var _stretch: float = 1.0
 var _process_time: float = 0.0
@@ -56,7 +56,7 @@ func start_server() -> void:
 	after_sync.emit()
 
 
-func start_client(lead_adjusted_tick: int, clock: NetworkClockNew) -> void:
+func start_client(lead_adjusted_tick: int, clock: NetworkClock) -> void:
 	_role = "CLI"
 	tick = lead_adjusted_tick
 	_clock = clock

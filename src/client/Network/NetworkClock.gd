@@ -1,4 +1,4 @@
-class_name NetworkClockNew
+class_name NetworkClock
 extends Node
 
 ## Clock synchronization that combines NTP-style ping bursts (for RTT measurement)
@@ -20,7 +20,7 @@ const DRIFT_EMA_ALPHA := 0.15
 ## Clamp instantaneous drift observations to this range. A single jittery
 ## packet is dampened by the EMA, but sustained extreme drift will push
 ## _smoothed_drift past DRIFT_PANIC_TICKS so a hard reset can fire.
-## Must be > DRIFT_PANIC_TICKS (in NetworkTimeNew) for panic to be reachable.
+## Must be > DRIFT_PANIC_TICKS (in NetworkTime) for panic to be reachable.
 const DRIFT_CLAMP_TICKS := 15.0
 
 ## Snap instead of nudge when offset jumps more than this (seconds).
@@ -53,7 +53,7 @@ var _offset: float = 0.0          # get_lead_adjusted_time() = _local_time + _of
 var _target_offset: float = 0.0
 
 ## Smoothed drift in ticks: positive = client ahead, negative = client behind.
-## Fed into NetworkTimeNew's stretch calculation.
+## Fed into NetworkTime's stretch calculation.
 var _smoothed_drift: float = 0.0
 
 ## The last sim_tick we observed and the local time when we observed it.
@@ -69,7 +69,7 @@ func _on_connected() -> void:
 	is_synced = false
 	_smoothed_drift = 0.0
 	_last_sim_tick = -1
-	print("[CLIENT] NetworkClockNew: beginning clock sync")
+	print("[CLIENT] NetworkClock: beginning clock sync")
 	_pings_sent = 0
 	_samples.clear()
 	_pending.clear()
@@ -150,7 +150,7 @@ func _finalize_sync() -> void:
 		_resync_timer = RESYNC_INTERVAL
 		NetworkTime.start_client(get_lead_adjusted_tick(), self)
 		synchronized.emit()
-		print("[CLIENT] NetworkClockNew: clock synced (rtt=%.3fs, lead=%.3fs)" % [rtt, lead_time])
+		print("[CLIENT] NetworkClock: clock synced (rtt=%.3fs, lead=%.3fs)" % [rtt, lead_time])
 		return
 
 	# Re-sync: only update RTT and lead_time. Do NOT touch _offset — the
@@ -167,7 +167,7 @@ func _finalize_sync() -> void:
 		NetworkTime.reset_tick(get_lead_adjusted_tick())
 		return
 
-	#print("[CLIENT] NetworkClockNew: RTT updated (rtt=%.3fs, lead=%.3fs)" % [rtt, lead_time])
+	#print("[CLIENT] NetworkClock: RTT updated (rtt=%.3fs, lead=%.3fs)" % [rtt, lead_time])
 
 
 # =============================================================================
@@ -196,14 +196,14 @@ func on_world_positions_tick(sim_tick: int) -> void:
 
 	# Clamp rather than reject: a single jittery packet gets dampened by the
 	# EMA, but sustained large drift still pushes _smoothed_drift toward the
-	# panic threshold so NetworkTimeNew can trigger a hard reset.
+	# panic threshold so NetworkTime can trigger a hard reset.
 	instantaneous_drift = clampf(instantaneous_drift, -DRIFT_CLAMP_TICKS, DRIFT_CLAMP_TICKS)
 
 	# Smooth with EMA.
 	_smoothed_drift = lerpf(_smoothed_drift, instantaneous_drift, DRIFT_EMA_ALPHA)
 
 
-## Returns the smoothed drift in ticks. Used by NetworkTimeNew for stretch.
+## Returns the smoothed drift in ticks. Used by NetworkTime for stretch.
 func get_drift() -> float:
 	return _smoothed_drift
 

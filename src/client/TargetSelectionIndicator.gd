@@ -17,7 +17,7 @@ func _ready() -> void:
 	
 	_game_manager.local_player_spawned.connect(_on_local_player_spawned)
 
-func _on_local_player_spawned(player: PlayerNew):
+func _on_local_player_spawned(player: Player):
 	if _entity_state != null and _entity_state.target_changed.is_connected(_on_target_changed):
 		_entity_state.target_changed.disconnect(_on_target_changed)
 	

@@ -1,4 +1,4 @@
-class_name PlayerNew
+class_name Player
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
