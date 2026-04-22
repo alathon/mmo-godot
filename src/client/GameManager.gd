@@ -192,18 +192,9 @@ func _replace_local_input_with_bot_input() -> void:
 	if _local_input is BotInput:
 		return
 
-	var local_input_parent := _local_input.get_parent()
-	if local_input_parent == null:
-		return
-
-	var replacement := BotInputScript.new() as LocalInput
-	replacement.name = _local_input.name
-	replacement.unique_name_in_owner = _local_input.unique_name_in_owner
-	var local_input_index := _local_input.get_index()
-	_local_input.replace_by(replacement)
-	local_input_parent.move_child(replacement, local_input_index)
-	_local_input.queue_free()
-	_local_input = replacement
+	# Preserve the existing service node so unique-name lookups like %LocalInput
+	# remain valid while swapping the runtime behavior to the bot controller.
+	_local_input.set_script(BotInputScript)
 	if _ground_targeting_mode != null:
 		_ground_targeting_mode.set_input_source(_local_input)
 
