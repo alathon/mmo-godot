@@ -8,6 +8,7 @@ const Proto = preload("res://src/common/proto/packets.gd")
 @onready var modelRoot: VisualSmoother = %Model
 @onready var entity_state: EntityState = %EntityState
 @onready var ability_manager: AbilityManager = %AbilityManager
+@onready var local_ability_controller: LocalAbilityController = %LocalAbilityController
 @onready var animation_controller = %CharacterAnimationController
 
 var id: int

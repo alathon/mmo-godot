@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/prediction/VisualSmoother.gd" id="3_oyqjv"]
 [ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/prediction/CSP.gd" id="4_mtsy5"]
 [ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="4_ufjvb"]
+[ext_resource type="Script" uid="uid://67isq7fvdksh" path="res://src/client/abilities/LocalAbilityController.gd" id="5_175u4"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xyoee"]
 radius = 0.2
@@ -39,6 +40,11 @@ script = ExtResource("1_15ocp")
 [node name="AbilityManager" type="Node" parent="." unique_id=1176023918]
 unique_name_in_owner = true
 script = ExtResource("1_r52ga")
+
+[node name="LocalAbilityController" type="Node" parent="." unique_id=1838904217]
+unique_name_in_owner = true
+script = ExtResource("5_175u4")
+metadata/_custom_type_script = "uid://67isq7fvdksh"
 
 [node name="CharacterAnimationController" type="Node" parent="." unique_id=1540182571]
 unique_name_in_owner = true

@@ -5,17 +5,12 @@ const Proto = preload("res://src/common/proto/packets.gd")
 const PlayerScene = preload("res://src/client/entities/Player.tscn")
 const BotInputScript = preload("res://src/client/input/BotInput.gd")
 
-const CORRECTION_THRESHOLD = 1.0
-const TARGET_PICK_RADIUS_PX = 80.0
-const TARGET_PICK_HEIGHT = 1.0
-
 signal local_player_spawned(player: Player)
 signal remote_player_spawned(player: RemoteEntity)
 
 @onready var _api: BackendAPI = %BackendAPI
 @onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
 @onready var _clock_new: NetworkClock = $"/root/Root/Services/NetworkClock"
-@onready var _camera: Camera3D = $"/root/Root/CameraPivot/SpringArm3D/Camera"
 @onready var _local_input: LocalInput = %LocalInput
 @onready var _input_batcher: InputBatcher = %InputBatcher
 @onready var _world_input_service: WorldInputService = %WorldInputService
@@ -27,7 +22,6 @@ signal remote_player_spawned(player: RemoteEntity)
 var _pending_transfer_token: String = ""
 var _awaiting_initial_clock_sync: bool = true
 var _local_player: Player
-var _local_ability_controller
 var _remote_players: Dictionary[int, RemoteEntity]
 var _debug: bool = false
 
@@ -49,7 +43,6 @@ func _ready() -> void:
 	_zone_container.zone_border_entered.connect(_on_zone_border_entered)
 	NetworkTime.after_sync.connect(_on_clock_synced)
 	NetworkTime.on_tick.connect(_on_network_tick)
-	NetworkTime.before_tick_loop.connect(_on_before_network_tick)
 	_event_gateway.event_emitted.connect(_on_game_event_emitted)
 
 func _on_network_tick(delta: float, current_tick: int):
@@ -61,19 +54,16 @@ func _on_network_tick(delta: float, current_tick: int):
 
 	# Apply movement input
 	_local_player.body.simulate(input, delta)
-	for entity in get_all_entities():
-		if entity != null and entity.has_node("%EntityState"):
-			var entity_state = entity.get_node("%EntityState")
-			if entity_state != null and entity_state.has_method("tick_runtime"):
-				entity_state.tick_runtime(delta)
-	var ability_attempt = _process_ability_input(current_tick, input)
-	if ability_attempt != null and ability_attempt.accepted:
-		for game_event in ability_attempt.game_events:
-			_event_gateway.submit_client_game_event(game_event)
 
-	if _local_ability_controller != null:
-		for game_event in _local_ability_controller.tick(current_tick):
-			_event_gateway.submit_client_game_event(game_event)
+	# TODO: Is the below really necessary?
+	for entity in get_all_entities():
+		var entity_state = entity.get_node("%EntityState")
+		# TODO: Why is it called tick_runtime() and not tick()?
+		entity_state.tick_runtime(delta)
+
+	_local_player.local_ability_controller.set_input(int(input.get("ability_id", 0)))
+	_local_player.local_ability_controller.tick(current_tick)
+	var ability_attempt := _local_player.local_ability_controller.consume_pending_server_request()
 
 	# Client-side post-tick stuff.
 	_local_player.csp.setInputAt(current_tick, input)
@@ -90,10 +80,6 @@ func _on_network_tick(delta: float, current_tick: int):
 			ability_attempt.get_target_entity_id() if ability_attempt != null and ability_attempt.accepted and ability_attempt.should_send_to_server else 0,
 			ability_attempt.get_ground_position() if ability_attempt != null and ability_attempt.accepted and ability_attempt.should_send_to_server else Vector3.ZERO,
 			ability_attempt.request_id if ability_attempt != null and ability_attempt.accepted and ability_attempt.should_send_to_server else 0)
-
-
-func _on_before_network_tick(_tick):
-	return
 
 func _on_clock_synced() -> void:
 	# If this is the first 'fresh' clock sync, unfreeze player
@@ -113,7 +99,6 @@ func _on_zone_redirect(zone_id: String, address: String, port: int, token: Strin
 
 	_remote_players.clear()
 	_local_player = null
-	_local_ability_controller = null
 	if _ground_targeting_mode != null:
 		_ground_targeting_mode.deactivate()
 
@@ -132,36 +117,25 @@ func _on_connected_to_server() -> void:
 
 
 func _on_ability_use_accepted(ack: Proto.AbilityUseAccepted) -> void:
-	if _local_ability_controller == null or ack == null:
+	if _local_player == null:
 		return
-	var request_id := ack.get_request_id()
-	if _local_ability_controller.has_active_cast_request(request_id):
-		_local_ability_controller.on_started_ack(
-				request_id,
-				ack.get_start_tick(),
-				ack.get_resolve_tick(),
-				ack.get_finish_tick(),
-				ack.get_impact_tick())
-	elif _local_ability_controller.has_pending_request(request_id) and ack.get_start_tick() > NetworkTime.tick:
-		_local_ability_controller.on_queue_ack(request_id, ack.get_start_tick())
-
+	_local_player.local_ability_controller.on_started_ack(
+			int(ack.get_request_id()),
+			int(ack.get_start_tick()),
+			int(ack.get_resolve_tick()),
+			int(ack.get_finish_tick()),
+			int(ack.get_impact_tick()))
 
 func _on_ability_use_rejected(rejection: Proto.AbilityUseRejected) -> void:
-	if _local_ability_controller == null or rejection == null:
+	if _local_player == null:
 		return
-	var request_id := rejection.get_request_id()
-	if _local_ability_controller.get_request_ability_id(request_id) <= 0:
-		return
-	_local_ability_controller.on_request_rejected(
-			request_id,
+	_local_player.local_ability_controller.on_request_rejected(
+			int(rejection.get_request_id()),
 			rejection.get_cancel_reason(),
 			NetworkTime.tick)
-	_event_gateway.clear_request_tracking(request_id)
 
 
 func _on_ability_use_resolved(resolved: Proto.AbilityUseResolved) -> void:
-	if resolved == null:
-		return
 	_event_gateway.submit_server_game_event(GameEvent.create(
 			int(resolved.get_resolve_tick()),
 			GameEvent.Type.ABILITY_USE_RESOLVED,
@@ -174,8 +148,7 @@ func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	_local_player.set_character_model("Wizard")
 	_local_player.name = "LocalPlayer"
 	_local_player.id = multiplayer.get_unique_id()
-	_local_ability_controller = LocalAbilityController.new()
-	_local_ability_controller.setup(_local_player.ability_manager, self)
+	_local_player.ability_manager.set_target_resolver(self)
 	var body = _local_player.get_node("%Body");
 	body.position = pos
 	body.rotation.y = rot_y
@@ -194,19 +167,6 @@ func _replace_local_input_with_bot_input() -> void:
 
 func get_local_player_id() -> int:
 	return multiplayer.get_unique_id()
-
-
-func get_local_player() -> Player:
-	return _local_player
-
-
-func get_remote_players() -> Array[RemoteEntity]:
-	var players: Array[RemoteEntity] = []
-	for entity_id in _remote_players:
-		var entity := _remote_players[entity_id]
-		if entity != null:
-			players.append(entity)
-	return players
 
 
 func get_entity_by_id(entity_id: int):
@@ -236,77 +196,6 @@ func get_entity_names(entity_ids: Array) -> Dictionary:
 		else:
 			names[resolved_id] = str(resolved_id)
 	return names
-
-
-func get_local_predicted_ability_id_for_request(request_id: int) -> int:
-	if _local_ability_controller == null:
-		return 0
-	return _local_ability_controller.get_request_ability_id(request_id)
-
-
-func should_ignore_local_request_event(
-		event,
-		event_tick: int,
-		consume: bool = false,
-		log_decision: bool = false) -> bool:
-	return false
-
-func select_target_at_screen_position(screen_position: Vector2) -> void:
-	_world_input_service.select_target_at_screen_position(screen_position)
-
-
-func handle_primary_click(screen_position: Vector2) -> void:
-	_world_input_service.handle_primary_click(screen_position)
-
-func select_target_entity(entity_id: int) -> void:
-	_world_input_service.select_target_by_id(entity_id)
-
-func _process_ability_input(current_tick: int, input: Dictionary):
-	if _local_player == null:
-		return null
-
-	if _ground_targeting_mode != null and _ground_targeting_mode.is_active():
-		var confirmed_target_spec := _ground_targeting_mode.consume_target_spec(input)
-		if confirmed_target_spec != null:
-			return _attempt_ability_use(current_tick, _ground_targeting_mode.get_ability_id(), confirmed_target_spec)
-
-	var activated_ability_id := int(input.get("ability_id", 0))
-	if activated_ability_id <= 0:
-		return null
-
-	var ability := AbilityDB.get_ability(activated_ability_id)
-	if ability != null and ability.target_type == AbilityResource.TargetType.GROUND:
-		if _ground_targeting_mode != null and _ground_targeting_mode.is_active_for(activated_ability_id):
-			return _attempt_ability_use(
-					current_tick,
-					activated_ability_id,
-					_ground_targeting_mode.build_target_spec_at_cursor())
-		if _ground_targeting_mode != null:
-			_ground_targeting_mode.activate(activated_ability_id)
-		return null
-
-	if _ground_targeting_mode != null and _ground_targeting_mode.is_active():
-		_ground_targeting_mode.deactivate()
-
-	return _attempt_ability_use(current_tick, activated_ability_id, _build_target_spec_from_selection())
-
-
-func _attempt_ability_use(current_tick: int, ability_id: int, target_spec: AbilityTargetSpec):
-	if _local_ability_controller == null:
-		return null
-	var result = _local_ability_controller.activate_ability(ability_id, target_spec, current_tick)
-	if result != null and result.accepted and _ground_targeting_mode != null and _ground_targeting_mode.is_active_for(ability_id):
-		_ground_targeting_mode.deactivate()
-	return result
-
-
-func _build_target_spec_from_selection() -> AbilityTargetSpec:
-	if _local_player == null:
-		return null
-	var target_id := _local_player.entity_state.get_target_id()
-	if target_id > 0:
-		return AbilityTargetSpec.entity(target_id)
-	return null
 
 func _on_world_state(diff: Proto.WorldState) -> void:
 	for entity_state in diff.get_entities():
@@ -373,30 +262,6 @@ func _get_entity(entity_id: int):
 	return _remote_players.get(entity_id, null)
 
 
-func _get_nearest_target_entity_id(screen_position: Vector2) -> int:
-	if _camera == null:
-		return 0
-
-	var nearest_id := 0
-	var nearest_distance_sq := TARGET_PICK_RADIUS_PX * TARGET_PICK_RADIUS_PX
-	for entity_id in _remote_players.keys():
-		var entity: RemoteEntity = _remote_players[entity_id]
-		if entity == null or not is_instance_valid(entity):
-			continue
-		var model := entity.model
-		if model == null:
-			continue
-		var target_position := model.get_position() + Vector3.UP * TARGET_PICK_HEIGHT
-		if _camera.is_position_behind(target_position):
-			continue
-		var entity_screen_position := _camera.unproject_position(target_position)
-		var distance_sq := screen_position.distance_squared_to(entity_screen_position)
-		if distance_sq < nearest_distance_sq:
-			nearest_distance_sq = distance_sq
-			nearest_id = int(entity_id)
-	return nearest_id
-
-
 func _dispatch_world_state_events(diff: Proto.WorldState) -> void:
 	for event in diff.get_events():
 		_dispatch_entity_event(event)
@@ -435,8 +300,8 @@ func _on_game_event_emitted(event: GameEvent) -> void:
 		GameEvent.Type.ABILITY_USE_CANCELED:
 			var data = event.data as AbilityUseCanceledGameEventData
 			_log_entity_event(event.tick, "ability_use_canceled", data.source_entity_id, data.ability_id)
-			if _local_ability_controller != null:
-				_local_ability_controller.on_cast_canceled(data.request_id, data.cancel_reason, event.tick)
+			if _local_player != null:
+				_local_player.local_ability_controller.on_cast_canceled(data.request_id, data.cancel_reason, event.tick)
 			_event_gateway.clear_request_tracking(data.request_id)
 			_apply_entity_game_event(data.source_entity_id, event)
 		GameEvent.Type.ABILITY_USE_FINISHED:
@@ -446,8 +311,8 @@ func _on_game_event_emitted(event: GameEvent) -> void:
 		GameEvent.Type.ABILITY_USE_IMPACT:
 			var data = event.data as AbilityUseSimpleGameEventData
 			_log_entity_event(event.tick, "ability_use_impact", data.source_entity_id, data.ability_id)
-			if _local_ability_controller != null:
-				_local_ability_controller.clear_request_tracking(data.request_id)
+			if _local_player != null:
+				_local_player.local_ability_controller.clear_request_tracking(data.request_id)
 			_apply_entity_game_event(data.source_entity_id, event)
 		GameEvent.Type.ABILITY_USE_RESOLVED:
 			var data = event.data as AbilityUseResolvedGameEventData

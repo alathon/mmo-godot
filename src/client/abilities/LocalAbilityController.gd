@@ -1,15 +1,32 @@
 class_name LocalAbilityController
-extends RefCounted
+extends Node
 
-var _ability_manager: AbilityManager = null
+@onready var _ability_manager: AbilityManager = %AbilityManager
+@onready var _entity_state: EntityState = %EntityState
+@onready var _event_gateway: EventGateway = $/root/Root/Services/EventGateway
+
 var _pending_requests: Dictionary = {}
+var _pending_input_ability_id: int = 0
+var _pending_server_request: LocalAbilityRequestResult = null
 var _next_request_id: int = 1
 
+@export var correct_cast_timing_on_ack: bool = false
 
-func setup(ability_manager: AbilityManager, target_resolver) -> void:
-	_ability_manager = ability_manager
-	if _ability_manager != null:
-		_ability_manager.set_target_resolver(target_resolver)
+func set_input(ability_id: int) -> void:
+	_pending_input_ability_id = ability_id
+
+
+func try_activate_from_input(ability_id: int, current_tick: int) -> LocalAbilityRequestResult:
+	if ability_id <= 0:
+		return null
+
+	var ability := AbilityDB.get_ability(ability_id)
+	if ability == null:
+		return null
+	if ability.target_type == AbilityResource.TargetType.GROUND:
+		return null
+
+	return activate_ability(ability_id, _build_target_spec_from_input(ability), current_tick)
 
 
 func activate_ability(
@@ -17,9 +34,6 @@ func activate_ability(
 		target: AbilityTargetSpec,
 		current_tick: int) -> LocalAbilityRequestResult:
 	var result = LocalAbilityRequestResult.new()
-	if _ability_manager == null:
-		return result
-
 	result.request_id = get_next_request_id()
 	result.ability_id = ability_id
 	result.target = target
@@ -42,60 +56,60 @@ func activate_ability(
 	return result
 
 
-func tick(current_tick: int) -> Array[GameEvent]:
-	if _ability_manager == null:
-		return []
+func tick(current_tick: int) -> void:
+	_pending_server_request = null
 
-	var events: Array[GameEvent] = []
-	for transition in _ability_manager.tick(current_tick):
-		if transition == null:
-			continue
-		if transition.type == AbilityTransition.Type.QUEUED_REQUEST_READY:
-			events.append_array(_retry_queued_request(transition, current_tick))
-			continue
-		events.append_array(_transitions_to_game_events([transition]))
-	return events
+	var ability_attempt := try_activate_from_input(_pending_input_ability_id, current_tick)
+	_pending_input_ability_id = 0
+	if ability_attempt != null and ability_attempt.accepted:
+		if ability_attempt.should_send_to_server:
+			_pending_server_request = ability_attempt
+		_submit_game_events(ability_attempt.game_events)
+
+	_submit_game_events(_tick_transitions(current_tick))
+
+
+func consume_pending_server_request() -> LocalAbilityRequestResult:
+	var request := _pending_server_request
+	_pending_server_request = null
+	return request
 
 
 func on_queue_ack(request_id: int, earliest_activate_tick: int) -> void:
-	if _ability_manager == null or request_id <= 0:
-		return
 	var pending = _pending_requests.get(request_id, null)
-	if not pending is Dictionary:
+	if pending == null:
 		return
+
 	_ability_manager.queue_request(
 			request_id,
-			int((pending as Dictionary).get("ability_id", 0)),
-			(pending as Dictionary).get("target", null) as AbilityTargetSpec,
+			int(pending.get("ability_id", 0)),
+			pending.get("target", null),
 			earliest_activate_tick)
 
 
-func on_started_ack(
-		request_id: int,
-		start_tick: int,
-		resolve_tick: int,
-		finish_tick: int,
-		impact_tick: int) -> void:
-	if _ability_manager == null:
-		return
-	_ability_manager.correct_cast_timing(request_id, start_tick, resolve_tick, finish_tick, impact_tick)
-
+func on_started_ack(request_id: int, start_tick: int, resolve_tick: int, finish_tick: int, impact_tick: int):
+	if has_active_cast_request(request_id) and correct_cast_timing_on_ack:
+		_ability_manager.correct_cast_timing(
+				request_id,
+				start_tick,
+				resolve_tick,
+				finish_tick,
+				impact_tick)
+	elif _pending_requests.has(request_id) and start_tick > NetworkTime.tick:
+		on_queue_ack(request_id, start_tick)
 
 func on_request_rejected(request_id: int, cancel_reason: int, current_tick: int) -> void:
-	if request_id <= 0:
+	if get_request_ability_id(request_id) <= 0:
 		return
-
 	_pending_requests.erase(request_id)
-	if _ability_manager != null and _ability_manager.has_queued_request(request_id):
+	if _ability_manager.has_queued_request(request_id):
 		_ability_manager.clear_queued_request(request_id)
-	if _ability_manager != null and _ability_manager.has_active_cast_request(request_id):
+	if _ability_manager.has_active_cast_request(request_id):
 		_ability_manager.cancel_current_cast(cancel_reason, current_tick)
+	_event_gateway.clear_request_tracking(request_id)
 
 
 func on_cast_canceled(request_id: int, cancel_reason: int, current_tick: int) -> void:
-	if _ability_manager == null or request_id <= 0:
-		return
-
 	_pending_requests.erase(request_id)
 	if _ability_manager.has_queued_request(request_id):
 		_ability_manager.clear_queued_request(request_id)
@@ -108,14 +122,14 @@ func has_pending_request(request_id: int) -> bool:
 
 
 func has_active_cast_request(request_id: int) -> bool:
-	return _ability_manager != null and _ability_manager.has_active_cast_request(request_id)
+	return _ability_manager.has_active_cast_request(request_id)
 
 
 func get_request_ability_id(request_id: int) -> int:
 	var pending = _pending_requests.get(request_id, null)
-	if pending is Dictionary:
-		return int((pending as Dictionary).get("ability_id", 0))
-	return 0
+	if pending != null:
+		return int(pending.get("ability_id", -1))
+	return -1
 
 
 func clear_request_tracking(request_id: int) -> void:
@@ -130,10 +144,42 @@ func get_next_request_id() -> int:
 	return request_id
 
 
-func _retry_queued_request(transition: AbilityTransition, current_tick: int) -> Array[GameEvent]:
-	if _ability_manager == null or transition == null:
-		return []
+func _build_target_spec_from_input(ability: AbilityResource) -> AbilityTargetSpec:
+	if ability == null:
+		return null
 
+	match ability.target_type:
+		AbilityResource.TargetType.SELF:
+			return null
+		AbilityResource.TargetType.GROUND:
+			return null
+		_:
+			if _entity_state == null:
+				return null
+			var target_id := _entity_state.get_target_id()
+			if target_id > 0:
+				return AbilityTargetSpec.entity(target_id)
+			return null
+
+
+func _tick_transitions(current_tick: int) -> Array[GameEvent]:
+	var events: Array[GameEvent] = []
+	for transition in _ability_manager.tick(current_tick):
+		if transition.type == AbilityTransition.Type.QUEUED_REQUEST_READY:
+			events.append_array(_retry_queued_request(transition, current_tick))
+			continue
+		events.append_array(_transitions_to_game_events([transition]))
+	return events
+
+
+func _submit_game_events(events: Array[GameEvent]) -> void:
+	if _event_gateway == null:
+		return
+	for game_event in events:
+		_event_gateway.submit_client_game_event(game_event)
+
+
+func _retry_queued_request(transition: AbilityTransition, current_tick: int) -> Array[GameEvent]:
 	var decision = _ability_manager.evaluate_activation(
 			transition.request_id,
 			transition.ability_id,
@@ -163,10 +209,7 @@ func _retry_queued_request(transition: AbilityTransition, current_tick: int) -> 
 
 func _transitions_to_game_events(transitions: Array) -> Array[GameEvent]:
 	var events: Array[GameEvent] = []
-	for transition_value in transitions:
-		var transition := transition_value as AbilityTransition
-		if transition == null:
-			continue
+	for transition in transitions:
 		match transition.type:
 			AbilityTransition.Type.CAST_STARTED:
 				events.append(GameEvent.create(
@@ -211,12 +254,12 @@ func _transitions_to_game_events(transitions: Array) -> Array[GameEvent]:
 
 
 func _event_target_entity_id(target: AbilityTargetSpec) -> int:
-	if target != null and target.kind == AbilityTargetSpec.Kind.ENTITY:
+	if target.kind == AbilityTargetSpec.Kind.ENTITY:
 		return target.entity_id
-	return 0
+	return -1
 
 
 func _event_ground_position(target: AbilityTargetSpec) -> Vector3:
-	if target != null and target.kind == AbilityTargetSpec.Kind.GROUND:
+	if target.kind == AbilityTargetSpec.Kind.GROUND:
 		return target.ground_position
 	return Vector3.ZERO

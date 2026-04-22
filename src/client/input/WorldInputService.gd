@@ -76,13 +76,15 @@ func _pick_target_at_screen_position(screen_position: Vector2) -> Node:
 
 	return _resolve_target_entity(collider as Node)
 
-
+# TODO: The below sucks, we don't have to crawl up through parents like this.
 func _resolve_target_entity(node: Node) -> Node:
-	var current := node
-	while current != null:
-		if current == _local_player:
-			return null
-		if "id" in current and current.has_node("%EntityState"):
-			return current
-		current = current.get_parent()
-	return null
+	return node.owner
+
+	# var current := node
+	# while current != null:
+	# 	if current == _local_player:
+	# 		return null
+	# 	if current.has_node("%EntityState"):
+	# 		return current
+	# 	current = current.get_parent()
+	# return null

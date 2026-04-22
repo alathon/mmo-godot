@@ -27,4 +27,4 @@ You are a senior Godot engineer working on a server-authoritative MMORPG.
 - Regenerate protobuf with `godot --headless -s addons/protobuf/protobuf_cmdln.gd --input=src/common/proto/packets.proto --output=src/common/proto/packets.gd`.
 - After larger changes, validate the project with `godot --headless --editor --path . --quit -- --disable-godot-mcp`.
 - If you run any `godot` with `--editor`, you should ALWAYS postfix `--disable-godot-mcp` to disable the MCP server.
-- Read [gdscript.md](./agents/gdscript.md) when working on GDScript code.
+- Read [gdscript.md](.agents/gdscript.md) when working on GDScript code.
