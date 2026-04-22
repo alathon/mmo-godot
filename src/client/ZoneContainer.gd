@@ -2,8 +2,6 @@ class_name ZoneContainer
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
-const RemoteEntityScene = preload("res://src/client/RemoteEntity.tscn")
-const LocalPlayerScene = preload("res://src/client/Player/Player.tscn")
 
 signal zone_border_entered(body: Node3D)
 signal zone_before_unloading(zone_id: String)

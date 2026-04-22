@@ -22,4 +22,7 @@ func getInput() -> Dictionary:
 		"input_x": movement.x,
 		"input_z": movement.z,
 		"jump_pressed": jump_pressed,
+		"ability_id": 0,
+		"primary_click_pressed": false,
+		"primary_click_position": Vector2.ZERO,
 	}

@@ -2,6 +2,8 @@ class_name GameManager
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
+const PlayerScene = preload("res://src/client/new_stuff/Player.tscn")
+const BotInputScript = preload("res://src/client/Player/BotInput.gd")
 
 const CORRECTION_THRESHOLD = 1.0
 const TARGET_PICK_RADIUS_PX = 80.0
@@ -35,6 +37,8 @@ func _ready() -> void:
 	if "--bot" in OS.get_cmdline_user_args():
 		BotMode = true
 	Engine.physics_ticks_per_second = Globals.TICK_RATE
+	if BotMode:
+		_replace_local_input_with_bot_input()
 
 	_api.world_positions_received.connect(_on_world_positions)
 	_api.world_state_received.connect(_on_world_state)
@@ -170,10 +174,7 @@ func _on_ability_use_resolved(resolved: Proto.AbilityUseResolved) -> void:
 			AbilityUseResolvedGameEventData.from_proto(resolved)))
 
 func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
-	if BotMode == true:
-		_local_player = (load("res://src/client/Player/BotPlayer.tscn")).instantiate() as PlayerNew
-	else:
-		_local_player = (load("res://src/client/new_stuff/Player.tscn") as PackedScene).instantiate() as PlayerNew
+	_local_player = PlayerScene.instantiate() as PlayerNew
 
 	_zone_container.add_entity(_local_player)
 	_local_player.set_character_model("Wizard")
@@ -185,6 +186,26 @@ func _on_player_spawn(pos: Vector3, rot_y: float) -> void:
 	body.position = pos
 	body.rotation.y = rot_y
 	local_player_spawned.emit(_local_player)
+
+
+func _replace_local_input_with_bot_input() -> void:
+	if _local_input is BotInput:
+		return
+
+	var local_input_parent := _local_input.get_parent()
+	if local_input_parent == null:
+		return
+
+	var replacement := BotInputScript.new() as LocalInput
+	replacement.name = _local_input.name
+	replacement.unique_name_in_owner = _local_input.unique_name_in_owner
+	var local_input_index := _local_input.get_index()
+	_local_input.replace_by(replacement)
+	local_input_parent.move_child(replacement, local_input_index)
+	_local_input.queue_free()
+	_local_input = replacement
+	if _ground_targeting_mode != null:
+		_ground_targeting_mode.set_input_source(_local_input)
 
 func get_local_player_id() -> int:
 	return multiplayer.get_unique_id()

@@ -24,6 +24,10 @@ func is_active_for(ability_id: int) -> bool:
 func get_ability_id() -> int:
 	return _ability_id
 
+
+func set_input_source(input_source: LocalInput) -> void:
+	_input_source = input_source
+
 func capture_primary_click(screen_position: Vector2) -> bool:
 	if not active:
 		return false
