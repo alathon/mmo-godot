@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://cgpkux7vh2jsk" path="res://src/client/Network/InputBatcher.gd" id="7_m5ev8"]
 [ext_resource type="Script" uid="uid://cv4vd2mi47olv" path="res://src/client/Player/GroundTargetingMode.gd" id="8_43gkw"]
 [ext_resource type="Script" uid="uid://dinjcx4yy7v5n" path="res://src/client/WorldInputService.gd" id="9_k3h1m"]
-[ext_resource type="Script" uid="uid://cgj5ltrhhmle5" path="res://src/client/new_stuff/EntityEventGateway.gd" id="10_event_gateway"]
+[ext_resource type="Script" uid="uid://cgj5ltrhhmle5" path="res://src/client/new_stuff/EventGateway.gd" id="10_event_gateway"]
 
 [node name="Services" type="Node" unique_id=1368178531]
 
@@ -47,7 +47,7 @@ unique_name_in_owner = true
 script = ExtResource("7_m5ev8")
 metadata/_custom_type_script = "uid://cgpkux7vh2jsk"
 
-[node name="EntityEventGateway" type="Node" parent="." unique_id=1137000001]
+[node name="EventGateway" type="Node" parent="." unique_id=1137000001]
 unique_name_in_owner = true
 script = ExtResource("10_event_gateway")
 

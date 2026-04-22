@@ -1,4 +1,4 @@
-class_name EntityEventGateway
+class_name EventGateway
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
@@ -12,6 +12,7 @@ const REQUEST_TTL_TICKS := 20 * Globals.TICK_RATE
 
 signal ability_event_ready(event: EntityEvents, event_tick: int)
 signal ability_resolved_ready(resolved: Proto.AbilityUseResolved)
+signal event_emitted(event: GameEvent)
 
 var _predicted_requests: Dictionary = {}
 
@@ -27,6 +28,10 @@ func submit_predicted_event(event: EntityEvents, event_tick: int) -> void:
 			"event_types": TRACKED_EVENT_TYPES.duplicate(),
 			"tick": event_tick,
 		}
+	var game_event := _to_game_event(event, event_tick)
+	if game_event != null:
+		event_emitted.emit(game_event)
+		return
 	ability_event_ready.emit(event, event_tick)
 
 
@@ -40,6 +45,11 @@ func submit_world_event(event) -> bool:
 	if translated == null:
 		return false
 	if _consume_suppression(translated):
+		return true
+
+	var game_event := _to_game_event(translated, event_tick)
+	if game_event != null:
+		event_emitted.emit(game_event)
 		return true
 
 	ability_event_ready.emit(translated, event_tick)
@@ -124,3 +134,16 @@ func _prune(current_tick: int) -> void:
 			expired.append(int(request_id))
 	for request_id in expired:
 		_predicted_requests.erase(request_id)
+
+
+func _to_game_event(event: EntityEvents, event_tick: int) -> GameEvent:
+	if event == null:
+		return null
+	match event.type:
+		EntityEvents.Type.ABILITY_USE_STARTED:
+			return GameEvent.create(
+					event_tick,
+					GameEvent.Type.ABILITY_USE_STARTED,
+					AbilityUseStartedGameEventData.from_entity_event(event))
+		_:
+			return null

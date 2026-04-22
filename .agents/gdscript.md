@@ -49,3 +49,7 @@ Benefits:
 - Easy to add new listeners
 - Self-documenting (signals show available events)
 - UI can connect without modifying game logic
+
+# Client/Server events
+
+TODO.

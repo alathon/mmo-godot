@@ -34,7 +34,7 @@ signal combatant_died(event)
 @onready var _input_batcher: InputBatcher = %InputBatcher
 @onready var _world_input_service: WorldInputService = %WorldInputService
 @onready var _ground_targeting_mode: GroundTargetingMode = %GroundTargetingMode
-@onready var _event_gateway: EntityEventGateway = %EntityEventGateway
+@onready var _event_gateway: EventGateway = %EventGateway
 
 @export var BotMode: bool = false
 
@@ -62,6 +62,7 @@ func _ready() -> void:
 	NetworkTime.after_sync.connect(_on_clock_synced)
 	NetworkTime.on_tick.connect(_on_network_tick)
 	NetworkTime.before_tick_loop.connect(_on_before_network_tick)
+	_event_gateway.event_emitted.connect(_on_game_event_emitted)
 	_event_gateway.ability_event_ready.connect(_on_ability_event_ready)
 	_event_gateway.ability_resolved_ready.connect(_on_ability_resolved_ready)
 
@@ -500,6 +501,29 @@ func _on_ability_event_ready(event: EntityEvents, event_tick: int) -> void:
 			return
 
 	_apply_entity_state_event(event.source_entity_id, event, event_tick)
+
+
+func _on_game_event_emitted(event: GameEvent) -> void:
+	if event == null:
+		return
+
+	match event.type:
+		GameEvent.Type.ABILITY_USE_STARTED:
+			var data = event.data as AbilityUseStartedGameEventData
+			if data == null:
+				return
+			var entity_event := EntityEvents.ability_started(
+					data.source_entity_id,
+					data.ability_id,
+					data.request_id,
+					data.target_entity_id,
+					data.ground_position,
+					data.cast_time)
+			ability_use_started.emit(entity_event, event.tick)
+			_log_entity_event(event.tick, "ability_use_started", data.source_entity_id, data.ability_id)
+			_apply_entity_state_event(data.source_entity_id, entity_event, event.tick)
+		_:
+			return
 
 
 func _on_ability_resolved_ready(resolved: Proto.AbilityUseResolved) -> void:
