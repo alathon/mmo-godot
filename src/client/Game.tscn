@@ -2,9 +2,9 @@
 
 [ext_resource type="PackedScene" uid="uid://h4wdp2a37w5p" path="res://src/client/Services.tscn" id="1_56ghg"]
 [ext_resource type="PackedScene" uid="uid://dw1t8jxnvimgh" path="res://src/client/ui/chat/ChatPanel.tscn" id="2_chat_panel"]
-[ext_resource type="PackedScene" uid="uid://dki07avh0fjld" path="res://src/client/Player/CameraPivot.tscn" id="3_56ghg"]
+[ext_resource type="PackedScene" uid="uid://dki07avh0fjld" path="res://src/client/camera/CameraPivot.tscn" id="3_56ghg"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="17_debug"]
-[ext_resource type="Script" uid="uid://dihdjnvj7ctd6" path="res://src/client/ZoneContainer.gd" id="19_zc"]
+[ext_resource type="Script" uid="uid://dihdjnvj7ctd6" path="res://src/client/world/ZoneContainer.gd" id="19_zc"]
 
 [node name="Root" type="Node" unique_id=1549339425]
 

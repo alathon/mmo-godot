@@ -81,17 +81,26 @@ func on_started_ack(
 	_ability_manager.correct_cast_timing(request_id, start_tick, resolve_tick, finish_tick, impact_tick)
 
 
-func on_rejected(request_id: int, cancel_reason: int, current_tick: int) -> Array[GameEvent]:
+func on_request_rejected(request_id: int, cancel_reason: int, current_tick: int) -> void:
+	if request_id <= 0:
+		return
+
+	_pending_requests.erase(request_id)
+	if _ability_manager != null and _ability_manager.has_queued_request(request_id):
+		_ability_manager.clear_queued_request(request_id)
+	if _ability_manager != null and _ability_manager.has_active_cast_request(request_id):
+		_ability_manager.cancel_current_cast(cancel_reason, current_tick)
+
+
+func on_cast_canceled(request_id: int, cancel_reason: int, current_tick: int) -> void:
 	if _ability_manager == null or request_id <= 0:
-		return []
+		return
 
 	_pending_requests.erase(request_id)
 	if _ability_manager.has_queued_request(request_id):
 		_ability_manager.clear_queued_request(request_id)
-		return []
 	if _ability_manager.has_active_cast_request(request_id):
-		return _transitions_to_game_events(_ability_manager.cancel_current_cast(cancel_reason, current_tick))
-	return []
+		_ability_manager.cancel_current_cast(cancel_reason, current_tick)
 
 
 func has_pending_request(request_id: int) -> bool:

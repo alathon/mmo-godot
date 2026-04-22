@@ -23,8 +23,6 @@ func _ready() -> void:
 	NetworkTime.before_tick_loop.connect(_on_before_tick_loop)
 	if _event_gateway != null:
 		_connect_event_gateway(_event_gateway)
-	if _game_manager != null:
-		_game_manager.ability_use_rejected.connect(_on_ability_use_rejected)
 
 
 func add_sink(sink: RefCounted) -> void:
@@ -88,24 +86,6 @@ func _on_game_event_emitted(event: GameEvent) -> void:
 				_scheduled_entries.append(entry)
 		_:
 			_publish_entry(_entry_from_game_event(event))
-
-
-func _on_ability_use_rejected(rejection) -> void:
-	if not _enabled or rejection == null:
-		return
-	var request_id: int = rejection.get_request_id()
-	var ability_id: int = _game_manager.get_local_predicted_ability_id_for_request(request_id) if _game_manager != null else 0
-	var ability_text := _ability_name_for_effect(ability_id) if ability_id > 0 else "cast"
-	var entry: CombatLogEntry = _new_entry(
-		0,
-		&"cast",
-		"Your %s failed: %s." % [ability_text, _cancel_reason_text(rejection.get_cancel_reason())],
-		&"warning")
-	entry.source_entity_id = _game_manager.get_local_player_id() if _game_manager != null else 0
-	entry.ability_id = ability_id
-	entry.message = "%s (request %d)" % [entry.message.trim_suffix("."), request_id]
-	entry.raw_event = rejection
-	_publish_entry(entry)
 
 
 func _entry_from_game_event(event: GameEvent) -> CombatLogEntry:

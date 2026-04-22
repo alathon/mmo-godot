@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://bk2gdy77y0ehg"]
 
 [ext_resource type="Script" uid="uid://xn8t603qyhgv" path="res://src/client/entities/Player.gd" id="1_fg3qq"]
-[ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="4_xiffd"]
+[ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/prediction/CSP.gd" id="4_xiffd"]
 [ext_resource type="Script" uid="uid://d2r67jknii081" path="res://src/client/entities/CharacterAnimationController.gd" id="5_r7bax"]
 [ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="5_xiffd"]
 [ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/state/EntityState.tscn" id="6_fg3qq"]
 [ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="8_842t5"]
 [ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="9_fg3qq"]
-[ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="9_ph7ab"]
+[ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/prediction/VisualSmoother.gd" id="9_ph7ab"]
 [ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="10_pdq4c"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ogfgm"]

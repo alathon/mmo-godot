@@ -3,7 +3,7 @@ extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
 const PlayerScene = preload("res://src/client/entities/Player.tscn")
-const BotInputScript = preload("res://src/client/Player/BotInput.gd")
+const BotInputScript = preload("res://src/client/input/BotInput.gd")
 
 const CORRECTION_THRESHOLD = 1.0
 const TARGET_PICK_RADIUS_PX = 80.0
@@ -11,8 +11,6 @@ const TARGET_PICK_HEIGHT = 1.0
 
 signal local_player_spawned(player: Player)
 signal remote_player_spawned(player: RemoteEntity)
-signal ability_use_accepted(ack)
-signal ability_use_rejected(rejection)
 
 @onready var _api: BackendAPI = %BackendAPI
 @onready var _zone_container: ZoneContainer = $"../../ZoneContainer"
@@ -134,7 +132,6 @@ func _on_connected_to_server() -> void:
 
 
 func _on_ability_use_accepted(ack: Proto.AbilityUseAccepted) -> void:
-	ability_use_accepted.emit(ack)
 	if _local_ability_controller == null or ack == null:
 		return
 	var request_id := ack.get_request_id()
@@ -155,14 +152,11 @@ func _on_ability_use_rejected(rejection: Proto.AbilityUseRejected) -> void:
 	var request_id := rejection.get_request_id()
 	if _local_ability_controller.get_request_ability_id(request_id) <= 0:
 		return
-	ability_use_rejected.emit(rejection)
-	var rollback_events = _local_ability_controller.on_rejected(
+	_local_ability_controller.on_request_rejected(
 			request_id,
 			rejection.get_cancel_reason(),
 			NetworkTime.tick)
 	_event_gateway.clear_request_tracking(request_id)
-	for game_event in rollback_events:
-		_event_gateway.submit_client_game_event(game_event)
 
 
 func _on_ability_use_resolved(resolved: Proto.AbilityUseResolved) -> void:
@@ -362,7 +356,7 @@ func _on_world_positions(diff: Proto.WorldPositions) -> void:
 			_spawn_remote_player(id, pos, rot_y)
 		else:
 			_remote_players[id].on_server_position(pos, vel, rot_y, is_on_floor, tick)
-			
+
 			if _debug and vel.length_squared() > 0.0001:
 				print("[TRACE:GameManager] t=%s tick=%d remote_entity=%d position_received vel=(%.2f,%.2f,%.2f)" % [
 					Globals.ts(), tick, id, vel.x, vel.y, vel.z])
@@ -442,7 +436,7 @@ func _on_game_event_emitted(event: GameEvent) -> void:
 			var data = event.data as AbilityUseCanceledGameEventData
 			_log_entity_event(event.tick, "ability_use_canceled", data.source_entity_id, data.ability_id)
 			if _local_ability_controller != null:
-				_local_ability_controller.clear_request_tracking(data.request_id)
+				_local_ability_controller.on_cast_canceled(data.request_id, data.cancel_reason, event.tick)
 			_event_gateway.clear_request_tracking(data.request_id)
 			_apply_entity_game_event(data.source_entity_id, event)
 		GameEvent.Type.ABILITY_USE_FINISHED:

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dki07avh0fjld"]
 
-[ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/Player/CameraPivot.gd" id="1_ocyi7"]
+[ext_resource type="Script" uid="uid://dmhqvpupgykdm" path="res://src/client/camera/CameraPivot.gd" id="1_ocyi7"]
 
 [node name="CameraPivot" type="Node3D" unique_id=1269300943]
 transform = Transform3D(1, 0, 0, 0, 0.9659258, 0.25881904, 0, -0.25881904, 0.9659258, 0, 0, 0)
