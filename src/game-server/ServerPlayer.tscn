@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dty0ed1o3wrtm" path="res://src/game-server/ServerPlayer.gd" id="0_root"]
 [ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="1_ju8tq"]
-[ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/new_stuff/EntityState.tscn" id="1_state"]
+[ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/state/EntityState.tscn" id="1_state"]
 [ext_resource type="Script" uid="uid://bjdmsc7b2sykg" path="res://src/game-server/PlayerInputState.gd" id="2_state"]
 [ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="3_v5fr3"]
 [ext_resource type="Script" uid="uid://1r8f5frqejnq" path="res://src/common/entities/CombatManager.gd" id="4_hednv"]

@@ -2,7 +2,7 @@ class_name GameManager
 extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
-const PlayerScene = preload("res://src/client/new_stuff/Player.tscn")
+const PlayerScene = preload("res://src/client/entities/Player.tscn")
 const BotInputScript = preload("res://src/client/Player/BotInput.gd")
 
 const CORRECTION_THRESHOLD = 1.0
@@ -334,7 +334,7 @@ func _on_world_state(diff: Proto.WorldState) -> void:
 # This method should just get a RemoteEntity ref, which it'll then
 # e.g., add to _entities and trigger a spawn event etc.
 func _spawn_remote_player(id: int, pos: Vector3, rot_y: float) -> void:
-	var node: RemoteEntity = (load("res://src/client/new_stuff/RemoteEntity.tscn") as PackedScene).instantiate()
+	var node: RemoteEntity = (load("res://src/client/entities/RemoteEntity.tscn") as PackedScene).instantiate()
 	_zone_container.add_entity(node)
 	node.name = "RemotePlayer_%d" % id
 	node.id = id

@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://cicysylc0oug8"]
 
-[ext_resource type="Script" uid="uid://cxsc3ssaeedk5" path="res://src/common/entities/new_stuff/EntityState.gd" id="1_s8f4j"]
-[ext_resource type="Script" uid="uid://duvw74nu8tcmb" path="res://src/common/entities/new_stuff/GeneralStats.gd" id="2_xiqw5"]
-[ext_resource type="Script" uid="uid://xvwtan1j2201" path="res://src/common/entities/new_stuff/ClassStats.gd" id="3_6vx1w"]
-[ext_resource type="Script" uid="uid://cho5pju2v3r8i" path="res://src/common/entities/new_stuff/RaceStats.gd" id="4_4c4e0"]
-[ext_resource type="Script" uid="uid://dfeo3gniirk4t" path="res://src/common/entities/new_stuff/AggroState.gd" id="5_p8eca"]
-[ext_resource type="Script" uid="uid://bx7pjmcgfl722" path="res://src/common/entities/new_stuff/AbilityState.gd" id="6_6vx1w"]
+[ext_resource type="Script" uid="uid://cxsc3ssaeedk5" path="res://src/common/entities/state/EntityState.gd" id="1_s8f4j"]
+[ext_resource type="Script" uid="uid://duvw74nu8tcmb" path="res://src/common/entities/stats/GeneralStats.gd" id="2_xiqw5"]
+[ext_resource type="Script" uid="uid://xvwtan1j2201" path="res://src/common/entities/stats/ClassStats.gd" id="3_6vx1w"]
+[ext_resource type="Script" uid="uid://cho5pju2v3r8i" path="res://src/common/entities/stats/RaceStats.gd" id="4_4c4e0"]
+[ext_resource type="Script" uid="uid://dfeo3gniirk4t" path="res://src/common/entities/state/AggroState.gd" id="5_p8eca"]
+[ext_resource type="Script" uid="uid://bx7pjmcgfl722" path="res://src/common/entities/state/AbilityState.gd" id="6_6vx1w"]
 
 [node name="EntityState" type="Node" unique_id=377940046]
 script = ExtResource("1_s8f4j")

@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://bk2gdy77y0ehg"]
+
+[ext_resource type="Script" uid="uid://xn8t603qyhgv" path="res://src/client/entities/Player.gd" id="1_fg3qq"]
+[ext_resource type="Script" uid="uid://vp3i6edrewfe" path="res://src/client/Player/CSP.gd" id="4_xiffd"]
+[ext_resource type="Script" uid="uid://d2r67jknii081" path="res://src/client/entities/CharacterAnimationController.gd" id="5_r7bax"]
+[ext_resource type="Script" uid="uid://ch0i48lswewgc" path="res://src/common/entities/abilities/AbilityManager.gd" id="5_xiffd"]
+[ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/state/EntityState.tscn" id="6_fg3qq"]
+[ext_resource type="Script" uid="uid://ujq8kdp76puh" path="res://src/common/physics/PhysicsBody.gd" id="8_842t5"]
+[ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="9_fg3qq"]
+[ext_resource type="Script" uid="uid://t4dh6crjosh2" path="res://src/client/Player/VisualSmoother.gd" id="9_ph7ab"]
+[ext_resource type="Script" uid="uid://vp2733m2uoyk" path="res://src/common/entities/abilities/AbilityCooldowns.gd" id="10_pdq4c"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ogfgm"]
+radius = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pnqga"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.2, 0.2, 0.3)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_xiffd"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pdq4c"]
+radius = 0.7705078
+height = 3.0385742
+
+[node name="Player" type="Node" unique_id=725161409]
+script = ExtResource("1_fg3qq")
+
+[node name="CSP" type="Node" parent="." unique_id=342044063]
+unique_name_in_owner = true
+script = ExtResource("4_xiffd")
+metadata/_custom_type_script = "uid://vp3i6edrewfe"
+
+[node name="Cooldowns" type="Node" parent="." unique_id=237550176]
+unique_name_in_owner = true
+script = ExtResource("10_pdq4c")
+
+[node name="AbilityManager" type="Node" parent="." unique_id=985642415]
+unique_name_in_owner = true
+script = ExtResource("5_xiffd")
+
+[node name="CharacterAnimationController" type="Node" parent="." unique_id=1236895107]
+unique_name_in_owner = true
+script = ExtResource("5_r7bax")
+
+[node name="EntityState" parent="." unique_id=377940046 instance=ExtResource("6_fg3qq")]
+unique_name_in_owner = true
+
+[node name="Body" type="CharacterBody3D" parent="." unique_id=1272123974]
+unique_name_in_owner = true
+collision_mask = 2
+script = ExtResource("8_842t5")
+
+[node name="Collider" type="CollisionShape3D" parent="Body" unique_id=758162921]
+unique_name_in_owner = true
+shape = SubResource("CapsuleShape3D_ogfgm")
+
+[node name="PhysicsDebug" type="MeshInstance3D" parent="Body" unique_id=897216162]
+unique_name_in_owner = true
+material_override = SubResource("StandardMaterial3D_pnqga")
+mesh = SubResource("CapsuleMesh_xiffd")
+
+[node name="Model" type="Node3D" parent="Body" unique_id=2069583647 node_paths=PackedStringArray("Body")]
+unique_name_in_owner = true
+top_level = true
+script = ExtResource("9_ph7ab")
+Body = NodePath("..")
+
+[node name="UIAnchor" type="Node3D" parent="Body/Model" unique_id=1525700602]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+
+[node name="HealthBar" parent="Body/Model/UIAnchor" unique_id=2065858836 instance=ExtResource("9_fg3qq")]
+unique_name_in_owner = true
+
+[node name="TargetCollider" type="Area3D" parent="Body/Model" unique_id=41626065]
+unique_name_in_owner = true
+visible = false
+collision_layer = 4
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/Model/TargetCollider" unique_id=1375205556]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5192871, 0)
+visible = false
+shape = SubResource("CapsuleShape3D_pdq4c")

@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://bsors0id7apkn"]
 
-[ext_resource type="Script" uid="uid://bkwdipv3pktbk" path="res://src/client/new_stuff/RemoteEntity.gd" id="1_5gimh"]
-[ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/new_stuff/EntityState.tscn" id="1_12vag"]
-[ext_resource type="Script" uid="uid://d2r67jknii081" path="res://src/client/new_stuff/CharacterAnimationController.gd" id="1_v0r18"]
+[ext_resource type="Script" uid="uid://bkwdipv3pktbk" path="res://src/client/entities/RemoteEntity.gd" id="1_5gimh"]
+[ext_resource type="PackedScene" uid="uid://cicysylc0oug8" path="res://src/common/entities/state/EntityState.tscn" id="1_12vag"]
+[ext_resource type="Script" uid="uid://d2r67jknii081" path="res://src/client/entities/CharacterAnimationController.gd" id="1_v0r18"]
 [ext_resource type="Script" uid="uid://cocfhahrnkgmx" path="res://src/client/Player/RemoteInterpolator.gd" id="2_01ial"]
-[ext_resource type="Script" uid="uid://spcv0sciqc0t" path="res://src/client/new_stuff/RemoteBody.gd" id="2_b7qwl"]
+[ext_resource type="Script" uid="uid://spcv0sciqc0t" path="res://src/client/entities/RemoteBody.gd" id="2_b7qwl"]
 [ext_resource type="PackedScene" uid="uid://bsixclqvc04lf" path="res://src/client/ui/entities/HealthBar.tscn" id="4_01ial"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_5gimh"]
