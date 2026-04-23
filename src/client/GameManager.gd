@@ -61,7 +61,7 @@ func _on_network_tick(delta: float, current_tick: int):
 		# TODO: Why is it called tick_runtime() and not tick()?
 		entity_state.tick_runtime(delta)
 
-	_local_player.local_ability_controller.set_input(int(input.get("ability_id", 0)))
+	#_local_player.local_ability_controller.set_input(int(input.get("ability_id", 0)))
 	_local_player.local_ability_controller.tick(current_tick)
 	var ability_attempt := _local_player.local_ability_controller.consume_pending_server_request()
 

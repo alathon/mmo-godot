@@ -1,58 +1,55 @@
 [gd_scene format=3 uid="uid://tl8yx10p1qms"]
 
 [ext_resource type="PackedScene" uid="uid://rwwsmb7dserl" path="res://src/client/ui/hotbars/HotbarButton.tscn" id="1_1cb0g"]
-
-[sub_resource type="InputEventKey" id="InputEventKey_1cb0g"]
-device = -1
-keycode = 49
-unicode = 49
-
-[sub_resource type="Shortcut" id="Shortcut_2j3c5"]
-events = [SubResource("InputEventKey_1cb0g")]
+[ext_resource type="Script" uid="uid://gprqs0u4urnc" path="res://src/client/ui/hotbars/Hotbar.gd" id="1_w6r6v"]
 
 [node name="Hotbar" type="Control" unique_id=1612570212]
+custom_minimum_size = Vector2(0, 32)
+layout_direction = 2
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 8438.0
-offset_bottom = -36.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 3
+anchors_preset = 0
+offset_bottom = 32.0
+script = ExtResource("1_w6r6v")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1986882686]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+layout_direction = 2
+layout_mode = 1
+offset_right = 428.0
+offset_bottom = 32.0
+theme_override_constants/separation = 2
 
-[node name="HotbarButton" parent="HBoxContainer" unique_id=1777590990 instance=ExtResource("1_1cb0g")]
-layout_mode = 2
-shortcut = SubResource("Shortcut_2j3c5")
-
-[node name="HotbarButton2" parent="HBoxContainer" unique_id=1136251515 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton" parent="HBoxContainer" unique_id=1173106624 instance=ExtResource("1_1cb0g")]
 layout_mode = 2
 
-[node name="HotbarButton3" parent="HBoxContainer" unique_id=1998279109 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton2" parent="HBoxContainer" unique_id=1009755383 instance=ExtResource("1_1cb0g")]
 layout_mode = 2
 
-[node name="HotbarButton4" parent="HBoxContainer" unique_id=2105512495 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton3" parent="HBoxContainer" unique_id=1959675846 instance=ExtResource("1_1cb0g")]
 layout_mode = 2
 
-[node name="HotbarButton5" parent="HBoxContainer" unique_id=2102482167 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton4" parent="HBoxContainer" unique_id=1466773739 instance=ExtResource("1_1cb0g")]
 layout_mode = 2
 
-[node name="HotbarButton6" parent="HBoxContainer" unique_id=711162855 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton5" parent="HBoxContainer" unique_id=371055511 instance=ExtResource("1_1cb0g")]
 layout_mode = 2
 
-[node name="HotbarButton7" parent="HBoxContainer" unique_id=352091218 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton6" parent="HBoxContainer" unique_id=1534215404 instance=ExtResource("1_1cb0g")]
 layout_mode = 2
 
-[node name="HotbarButton8" parent="HBoxContainer" unique_id=1246839787 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton7" parent="HBoxContainer" unique_id=449766012 instance=ExtResource("1_1cb0g")]
 layout_mode = 2
 
-[node name="HotbarButton9" parent="HBoxContainer" unique_id=1484969116 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton8" parent="HBoxContainer" unique_id=2034511881 instance=ExtResource("1_1cb0g")]
 layout_mode = 2
 
-[node name="HotbarButton10" parent="HBoxContainer" unique_id=112230263 instance=ExtResource("1_1cb0g")]
+[node name="HotbarButton9" parent="HBoxContainer" unique_id=2057692226 instance=ExtResource("1_1cb0g")]
+layout_mode = 2
+
+[node name="HotbarButton10" parent="HBoxContainer" unique_id=365103167 instance=ExtResource("1_1cb0g")]
+layout_mode = 2
+
+[node name="HotbarButton11" parent="HBoxContainer" unique_id=1606960437 instance=ExtResource("1_1cb0g")]
+layout_mode = 2
+
+[node name="HotbarButton12" parent="HBoxContainer" unique_id=2085298909 instance=ExtResource("1_1cb0g")]
 layout_mode = 2

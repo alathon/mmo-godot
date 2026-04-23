@@ -28,6 +28,43 @@ func try_activate_from_input(ability_id: int, current_tick: int) -> LocalAbility
 
 	return activate_ability(ability_id, _build_target_spec_from_input(ability), current_tick)
 
+func try_activate_from_hotbar(ability_id: int, current_tick: int) -> Dictionary:
+	var result := {
+		"accepted": false,
+		"cooldown": 0.0,
+		"disable": false,
+	}
+
+	if ability_id <= 0:
+		return result
+
+	var ability := AbilityDB.get_ability(ability_id)
+	if ability == null:
+		return result
+
+	var target := _build_target_spec_from_input(ability)
+
+	# This is preview-only. It should not commit anything.
+	var decision := _ability_manager.evaluate_activation(0, ability_id, target, current_tick)
+	if decision.is_rejected():
+		return result
+
+	# Let the existing tick-driven path do the real activation.
+	_pending_input_ability_id = ability_id
+
+	result.accepted = true
+	result.cooldown = _hotbar_button_cooldown(ability)
+	result.disable = result.cooldown > 0.0
+	return result
+
+func _hotbar_button_cooldown(ability: AbilityResource) -> float:
+	if ability == null:
+		return 0.0
+	if ability.cooldown > 0.0:
+		return ability.cooldown
+	if ability.uses_gcd:
+		return AbilityConstants.GCD_DURATION
+	return 0.0
 
 func activate_ability(
 		ability_id: int,

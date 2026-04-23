@@ -74,3 +74,9 @@ After creating a new file, run the Godot CLI with `--import` to help them get pi
 godot --headless --import
 ```
 This should be run in the project root directory (where project.godot is located). Remember that any folder containing .gdignore will be skipped during import.
+
+# Duck-type or strongly type
+
+- NEVER do `var a := b`. Either do:
+  - Strongly typed: `var a: Type = b` OR
+  - Duck-typed: `var a = b`

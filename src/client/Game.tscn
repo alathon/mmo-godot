@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://bxeoxsb8u26yf"]
 
 [ext_resource type="PackedScene" uid="uid://h4wdp2a37w5p" path="res://src/client/Services.tscn" id="1_56ghg"]
+[ext_resource type="Script" uid="uid://cjnho6iewoh63" path="res://src/client/ui/UIRoot.gd" id="2_bwulq"]
 [ext_resource type="PackedScene" uid="uid://dw1t8jxnvimgh" path="res://src/client/ui/chat/ChatPanel.tscn" id="2_chat_panel"]
+[ext_resource type="PackedScene" uid="uid://tl8yx10p1qms" path="res://src/client/ui/hotbars/Hotbar.tscn" id="2_kbwrh"]
 [ext_resource type="PackedScene" uid="uid://dki07avh0fjld" path="res://src/client/camera/CameraPivot.tscn" id="3_56ghg"]
 [ext_resource type="Script" uid="uid://btfamc30ry4b1" path="res://src/common/DebugOverlay.gd" id="17_debug"]
 [ext_resource type="Script" uid="uid://dihdjnvj7ctd6" path="res://src/client/world/ZoneContainer.gd" id="19_zc"]
@@ -13,10 +15,52 @@
 [node name="GameManager" parent="Services" index="1" unique_id=803377627]
 BotMode = false
 
+[node name="UI" type="CanvasLayer" parent="." unique_id=1750385418]
+unique_name_in_owner = true
+script = ExtResource("2_bwulq")
+
+[node name="ChatPanel" parent="UI" unique_id=1628695055 instance=ExtResource("2_chat_panel")]
+combat_log_manager_path = NodePath("../../Services/CombatLogManager")
+
+[node name="HUD" type="Control" parent="UI" unique_id=1127133447]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Hotbars" type="Control" parent="UI/HUD" unique_id=829880095]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PrimaryHotbarAnchor" type="CenterContainer" parent="UI/HUD/Hotbars" unique_id=931324413]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.79
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -184.0
+offset_right = -417.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Hotbar" parent="UI/HUD/Hotbars/PrimaryHotbarAnchor" unique_id=1612570212 instance=ExtResource("2_kbwrh")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+mouse_filter = 2
+
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=914765252]
 script = ExtResource("17_debug")
-
-[node name="ChatPanel" parent="." unique_id=1628695055 instance=ExtResource("2_chat_panel")]
 
 [node name="CameraPivot" parent="." unique_id=1269300943 instance=ExtResource("3_56ghg")]
 
