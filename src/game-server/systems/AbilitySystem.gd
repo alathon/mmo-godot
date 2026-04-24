@@ -150,7 +150,9 @@ func _process_movement_cancels(
 		context: AbilityExecutionContext) -> void:
 	for entity_id in moved_entities:
 		var manager := get_ability_manager(entity_id)
-		if manager != null and manager.can_movement_cancel_current_cast(sim_tick):
+		if manager != null and manager.can_movement_cancel_current_cast(
+				sim_tick,
+				AbilityConstants.SERVER_CAST_LOCK_GRACE_TICKS):
 			_process_transitions(manager, manager.cancel_current_cast(AbilityConstants.CANCEL_MOVED, sim_tick), context)
 
 

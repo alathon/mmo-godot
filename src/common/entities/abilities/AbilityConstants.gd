@@ -5,6 +5,7 @@ const ANIMATION_LOCK_DURATION: float = 0.7
 const IMPACT_DELAY_DURATION: float = 0.6
 const ABILITY_QUEUE_WINDOW: float = 0.5
 const INTERNAL_COOLDOWN_DURATION: float = 0.5
+const SERVER_CAST_LOCK_GRACE_TICKS: int = 2
 
 const CANCEL_MOVED: int = 0
 const CANCEL_INTERRUPTED: int = 1
