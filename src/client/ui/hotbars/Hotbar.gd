@@ -31,11 +31,11 @@ func _setup_button_slot_ids():
 
 	# TODO: Remove once done testing.
 	# This just sets fireball on slot 1.
-	var btn = _buttons.get(&"hotbar_1_slot_1")
+	var btn = _buttons.get(&"hotbar_1_slot_1") as HotbarButton
 	print("Btn: %s" % btn)
 	if btn != null:
 		print("Setting slot data")
-		btn.set_slot_data(HotbarButton.SlotDataType.ABILITY, 1)
+		btn.set_slot_data(HotbarButton.SlotDataType.ABILITY, 1, true)
 
 func _setup_button_keybind( slot_id: StringName, button: HotbarButton):
 	var events = InputMap.action_get_events(slot_id)
@@ -66,7 +66,4 @@ func _on_slot_pressed(slot_id: StringName):
 	if not bool(result.get("accepted", false)):
 		return
 
-	btn.activate_button(
-		float(result.get("cooldown", 0.0)),
-		bool(result.get("disable", false))
-	)
+	btn.set_cooldown_amount(float(result.get("cooldown", 0.0)))

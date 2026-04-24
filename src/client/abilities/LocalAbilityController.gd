@@ -32,7 +32,7 @@ func try_activate_from_hotbar(ability_id: int, current_tick: int) -> Dictionary:
 	var result := {
 		"accepted": false,
 		"cooldown": 0.0,
-		"disable": false,
+		"request_id": -1
 	}
 
 	if ability_id <= 0:
@@ -42,28 +42,17 @@ func try_activate_from_hotbar(ability_id: int, current_tick: int) -> Dictionary:
 	if ability == null:
 		return result
 
-	var target := _build_target_spec_from_input(ability)
-
-	# This is preview-only. It should not commit anything.
-	var decision := _ability_manager.evaluate_activation(0, ability_id, target, current_tick)
-	if decision.is_rejected():
-		return result
-
-	# Let the existing tick-driven path do the real activation.
-	_pending_input_ability_id = ability_id
-
-	result.accepted = true
 	result.cooldown = _hotbar_button_cooldown(ability)
-	result.disable = result.cooldown > 0.0
+
+	var target := _build_target_spec_from_input(ability)
+	var activation_result := activate_ability(ability_id, target, current_tick)
+	result.accepted = activation_result.accepted
+	result.request_id = activation_result.request_id
 	return result
 
 func _hotbar_button_cooldown(ability: AbilityResource) -> float:
-	if ability == null:
-		return 0.0
-	if ability.cooldown > 0.0:
+	if ability != null and ability.cooldown > 0.0:
 		return ability.cooldown
-	if ability.uses_gcd:
-		return AbilityConstants.GCD_DURATION
 	return 0.0
 
 func activate_ability(
@@ -87,23 +76,29 @@ func activate_ability(
 
 	result.accepted = true
 	result.should_send_to_server = true
+	
 	if decision.is_started():
 		result.game_events = _transitions_to_game_events(
 				_ability_manager.start_cast(result.request_id, ability_id, target, current_tick))
+	
+	_pending_server_request = result
+	_submit_game_events(result.game_events)
+	#_submit_game_events(_tick_transitions(current_tick))
 	return result
 
 
 func tick(current_tick: int) -> void:
-	_pending_server_request = null
+	#_pending_server_request = null
+#
+	#var ability_attempt := try_activate_from_input(_pending_input_ability_id, current_tick)
+	#_pending_input_ability_id = 0
+	#if ability_attempt != null and ability_attempt.accepted:
+		#if ability_attempt.should_send_to_server:
+			#_pending_server_request = ability_attempt
+		#_submit_game_events(ability_attempt.game_events)
 
-	var ability_attempt := try_activate_from_input(_pending_input_ability_id, current_tick)
-	_pending_input_ability_id = 0
-	if ability_attempt != null and ability_attempt.accepted:
-		if ability_attempt.should_send_to_server:
-			_pending_server_request = ability_attempt
-		_submit_game_events(ability_attempt.game_events)
-
-	_submit_game_events(_tick_transitions(current_tick))
+	var transitions = _tick_transitions(current_tick)
+	_submit_game_events(transitions)
 
 
 func consume_pending_server_request() -> LocalAbilityRequestResult:

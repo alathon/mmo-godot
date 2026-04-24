@@ -59,6 +59,8 @@ custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 mouse_filter = 2
 
+[node name="GCDTimer" type="Timer" parent="UI/HUD/Hotbars" unique_id=926969829]
+
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=914765252]
 script = ExtResource("17_debug")
 

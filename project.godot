@@ -19,6 +19,9 @@ config/features=PackedStringArray("4.6", "Forward Plus")
 Globals="*uid://dakvb6qylqqbh"
 NetworkTime="*uid://b7dm0m2b2018j"
 AbilityDB="*uid://cevxfuthjylpp"
+MCPScreenshot="*res://addons/godot_mcp/mcp_screenshot_service.gd"
+MCPInputService="*res://addons/godot_mcp/mcp_input_service.gd"
+MCPGameInspector="*res://addons/godot_mcp/mcp_game_inspector_service.gd"
 
 [debug]
 

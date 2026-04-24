@@ -16,7 +16,7 @@ ignore_texture_size = true
 stretch_mode = 0
 script = ExtResource("2_ks6fk")
 
-[node name="Cooldown" type="TextureProgressBar" parent="." unique_id=722567605]
+[node name="GCD" type="TextureProgressBar" parent="." unique_id=722567605]
 clip_contents = true
 layout_mode = 1
 offset_right = 48.0
@@ -26,6 +26,12 @@ fill_mode = 5
 nine_patch_stretch = true
 texture_progress = ExtResource("3_4hueq")
 tint_progress = Color(0, 0, 0, 0.61960787)
+
+[node name="Cooldown" type="ColorRect" parent="." unique_id=401008542]
+layout_mode = 1
+offset_right = 48.0
+offset_bottom = 48.0
+color = Color(0, 0, 0, 0.7529412)
 
 [node name="Key" type="Label" parent="." unique_id=1825120205]
 layout_mode = 1
