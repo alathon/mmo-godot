@@ -43,9 +43,9 @@ func tick(sim_tick: int, ctx: Dictionary) -> void:
 	var context := _make_execution_context(sim_tick)
 	ctx["ability_execution_context"] = context
 	_tick_entity_runtime(context.delta)
-	_process_movement_cancels(ctx.get("moved_entities", {}), sim_tick, context)
 	_process_buffered_requests(sim_tick, context)
 	_tick_ability_managers(sim_tick, context)
+	_process_movement_cancels(ctx.get("moved_entities", {}), sim_tick, context)
 	_flush_ack_queue()
 
 
@@ -150,7 +150,7 @@ func _process_movement_cancels(
 		context: AbilityExecutionContext) -> void:
 	for entity_id in moved_entities:
 		var manager := get_ability_manager(entity_id)
-		if manager != null and manager.can_movement_cancel_current_cast():
+		if manager != null and manager.can_movement_cancel_current_cast(sim_tick):
 			_process_transitions(manager, manager.cancel_current_cast(AbilityConstants.CANCEL_MOVED, sim_tick), context)
 
 

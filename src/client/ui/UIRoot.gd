@@ -2,11 +2,13 @@ class_name UIRoot
 extends CanvasLayer
 
 @onready var _hotbar: Hotbar = %Hotbar
+@onready var _cast_bar: CastBar = %CastBar
 
 var _local_ability_controller: LocalAbilityController
 var _local_player: Player
 var _local_player_ability_state: AbilityState
 var _ground_targeting_button: HotbarButton = null
+var _cast_bar_request_id: int = -1
 
 @onready var _game_manager: GameManager = $/root/Root/Services/GameManager
 @onready var _ground_targeting_mode: GroundTargetingMode = $/root/Root/Services/GroundTargetingMode
@@ -42,18 +44,41 @@ func _on_game_event_emitted(event: GameEvent):
 			_on_ability_use_impact(event)
 
 func _on_ability_use_started(event: GameEvent):
+	var data: AbilityUseStartedGameEventData = event.data as AbilityUseStartedGameEventData
+	if data == null or not _is_local_source(data.source_entity_id):
+		return
+	if data.cast_time <= 0.0:
+		return
+
+	var ability: AbilityResource = AbilityDB.get_ability(data.ability_id)
+	var ability_display_name: String = ability.get_ability_name() if ability != null else ""
+	if ability_display_name.is_empty():
+		ability_display_name = "Casting"
+
+	_cast_bar_request_id = data.request_id
+	_cast_bar.start_cast(ability_display_name, data.cast_time)
 	return
 func _on_ability_use_finished(event: GameEvent):
+	var data: AbilityUseSimpleGameEventData = event.data as AbilityUseSimpleGameEventData
+	if data == null:
+		return
+	_clear_cast_bar(data.source_entity_id, data.request_id)
 	return
 
 func _on_ability_use_canceled(event: GameEvent):
-	var btn = _request_to_hotbar_button.get(event.data.request_id)
+	var data: AbilityUseCanceledGameEventData = event.data as AbilityUseCanceledGameEventData
+	if data == null:
+		return
+
+	_clear_cast_bar(data.source_entity_id, data.request_id)
+
+	var btn = _request_to_hotbar_button.get(data.request_id)
 	if btn == null:
-		push_error("UIRoot._request_to_hotbar_button has no entry for request %s!" % event.data.request_id)
+		push_error("UIRoot._request_to_hotbar_button has no entry for request %s!" % data.request_id)
 		return
 
 	btn.set_cooldown_amount(0.0)
-	_request_to_hotbar_button.erase(event.data.request_id)
+	_request_to_hotbar_button.erase(data.request_id)
 
 func _on_ability_use_impact(event: GameEvent):
 	var btn = _request_to_hotbar_button.get(event.data.request_id)
@@ -137,3 +162,15 @@ func _activate_ground_targeted_ability(
 	_ground_targeting_button = null
 	_ground_targeting_mode.deactivate()
 	return result
+
+func _clear_cast_bar(source_entity_id: int, request_id: int) -> void:
+	if not _is_local_source(source_entity_id):
+		return
+	if _cast_bar_request_id > 0 and request_id > 0 and request_id != _cast_bar_request_id:
+		return
+
+	_cast_bar.clear_cast()
+	_cast_bar_request_id = -1
+
+func _is_local_source(source_entity_id: int) -> bool:
+	return _local_player != null and source_entity_id == _local_player.id

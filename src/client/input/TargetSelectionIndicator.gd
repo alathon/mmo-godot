@@ -43,7 +43,7 @@ func _get_decal_parent(target: Node) -> Node3D:
 	return target.get_node_or_null("Body/Model") as Node3D
 
 func _reparent_decal(parent: Node):
-	if _decal.get_parent() != null:
+	if _decal != null and _decal.get_parent() != null:
 		_decal.get_parent().remove_child(_decal)
 	
 	parent.add_child(_decal)

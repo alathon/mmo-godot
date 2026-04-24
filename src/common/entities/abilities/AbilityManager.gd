@@ -244,8 +244,11 @@ func has_pending_impact(request_id: int) -> bool:
 	return ability_state.has_pending_impact(request_id)
 
 
-func can_movement_cancel_current_cast() -> bool:
-	return ability_state.current_cast != null and not ability_state.current_cast.locked and not ability_state.current_cast.finished
+func can_movement_cancel_current_cast(sim_tick: int) -> bool:
+	return (
+			ability_state.current_cast != null
+			and not ability_state.current_cast.finished
+			and sim_tick < ability_state.current_cast.lock_tick)
 
 
 func can_activate_ability(

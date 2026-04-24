@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://bby74vqjbk6db"]
+
+[ext_resource type="Texture2D" uid="uid://ca4re1rgx7o0c" path="res://assets/abilities/hotbar_white.png" id="1_progress"]
+[ext_resource type="Script" uid="uid://b8e61bqkeaayc" path="res://src/client/ui/castbar/CastBar.gd" id="2_script"]
+
+[node name="CastBar" type="Control" unique_id=707167566]
+custom_minimum_size = Vector2(280, 26)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 280.0
+offset_bottom = 26.0
+mouse_filter = 2
+script = ExtResource("2_script")
+
+[node name="Background" type="ColorRect" parent="." unique_id=2123463460]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="Progress" type="TextureProgressBar" parent="." unique_id=2093579462]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+step = 0.01
+nine_patch_stretch = true
+texture_progress = ExtResource("1_progress")
+tint_progress = Color(0.91, 0.56, 0.18, 0.9)
+
+[node name="AbilityName" type="Label" parent="." unique_id=1935830459]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_right = -54.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_font_sizes/font_size = 13
+vertical_alignment = 1
+clip_text = true
+
+[node name="TimeLeft" type="Label" parent="." unique_id=380623993]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -48.0
+offset_right = -8.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 2
+vertical_alignment = 1

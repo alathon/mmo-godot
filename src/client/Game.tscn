@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://h4wdp2a37w5p" path="res://src/client/Services.tscn" id="1_56ghg"]
 [ext_resource type="Script" uid="uid://cjnho6iewoh63" path="res://src/client/ui/UIRoot.gd" id="2_bwulq"]
+[ext_resource type="PackedScene" path="res://src/client/ui/castbar/CastBar.tscn" id="2_castbar"]
 [ext_resource type="PackedScene" uid="uid://dw1t8jxnvimgh" path="res://src/client/ui/chat/ChatPanel.tscn" id="2_chat_panel"]
 [ext_resource type="PackedScene" uid="uid://tl8yx10p1qms" path="res://src/client/ui/hotbars/Hotbar.tscn" id="2_kbwrh"]
 [ext_resource type="PackedScene" uid="uid://dki07avh0fjld" path="res://src/client/camera/CameraPivot.tscn" id="3_56ghg"]
@@ -31,6 +32,25 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="CastBarAnchor" type="CenterContainer" parent="UI/HUD"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.72
+anchor_right = 0.5
+anchor_bottom = 0.72
+offset_left = -140.0
+offset_top = -13.0
+offset_right = 140.0
+offset_bottom = 13.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CastBar" parent="UI/HUD/CastBarAnchor" instance=ExtResource("2_castbar")]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="Hotbars" type="Control" parent="UI/HUD" unique_id=829880095]
 layout_mode = 1
