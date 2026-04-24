@@ -22,6 +22,9 @@ func _ready() -> void:
 	_event_gateway.event_emitted.connect(_on_game_event_emitted)
 	_ground_targeting_mode.target_confirmed.connect(_on_ground_target_confirmed)
 
+func _process(_delta: float) -> void:
+	_refresh_hotbar_availability()
+
 # PUBLIC
 func get_gcd_remaining() -> float:
 	if _local_player_ability_state != null:
@@ -91,6 +94,7 @@ func _on_player_spawn(player: Player):
 	_local_player = player
 	_local_ability_controller = player.get_node("%LocalAbilityController")
 	_local_player_ability_state = player.get_node("%EntityState/%AbilityState")
+	_refresh_hotbar_availability()
 
 func _on_ground_target_confirmed(ability_id: int, target: AbilityTargetSpec) -> void:
 	_activate_ground_targeted_ability(ability_id, target, _ground_targeting_button)
@@ -174,3 +178,10 @@ func _clear_cast_bar(source_entity_id: int, request_id: int) -> void:
 
 func _is_local_source(source_entity_id: int) -> bool:
 	return _local_player != null and source_entity_id == _local_player.id
+
+func _refresh_hotbar_availability() -> void:
+	for button in _hotbar.get_buttons():
+		var unavailable := false
+		if _local_ability_controller != null and button.slot_data_type == HotbarButton.SlotDataType.ABILITY:
+			unavailable = _local_ability_controller.is_hotbar_ability_unavailable(int(button.slot_data))
+		button.set_unavailable(unavailable)

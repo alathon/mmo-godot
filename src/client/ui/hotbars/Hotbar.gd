@@ -13,6 +13,14 @@ var slot_activation_handler: Callable
 func set_slot_activation_handler(c: Callable) -> void:
 	slot_activation_handler = c
 
+func get_buttons() -> Array[HotbarButton]:
+	var buttons: Array[HotbarButton] = []
+	for button in _buttons.values():
+		var hotbar_button := button as HotbarButton
+		if hotbar_button != null:
+			buttons.append(hotbar_button)
+	return buttons
+
 func _ready() -> void:
 	_setup_button_slot_ids()
 

@@ -292,6 +292,21 @@ func can_begin_targeting_ability(
 	return AbilityValidationResult.accepted()
 
 
+func is_selected_target_out_of_range(
+		ability: AbilityResource,
+		target: AbilityTargetSpec) -> bool:
+	if ability == null or target == null:
+		return false
+	if target.kind != AbilityTargetSpec.Kind.ENTITY:
+		return false
+
+	var target_entity := _get_entity_by_id(target.entity_id)
+	if target_entity == null:
+		return false
+
+	return not _is_in_range(ability, target, target_entity)
+
+
 func is_target_legal(
 		ability: AbilityResource,
 		target: AbilityTargetSpec) -> bool:

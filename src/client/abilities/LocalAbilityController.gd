@@ -79,6 +79,26 @@ func can_begin_ground_targeting(ability_id: int, current_tick: int) -> AbilityVa
 		return AbilityValidationResult.rejected(&"ability_missing", AbilityConstants.CANCEL_INVALID)
 	return _ability_manager.can_begin_targeting_ability(ability, current_tick)
 
+func is_hotbar_ability_unavailable(ability_id: int) -> bool:
+	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
+	if ability == null:
+		return false
+	if _entity_state == null or _ability_manager == null:
+		return false
+
+	if not _entity_state.has_resources_for(ability):
+		return true
+
+	if ability.target_type == AbilityResource.TargetType.SELF \
+			or ability.target_type == AbilityResource.TargetType.GROUND:
+		return false
+
+	var target: AbilityTargetSpec = _build_target_spec_from_input(ability)
+	if target == null:
+		return false
+
+	return _ability_manager.is_selected_target_out_of_range(ability, target)
+
 func _hotbar_button_cooldown(ability: AbilityResource) -> float:
 	if ability != null and ability.cooldown > 0.0:
 		return ability.cooldown

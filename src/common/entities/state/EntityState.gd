@@ -69,13 +69,15 @@ func get_target_id() -> int:
 func has_resources_for(ability: AbilityResource) -> bool:
 	if ability == null or _general_stats == null:
 		return false
-	return _general_stats.mana >= ability.mana_cost
+	return _general_stats.mana >= ability.mana_cost \
+			and _general_stats.stamina >= ability.stamina_cost
 
 
 func spend_resources_for(ability: AbilityResource) -> void:
 	if ability == null or _general_stats == null:
 		return
 	_general_stats.mana = maxi(0, _general_stats.mana - ability.mana_cost)
+	_general_stats.stamina = maxi(0, _general_stats.stamina - ability.stamina_cost)
 
 func tick_runtime(delta: float) -> void:
 	var cooldowns = get_parent().get_node_or_null("%Cooldowns") if get_parent() != null else null

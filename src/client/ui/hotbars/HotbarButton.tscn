@@ -4,6 +4,20 @@
 [ext_resource type="Script" uid="uid://px1nqd6ax1of" path="res://src/client/ui/hotbars/HotbarButton.gd" id="2_ks6fk"]
 [ext_resource type="Texture2D" uid="uid://dlb4s1ygtvs1m" path="res://assets/terrain/Grass005_1K-PNG_NormalGL.png" id="3_4hueq"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_unavailable"]
+bg_color = Color(0.345098, 0.0235294, 0.0509804, 0.42)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.831373, 0.14902, 0.180392, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0.666667, 0.0627451, 0.101961, 0.45)
+shadow_size = 6
+
 [node name="HotbarButton" type="TextureButton" unique_id=1173106624]
 clip_contents = true
 custom_minimum_size = Vector2(48, 48)
@@ -15,6 +29,14 @@ texture_normal = ExtResource("1_pqh7f")
 ignore_texture_size = true
 stretch_mode = 0
 script = ExtResource("2_ks6fk")
+
+[node name="UnavailableBackdrop" type="Panel" parent="." unique_id=1145080051]
+visible = false
+show_behind_parent = true
+layout_mode = 1
+offset_right = 48.0
+offset_bottom = 48.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_unavailable")
 
 [node name="GCD" type="TextureProgressBar" parent="." unique_id=722567605]
 clip_contents = true
@@ -35,32 +57,46 @@ color = Color(0, 0, 0, 0.7529412)
 
 [node name="Key" type="Label" parent="." unique_id=1825120205]
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_top = -17.0
+offset_top = -3.0
 offset_right = 11.0
-grow_vertical = 0
+offset_bottom = 14.0
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.4745098)
 theme_override_font_sizes/font_size = 12
 text = "1"
 
 [node name="Time" type="Label" parent="." unique_id=2071210182]
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -13.0
-offset_top = -14.0
-offset_right = -1.0
-offset_bottom = -2.0
-grow_horizontal = 0
-grow_vertical = 0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 6.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.49803922)
 theme_override_font_sizes/font_size = 8
 text = "0.0"
+
+[node name="UnavailableX" type="Label" parent="." unique_id=1657810913]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -9.0
+offset_top = -3.0
+offset_bottom = 14.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.94902, 0.258824, 0.258824, 1)
+theme_override_colors/font_shadow_color = Color(0.180392, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+text = "X"
+horizontal_alignment = 1
 
 [node name="Timer" type="Timer" parent="." unique_id=890729968]
 
