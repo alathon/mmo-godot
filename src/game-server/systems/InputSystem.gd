@@ -137,7 +137,11 @@ func tick(tick: int, ctx: Dictionary) -> void:
 			elif not _timing_debug:
 				print("[INPUT] REPLAY input for peer %d at sim_tick=%d idle=%s" % [peer_id, tick, is_idle_replay])
 
-		if abs(input.get("input_x", 0.0)) > 0.01 or abs(input.get("input_z", 0.0)) > 0.01:
+		if (
+			abs(input.get("input_x", 0.0)) > 0.01
+			or abs(input.get("input_z", 0.0)) > 0.01
+			or input.get("jump_pressed", false)
+		):
 			moving_entities[peer_id] = true
 
 		inputs[peer_id] = input
