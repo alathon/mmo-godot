@@ -5,6 +5,7 @@ signal target_confirmed(ability_id: int, target: AbilityTargetSpec)
 
 @onready var _camera: Camera3D = $/root/Root/CameraPivot/SpringArm3D/Camera
 @onready var _input_source: LocalInput = %LocalInput
+@onready var _world_input_service: WorldInputService = %WorldInputService
 
 var active: bool = false
 var _ability_id: int = 0
@@ -19,7 +20,7 @@ func _process(_delta: float) -> void:
 	if not active:
 		return
 
-	_update_preview(get_viewport().get_mouse_position())
+	_update_preview(_get_targeting_screen_position())
 
 func activate(ability_id: int) -> void:
 	active = true
@@ -57,7 +58,7 @@ func capture_primary_click(screen_position: Vector2) -> bool:
 func confirm_at_cursor() -> AbilityTargetSpec:
 	if not active:
 		return null
-	return confirm_at_screen_position(get_viewport().get_mouse_position())
+	return confirm_at_screen_position(_get_targeting_screen_position())
 
 func confirm_at_screen_position(screen_position: Vector2) -> AbilityTargetSpec:
 	if not active:
@@ -81,7 +82,7 @@ func consume_target_spec(input: Dictionary) -> AbilityTargetSpec:
 func build_target_spec_at_cursor() -> AbilityTargetSpec:
 	if not active:
 		return null
-	return _build_ground_target_spec(get_viewport().get_mouse_position())
+	return _build_ground_target_spec(_get_targeting_screen_position())
 
 func _build_ground_target_spec(screen_position: Vector2) -> AbilityTargetSpec:
 	var ground_position = _raycast_ground_position(screen_position)
@@ -116,7 +117,7 @@ func _configure_preview(ability_id: int) -> void:
 
 	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
 	_preview.configure(ability)
-	_update_preview(get_viewport().get_mouse_position())
+	_update_preview(_get_targeting_screen_position())
 
 
 func _update_preview(screen_position: Vector2) -> void:
@@ -138,3 +139,9 @@ func _ensure_preview() -> void:
 	_preview = GroundTargetPreview.new()
 	_preview.name = "GroundTargetPreview"
 	add_child(_preview)
+
+
+func _get_targeting_screen_position() -> Vector2:
+	if _world_input_service != null:
+		return _world_input_service.get_targeting_screen_position()
+	return get_viewport().get_mouse_position()

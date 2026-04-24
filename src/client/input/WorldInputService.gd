@@ -9,6 +9,8 @@ const TARGETABLE_COLLISION_MASK := 1 << 2 # layer 3
 @onready var _camera: Camera3D = $/root/Root/CameraPivot/SpringArm3D/Camera
 
 var _local_player: Player = null
+var _virtual_mouse_active: bool = false
+var _virtual_mouse_position: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	_game_manager.local_player_spawned.connect(_on_local_player_spawned)
@@ -34,6 +36,27 @@ func handle_secondary_click(_screen_position: Vector2) -> void:
 	if _ground_targeting_mode.is_active():
 		_ground_targeting_mode.deactivate()
 		return
+
+
+func begin_virtual_mouse(screen_position: Vector2) -> void:
+	_virtual_mouse_active = true
+	_virtual_mouse_position = _clamp_to_viewport(screen_position)
+
+
+func update_virtual_mouse(relative: Vector2) -> void:
+	if not _virtual_mouse_active:
+		return
+	_virtual_mouse_position = _clamp_to_viewport(_virtual_mouse_position + relative)
+
+
+func end_virtual_mouse() -> void:
+	_virtual_mouse_active = false
+
+
+func get_targeting_screen_position() -> Vector2:
+	if _virtual_mouse_active:
+		return _virtual_mouse_position
+	return get_viewport().get_mouse_position()
 
 
 func select_target_at_screen_position(screen_position: Vector2) -> void:
@@ -94,3 +117,10 @@ func _resolve_target_entity(node: Node) -> Node:
 	# 		return current
 	# 	current = current.get_parent()
 	# return null
+
+
+func _clamp_to_viewport(screen_position: Vector2) -> Vector2:
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	return Vector2(
+			clampf(screen_position.x, 0.0, viewport_size.x),
+			clampf(screen_position.y, 0.0, viewport_size.y))

@@ -69,11 +69,12 @@ func _end_left_click_or_drag() -> void:
 	if not _left_pressed:
 		return
 	var should_select: bool = not _left_dragging
-	var select_position: Vector2 = _left_click_position
+	var select_position: Vector2 = _world_input_service.get_targeting_screen_position() if _left_dragging else _left_click_position
 	_left_pressed = false
 	_left_dragging = false
 	_left_drag_delta = Vector2.ZERO
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		_world_input_service.end_virtual_mouse()
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 		call_deferred("_request_mouse_restore")
 	if should_select:
@@ -96,6 +97,7 @@ func _end_right_click_or_drag() -> void:
 	_right_dragging = false
 	_right_drag_delta = Vector2.ZERO
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		_world_input_service.end_virtual_mouse()
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 		call_deferred("_request_mouse_restore")
 	if should_cancel:
@@ -108,6 +110,7 @@ func _update_left_drag(relative: Vector2) -> void:
 		_left_dragging = true
 		_capture_mouse_for_drag(_left_click_position)
 	if _left_dragging:
+		_world_input_service.update_virtual_mouse(relative)
 		_rotate_from_mouse_motion(relative)
 
 
@@ -117,11 +120,13 @@ func _update_right_drag(relative: Vector2) -> void:
 		_right_dragging = true
 		_capture_mouse_for_drag(_right_click_position)
 	if _right_dragging:
+		_world_input_service.update_virtual_mouse(relative)
 		_rotate_from_mouse_motion(relative)
 
 
 func _capture_mouse_for_drag(restore_position: Vector2) -> void:
 	_mouse_position_when_hidden = restore_position
+	_world_input_service.begin_virtual_mouse(restore_position)
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 
