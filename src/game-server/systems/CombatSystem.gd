@@ -346,9 +346,7 @@ func _get_cone_forward(source_entity: Node, target: AbilityTargetSpec) -> Vector
 func _get_aoe_radius(ability: AbilityResource) -> float:
 	if ability == null:
 		return 0.0
-	if ability.aoe_radius > 0.0:
-		return ability.aoe_radius
-	return ability.range
+	return ability.aoe_radius
 
 
 func _get_valid_targets_for(source_entity: Node, ability: AbilityResource) -> Array[Node]:

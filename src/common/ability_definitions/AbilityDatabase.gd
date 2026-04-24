@@ -87,10 +87,21 @@ func _load_file(path: String) -> void:
 	if _abilities_by_key.has(ability_key):
 		push_error("AbilityDatabase: duplicate ability key '%s' at %s" % [ability_key, path])
 		return
+	if not _validate_aoe_definition(ability, path):
+		return
 	if not _validate_target_selector_usage(ability, path):
 		return
 	_abilities_by_id[ability_id] = ability
 	_abilities_by_key[ability_key] = ability
+
+
+func _validate_aoe_definition(ability: AbilityResource, path: String) -> bool:
+	var has_aoe_shape: bool = ability.aoe_shape != AbilityResource.AoeShape.NONE
+	var has_aoe_radius: bool = ability.aoe_radius > 0.0
+	if has_aoe_shape != has_aoe_radius:
+		push_error("AbilityDatabase: ability at %s must set both aoe_shape and aoe_radius, or neither" % path)
+		return false
+	return true
 
 
 func _validate_target_selector_usage(ability: AbilityResource, path: String) -> bool:

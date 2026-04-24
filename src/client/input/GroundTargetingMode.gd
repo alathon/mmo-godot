@@ -8,10 +8,23 @@ signal target_confirmed(ability_id: int, target: AbilityTargetSpec)
 
 var active: bool = false
 var _ability_id: int = 0
+var _preview: GroundTargetPreview = null
+
+
+func _ready() -> void:
+	_ensure_preview()
+
+
+func _process(_delta: float) -> void:
+	if not active:
+		return
+
+	_update_preview(get_viewport().get_mouse_position())
 
 func activate(ability_id: int) -> void:
 	active = true
 	_ability_id = ability_id
+	_configure_preview(ability_id)
 	print("[CLIENT] Entering ground targeting mode for ability %d" % ability_id)
 
 func deactivate() -> void:
@@ -19,6 +32,8 @@ func deactivate() -> void:
 		print("[CLIENT] Leaving ground targeting mode")
 	active = false
 	_ability_id = 0
+	if _preview != null:
+		_preview.hide_preview()
 
 func is_active() -> bool:
 	return active
@@ -75,6 +90,9 @@ func _build_ground_target_spec(screen_position: Vector2) -> AbilityTargetSpec:
 	return AbilityTargetSpec.ground(ground_position)
 
 func _raycast_ground_position(screen_position: Vector2):
+	if _camera == null:
+		return null
+
 	var origin: Vector3 = _camera.project_ray_origin(screen_position)
 	var direction: Vector3 = _camera.project_ray_normal(screen_position)
 
@@ -89,3 +107,34 @@ func _raycast_ground_position(screen_position: Vector2):
 		return null
 
 	return hit.position
+
+
+func _configure_preview(ability_id: int) -> void:
+	_ensure_preview()
+	if _preview == null:
+		return
+
+	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
+	_preview.configure(ability)
+	_update_preview(get_viewport().get_mouse_position())
+
+
+func _update_preview(screen_position: Vector2) -> void:
+	if _preview == null:
+		return
+
+	var ground_position = _raycast_ground_position(screen_position)
+	if ground_position == null:
+		_preview.hide_preview()
+		return
+
+	_preview.set_target_position(ground_position)
+
+
+func _ensure_preview() -> void:
+	if _preview != null:
+		return
+
+	_preview = GroundTargetPreview.new()
+	_preview.name = "GroundTargetPreview"
+	add_child(_preview)
