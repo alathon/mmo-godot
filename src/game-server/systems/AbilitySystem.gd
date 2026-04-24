@@ -8,6 +8,8 @@ const Proto = preload("res://src/common/proto/packets.gd")
 
 var _pending_events: Array[EntityEvents] = []
 var _ack_queue: Array = []
+var _buffered_requests_by_tick: Dictionary = {}
+var _seen_request_ids_by_entity: Dictionary = {}
 
 
 func init(zone: Node, combat_system: CombatSystem) -> void:
@@ -15,28 +17,87 @@ func init(zone: Node, combat_system: CombatSystem) -> void:
 	_combat_system = combat_system
 
 
+func on_player_added(entity_id: int) -> void:
+	if entity_id <= 0:
+		return
+	_seen_request_ids_by_entity[entity_id] = {}
+
+
+func on_player_removed(entity_id: int) -> void:
+	if entity_id <= 0:
+		return
+	_seen_request_ids_by_entity.erase(entity_id)
+	for tick_key in _buffered_requests_by_tick.keys():
+		var requests_for_tick = _buffered_requests_by_tick.get(tick_key, null)
+		if not requests_for_tick is Dictionary:
+			continue
+		var requests_by_entity := requests_for_tick as Dictionary
+		requests_by_entity.erase(entity_id)
+		if requests_by_entity.is_empty():
+			_buffered_requests_by_tick.erase(tick_key)
+		else:
+			_buffered_requests_by_tick[tick_key] = requests_by_entity
+
+
 func tick(sim_tick: int, ctx: Dictionary) -> void:
 	var context := _make_execution_context(sim_tick)
 	ctx["ability_execution_context"] = context
 	_tick_entity_runtime(context.delta)
 	_process_movement_cancels(ctx.get("moving_entities", {}), sim_tick, context)
-	_process_ability_inputs(ctx.get("ability_inputs", {}), sim_tick, context)
+	_process_buffered_requests(sim_tick, context)
 	_tick_ability_managers(sim_tick, context)
 	_flush_ack_queue()
 
 
-func handle_ability_input(entity_id: int, input: Dictionary, sim_tick: int, context: AbilityExecutionContext) -> void:
+func handle_ability_use_request_packet(entity_id: int, request: Proto.AbilityUseRequest) -> void:
+	if request == null or _zone == null or entity_id <= 0:
+		return
+	if not _zone.players.has(entity_id):
+		return
+	if _zone._frozen_peers.has(entity_id):
+		return
+
+	var request_id := int(request.get_request_id())
+	var ability_id := int(request.get_ability_id())
+	if request_id <= 0 or ability_id <= 0:
+		return
+	if _has_seen_request_id(entity_id, request_id):
+		return
+
+	var requested_tick := int(request.get_requested_tick())
+	var effective_tick := requested_tick
+	var current_tick := NetworkTime.tick
+	if requested_tick < current_tick:
+		print("[ABILITY] LATE request from peer %d: requested_tick=%d current_tick=%d (clamped)" % [
+			entity_id, requested_tick, current_tick])
+		effective_tick = current_tick
+
+	_mark_request_id_seen(entity_id, request_id)
+	_buffer_request(entity_id, effective_tick, {
+		"ability_id": ability_id,
+		"ability_request_id": request_id,
+		"requested_tick": requested_tick,
+		"target_entity_id": int(request.get_target_entity_id()),
+		"ground_x": request.get_ground_x(),
+		"ground_y": request.get_ground_y(),
+		"ground_z": request.get_ground_z(),
+	})
+
+
+func handle_ability_request(entity_id: int, request: Dictionary, sim_tick: int, context: AbilityExecutionContext) -> void:
+	if _zone != null and _zone._frozen_peers.has(entity_id):
+		return
 	var manager := get_ability_manager(entity_id)
 	if manager == null:
 		return
 	manager.set_target_resolver(_zone)
 
-	var ability_id := int(input.get("ability_id", 0))
+	var ability_id := int(request.get("ability_id", 0))
 	if ability_id <= 0:
 		return
 
-	var target := _target_spec_from_input(input)
-	var request_id := int(input.get("ability_request_id", 0))
+	var target := _target_spec_from_request(request)
+	var request_id := int(request.get("ability_request_id", 0))
 	var decision := manager.evaluate_activation(request_id, ability_id, target, sim_tick)
 
 	match decision.outcome:
@@ -93,12 +154,31 @@ func _process_movement_cancels(
 			_process_transitions(manager, manager.cancel_current_cast(AbilityConstants.CANCEL_MOVED, sim_tick), context)
 
 
-func _process_ability_inputs(
-		ability_inputs: Dictionary,
-		sim_tick: int,
-		context: AbilityExecutionContext) -> void:
-	for entity_id in ability_inputs:
-		handle_ability_input(entity_id, ability_inputs[entity_id], sim_tick, context)
+func _process_buffered_requests(sim_tick: int, context: AbilityExecutionContext) -> void:
+	var ready_ticks: Array = []
+	for tick_key in _buffered_requests_by_tick.keys():
+		var buffered_tick := int(tick_key)
+		if buffered_tick <= sim_tick:
+			ready_ticks.append(buffered_tick)
+	ready_ticks.sort()
+
+	for buffered_tick in ready_ticks:
+		var requests_value = _buffered_requests_by_tick.get(buffered_tick, null)
+		_buffered_requests_by_tick.erase(buffered_tick)
+		if not requests_value is Dictionary:
+			continue
+		var requests_by_entity := requests_value as Dictionary
+		var entity_ids := requests_by_entity.keys()
+		entity_ids.sort()
+		for entity_id_value in entity_ids:
+			var entity_id := int(entity_id_value)
+			var requests_for_entity_value = requests_by_entity.get(entity_id, [])
+			if not requests_for_entity_value is Array:
+				continue
+			for request_value in requests_for_entity_value:
+				if not request_value is Dictionary:
+					continue
+				handle_ability_request(entity_id, request_value as Dictionary, sim_tick, context)
 
 
 func _tick_ability_managers(sim_tick: int, context: AbilityExecutionContext) -> void:
@@ -252,19 +332,43 @@ func _append_events(events: Array[EntityEvents]) -> void:
 	_pending_events.append_array(events)
 
 
-func _target_spec_from_input(input: Dictionary) -> AbilityTargetSpec:
-	var target_entity_id := int(input.get("target_entity_id", 0))
+func _target_spec_from_request(request: Dictionary) -> AbilityTargetSpec:
+	var target_entity_id := int(request.get("target_entity_id", 0))
 	if target_entity_id > 0:
 		return AbilityTargetSpec.entity(target_entity_id)
 
 	var ground_position := Vector3(
-			float(input.get("ground_x", 0.0)),
-			float(input.get("ground_y", 0.0)),
-			float(input.get("ground_z", 0.0)))
+			float(request.get("ground_x", 0.0)),
+			float(request.get("ground_y", 0.0)),
+			float(request.get("ground_z", 0.0)))
 	if ground_position != Vector3.ZERO:
 		return AbilityTargetSpec.ground(ground_position)
 
 	return null
+
+
+func _buffer_request(entity_id: int, effective_tick: int, request: Dictionary) -> void:
+	var requests_for_tick_value = _buffered_requests_by_tick.get(effective_tick, {})
+	var requests_for_tick := requests_for_tick_value as Dictionary
+	var requests_for_entity_value = requests_for_tick.get(entity_id, [])
+	var requests_for_entity := requests_for_entity_value as Array
+	requests_for_entity.append(request)
+	requests_for_tick[entity_id] = requests_for_entity
+	_buffered_requests_by_tick[effective_tick] = requests_for_tick
+
+
+func _has_seen_request_id(entity_id: int, request_id: int) -> bool:
+	var seen_value = _seen_request_ids_by_entity.get(entity_id, null)
+	if not seen_value is Dictionary:
+		return false
+	return (seen_value as Dictionary).has(request_id)
+
+
+func _mark_request_id_seen(entity_id: int, request_id: int) -> void:
+	var seen_value = _seen_request_ids_by_entity.get(entity_id, {})
+	var seen := seen_value as Dictionary
+	seen[request_id] = true
+	_seen_request_ids_by_entity[entity_id] = seen
 
 
 func _build_timing_preview(ability_id: int, start_tick: int) -> Dictionary:

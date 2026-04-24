@@ -25,6 +25,16 @@ message AbilityInput {
   uint32 request_id = 6;
 }
 
+message AbilityUseRequest {
+  uint32 request_id = 1;
+  uint32 ability_id = 2;
+  uint32 requested_tick = 3;
+  uint32 target_entity_id = 4; // 0 if self or ground
+  float ground_x = 5;          // Only for ground target type
+  float ground_y = 6;
+  float ground_z = 7;
+}
+
 // ─── Target Selection (client → server) ────────────────────────────────────
 
 message TargetSelect {
@@ -205,7 +215,6 @@ message PlayerInput {
   bool jump_pressed = 3;
   uint32 tick = 4;
   float rot_y = 5;
-  AbilityInput ability_input = 6; // Set when player activates/queues an ability
 }
 
 message EntityPosition {
@@ -360,6 +369,7 @@ message Packet {
     AbilityUseRejected ability_rejected = 12;
     WorldState world_state = 13;
     AbilityUseResolved ability_resolved = 14;
+    AbilityUseRequest ability_use_request = 15;
   }
 }
 

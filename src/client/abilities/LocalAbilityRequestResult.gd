@@ -2,7 +2,6 @@ class_name LocalAbilityRequestResult
 extends RefCounted
 
 var accepted: bool = false
-var should_send_to_server: bool = false
 var request_id: int = 0
 var ability_id: int = 0
 var target: AbilityTargetSpec = null

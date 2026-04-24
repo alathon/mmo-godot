@@ -3,6 +3,10 @@ extends Node
 
 const Proto = preload("res://src/common/proto/packets.gd")
 
+const ENET_CHANNEL_DEFAULT := 0
+const ENET_CHANNEL_WORLD_STATE := 1
+const ENET_CHANNEL_ABILITY_REQUEST := 2
+
 @export var PORT = 9002
 @export var DEFAULT_SERVER_IP = "127.0.0.1"
 var ORCHESTRATOR_URL: String = "ws://127.0.0.1:9001"
@@ -124,7 +128,7 @@ func send_clock_ping(ping_id: int, client_time: float) -> void:
 	var ping = pkt.new_clock_ping()
 	ping.set_ping_id(ping_id)
 	ping.set_client_time(client_time)
-	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
+	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, ENET_CHANNEL_DEFAULT)
 
 func send_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: float, tick: int) -> void:
 	if not is_server_connected():
@@ -136,7 +140,27 @@ func send_input(input_x: float, input_z: float, jump_pressed: bool, rot_y: float
 	input.set_jump_pressed(jump_pressed)
 	input.set_tick(tick)
 	input.set_rot_y(rot_y)
-	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, 0)
+	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED, ENET_CHANNEL_DEFAULT)
+
+func send_ability_use_request(
+		request_id: int,
+		ability_id: int,
+		requested_tick: int,
+		target_entity_id: int = 0,
+		ground_position: Vector3 = Vector3.ZERO) -> bool:
+	if not is_server_connected():
+		return false
+	var pkt = Proto.Packet.new()
+	var request = pkt.new_ability_use_request()
+	request.set_request_id(request_id)
+	request.set_ability_id(ability_id)
+	request.set_requested_tick(requested_tick)
+	request.set_target_entity_id(target_entity_id)
+	request.set_ground_x(ground_position.x)
+	request.set_ground_y(ground_position.y)
+	request.set_ground_z(ground_position.z)
+	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, ENET_CHANNEL_ABILITY_REQUEST)
+	return true
 
 func send_zone_arrival(token: String) -> void:
 	if not is_server_connected():
@@ -144,7 +168,7 @@ func send_zone_arrival(token: String) -> void:
 	var pkt = Proto.Packet.new()
 	var arrival = pkt.new_zone_arrival()
 	arrival.set_transfer_token(token)
-	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
+	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, ENET_CHANNEL_DEFAULT)
 
 func send_target_select(entity_id: int) -> void:
 	if not is_server_connected():
@@ -152,7 +176,7 @@ func send_target_select(entity_id: int) -> void:
 	var pkt = Proto.Packet.new()
 	var target_select = pkt.new_target_select()
 	target_select.set_target_entity_id(entity_id)
-	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, 0)
+	multiplayer.send_bytes(pkt.to_bytes(), 1, MultiplayerPeer.TRANSFER_MODE_RELIABLE, ENET_CHANNEL_DEFAULT)
 
 var _packets_received: int = 0
 

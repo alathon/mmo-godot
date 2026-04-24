@@ -73,19 +73,7 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 		"input_x": input.get_input_x(),
 		"input_z": input.get_input_z(),
 		"jump_pressed": input.get_jump_pressed(),
-		"ability_id": 0,
-		"ability_request_id": 0,
-		"target_entity_id": 0,
-		"ground_x": 0.0, "ground_y": 0.0, "ground_z": 0.0,
 	}
-	if input.has_ability_input():
-		var ai = input.get_ability_input()
-		buf_entry["ability_id"] = ai.get_ability_id()
-		buf_entry["ability_request_id"] = ai.get_request_id()
-		buf_entry["target_entity_id"] = ai.get_target_entity_id()
-		buf_entry["ground_x"] = ai.get_ground_x()
-		buf_entry["ground_y"] = ai.get_ground_y()
-		buf_entry["ground_z"] = ai.get_ground_z()
 	_input_buffers[peer_id][input_tick] = buf_entry
 	if (_debug or _timing_debug) and (abs(input.get_input_x()) > 0.01 or abs(input.get_input_z()) > 0.01 or input.get_jump_pressed()):
 		print("[INPUT_TIMING:server_recv] ms=%d peer=%d input_tick=%d stored_tick=%d current_tick=%d last_consumed=%d input_delta=%d consumed_delta=%d" % [
@@ -99,14 +87,13 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 			state.first_input_tick = input_tick
 
 
-## Consume buffered inputs for sim_tick. Writes inputs, ability_inputs,
-## moving_entities, and kick_peers into ctx.
+## Consume buffered inputs for sim_tick. Writes inputs, moving_entities, and
+## kick_peers into ctx.
 func tick(tick: int, ctx: Dictionary) -> void:
 	_last_consumed_tick = tick
 	var players: Dictionary = _zone.players
 	var frozen_peers: Dictionary = _zone._frozen_peers
 	var inputs: Dictionary = {}
-	var ability_inputs: Dictionary = {}
 	var moving_entities: Dictionary = {}
 	var kick_peers: Array = []
 
@@ -141,7 +128,6 @@ func tick(tick: int, ctx: Dictionary) -> void:
 				abs(input.get("input_x", 0.0)) <= 0.01
 				and abs(input.get("input_z", 0.0)) <= 0.01
 				and not input.get("jump_pressed", false)
-				and int(input.get("ability_id", 0)) == 0
 			)
 			if _timing_debug and not is_idle_replay:
 				var buffered_ticks := buf.keys()
@@ -156,23 +142,11 @@ func tick(tick: int, ctx: Dictionary) -> void:
 
 		inputs[peer_id] = input
 
-		if int(input.get("ability_id", 0)) > 0:
-			ability_inputs[peer_id] = {
-				"ability_id": input["ability_id"],
-				"ability_request_id": input.get("ability_request_id", 0),
-				"target_entity_id": input.get("target_entity_id", 0),
-				"ground_x": input.get("ground_x", 0.0),
-				"ground_y": input.get("ground_y", 0.0),
-				"ground_z": input.get("ground_z", 0.0),
-			}
-
 		# Only update last_input from real inputs so that replays preserve
 		# the player's last actual intent instead of feeding back into themselves.
 		if is_real_input:
 			state.last_input = input.duplicate()
 			state.last_input["jump_pressed"] = false
-			state.last_input["ability_id"] = 0
-			state.last_input["ability_request_id"] = 0
 
 	# Prune inputs older than sim_tick
 	for peer_id in _input_buffers:
@@ -182,7 +156,6 @@ func tick(tick: int, ctx: Dictionary) -> void:
 				buf.erase(tick_key)
 
 	ctx["inputs"] = inputs
-	ctx["ability_inputs"] = ability_inputs
 	ctx["moving_entities"] = moving_entities
 	ctx["kick_peers"] = kick_peers
 

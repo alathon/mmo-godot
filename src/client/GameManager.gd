@@ -63,7 +63,6 @@ func _on_network_tick(delta: float, current_tick: int):
 
 	#_local_player.local_ability_controller.set_input(int(input.get("ability_id", 0)))
 	_local_player.local_ability_controller.tick(current_tick)
-	var ability_attempt := _local_player.local_ability_controller.consume_pending_server_request()
 
 	# Client-side post-tick stuff.
 	_local_player.csp.setInputAt(current_tick, input)
@@ -75,11 +74,7 @@ func _on_network_tick(delta: float, current_tick: int):
 			input["input_z"],
 			input["jump_pressed"],
 			_local_player.body.rotation.y,
-			current_tick,
-			ability_attempt.ability_id if ability_attempt != null and ability_attempt.accepted and ability_attempt.should_send_to_server else 0,
-			ability_attempt.get_target_entity_id() if ability_attempt != null and ability_attempt.accepted and ability_attempt.should_send_to_server else 0,
-			ability_attempt.get_ground_position() if ability_attempt != null and ability_attempt.accepted and ability_attempt.should_send_to_server else Vector3.ZERO,
-			ability_attempt.request_id if ability_attempt != null and ability_attempt.accepted and ability_attempt.should_send_to_server else 0)
+			current_tick)
 
 func _on_clock_synced() -> void:
 	# If this is the first 'fresh' clock sync, unfreeze player

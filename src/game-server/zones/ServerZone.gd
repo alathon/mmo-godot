@@ -245,6 +245,8 @@ func _on_packet(peer_id: int, bytes: PackedByteArray) -> void:
 	elif pkt.has_target_select():
 		_handle_target_select(
 				peer_id, pkt.get_target_select().get_target_entity_id())
+	elif pkt.has_ability_use_request():
+		_ability_system.handle_ability_use_request_packet(peer_id, pkt.get_ability_use_request())
 
 func _handle_target_select(peer_id: int, target_entity_id: int) -> void:
 	var player: ServerPlayer = players.get(peer_id)
@@ -284,6 +286,7 @@ func _spawn_player(id: int, position: Vector3, rot_y: float = 0.0) -> void:
 	players[id] = player
 	player.input_state.last_input_tick = NetworkTime.tick
 	_input_system.on_player_added(id)
+	_ability_system.on_player_added(id)
 
 func _remove_player(id: int) -> void:
 	_frozen_peers.erase(id)
@@ -291,6 +294,7 @@ func _remove_player(id: int) -> void:
 		players[id].queue_free()
 		players.erase(id)
 		_input_system.on_player_removed(id)
+		_ability_system.on_player_removed(id)
 	for token in _pending_redirects.keys():
 		if _pending_redirects[token].get("peer_id") == id:
 			_pending_redirects.erase(token)

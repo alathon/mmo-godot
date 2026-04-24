@@ -4,17 +4,16 @@ extends Node
 @onready var _ability_manager: AbilityManager = %AbilityManager
 @onready var _entity_state: EntityState = %EntityState
 @onready var _event_gateway: EventGateway = $/root/Root/Services/EventGateway
+@onready var _api: BackendAPI = $/root/Root/Services/BackendAPI
 
 var _pending_requests: Dictionary = {}
 var _pending_input_ability_id: int = 0
-var _pending_server_request: LocalAbilityRequestResult = null
 var _next_request_id: int = 1
 
 @export var correct_cast_timing_on_ack: bool = false
 
 func set_input(ability_id: int) -> void:
 	_pending_input_ability_id = ability_id
-
 
 func try_activate_from_input(ability_id: int, current_tick: int) -> LocalAbilityRequestResult:
 	if ability_id <= 0:
@@ -69,43 +68,37 @@ func activate_ability(
 		result.reject_reason = decision.reject_reason
 		return result
 
+	if not _send_ability_use_request(result, current_tick):
+		result.reject_reason = AbilityConstants.CANCEL_INVALID
+		return result
+
 	_pending_requests[result.request_id] = {
 		"ability_id": ability_id,
 		"target": target,
+		"requested_tick": current_tick,
 	}
 
 	result.accepted = true
-	result.should_send_to_server = true
 	
 	if decision.is_started():
 		result.game_events = _transitions_to_game_events(
 				_ability_manager.start_cast(result.request_id, ability_id, target, current_tick))
 	
-	_pending_server_request = result
 	_submit_game_events(result.game_events)
-	#_submit_game_events(_tick_transitions(current_tick))
 	return result
 
-
 func tick(current_tick: int) -> void:
-	#_pending_server_request = null
-#
-	#var ability_attempt := try_activate_from_input(_pending_input_ability_id, current_tick)
-	#_pending_input_ability_id = 0
-	#if ability_attempt != null and ability_attempt.accepted:
-		#if ability_attempt.should_send_to_server:
-			#_pending_server_request = ability_attempt
-		#_submit_game_events(ability_attempt.game_events)
+	_submit_game_events(_tick_transitions(current_tick))
 
-	var transitions = _tick_transitions(current_tick)
-	_submit_game_events(transitions)
-
-
-func consume_pending_server_request() -> LocalAbilityRequestResult:
-	var request := _pending_server_request
-	_pending_server_request = null
-	return request
-
+func _send_ability_use_request(result: LocalAbilityRequestResult, current_tick: int) -> bool:
+	if result == null or _api == null:
+		return false
+	return _api.send_ability_use_request(
+			result.request_id,
+			result.ability_id,
+			current_tick,
+			result.get_target_entity_id(),
+			result.get_ground_position())
 
 func on_queue_ack(request_id: int, earliest_activate_tick: int) -> void:
 	var pending = _pending_requests.get(request_id, null)
