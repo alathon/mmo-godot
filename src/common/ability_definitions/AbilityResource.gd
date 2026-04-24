@@ -28,6 +28,7 @@ enum VarianceProfile {
 
 @export var ability_id: int = 0
 @export var ability_name: String = ""
+@export var icon: Texture2D
 @export var group_tags: PackedStringArray = []  # e.g. ["fire_spell", "aoe_spell"]; used by AbilityModifier targeting
 @export var tags: PackedStringArray = []
 @export var hit_type: HitType = HitType.MAGICAL
