@@ -19,7 +19,7 @@ func try_activate_from_input(ability_id: int, current_tick: int) -> LocalAbility
 	if ability_id <= 0:
 		return null
 
-	var ability := AbilityDB.get_ability(ability_id)
+	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
 	if ability == null:
 		return null
 	if ability.target_type == AbilityResource.TargetType.GROUND:
@@ -28,7 +28,7 @@ func try_activate_from_input(ability_id: int, current_tick: int) -> LocalAbility
 	return activate_ability(ability_id, _build_target_spec_from_input(ability), current_tick)
 
 func try_activate_from_hotbar(ability_id: int, current_tick: int) -> Dictionary:
-	var result := {
+	var result: Dictionary = {
 		"accepted": false,
 		"cooldown": 0.0,
 		"request_id": -1
@@ -37,14 +37,38 @@ func try_activate_from_hotbar(ability_id: int, current_tick: int) -> Dictionary:
 	if ability_id <= 0:
 		return result
 
-	var ability := AbilityDB.get_ability(ability_id)
+	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
 	if ability == null:
 		return result
 
 	result.cooldown = _hotbar_button_cooldown(ability)
 
-	var target := _build_target_spec_from_input(ability)
-	var activation_result := activate_ability(ability_id, target, current_tick)
+	var target: AbilityTargetSpec = _build_target_spec_from_input(ability)
+	var activation_result: LocalAbilityRequestResult = activate_ability(ability_id, target, current_tick)
+	result.accepted = activation_result.accepted
+	result.request_id = activation_result.request_id
+	return result
+
+func try_activate_ground_target(
+		ability_id: int,
+		target: AbilityTargetSpec,
+		current_tick: int) -> Dictionary:
+	var result: Dictionary = {
+		"accepted": false,
+		"cooldown": 0.0,
+		"request_id": -1
+	}
+
+	if ability_id <= 0 or target == null or target.kind != AbilityTargetSpec.Kind.GROUND:
+		return result
+
+	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
+	if ability == null or ability.target_type != AbilityResource.TargetType.GROUND:
+		return result
+
+	result.cooldown = _hotbar_button_cooldown(ability)
+
+	var activation_result: LocalAbilityRequestResult = activate_ability(ability_id, target, current_tick)
 	result.accepted = activation_result.accepted
 	result.request_id = activation_result.request_id
 	return result
@@ -164,7 +188,7 @@ func clear_request_tracking(request_id: int) -> void:
 
 
 func get_next_request_id() -> int:
-	var request_id := _next_request_id
+	var request_id: int = _next_request_id
 	_next_request_id += 1
 	return request_id
 
@@ -181,7 +205,7 @@ func _build_target_spec_from_input(ability: AbilityResource) -> AbilityTargetSpe
 		_:
 			if _entity_state == null:
 				return null
-			var target_id := _entity_state.get_target_id()
+			var target_id: int = _entity_state.get_target_id()
 			if target_id > 0:
 				return AbilityTargetSpec.entity(target_id)
 			return null

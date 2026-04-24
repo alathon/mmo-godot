@@ -1,6 +1,8 @@
 class_name GroundTargetingMode
 extends Node
 
+signal target_confirmed(ability_id: int, target: AbilityTargetSpec)
+
 @onready var _camera: Camera3D = $/root/Root/CameraPivot/SpringArm3D/Camera
 @onready var _input_source: LocalInput = %LocalInput
 
@@ -10,8 +12,11 @@ var _ability_id: int = 0
 func activate(ability_id: int) -> void:
 	active = true
 	_ability_id = ability_id
+	print("[CLIENT] Entering ground targeting mode for ability %d" % ability_id)
 
 func deactivate() -> void:
+	if active:
+		print("[CLIENT] Leaving ground targeting mode")
 	active = false
 	_ability_id = 0
 
@@ -31,8 +36,25 @@ func set_input_source(input_source: LocalInput) -> void:
 func capture_primary_click(screen_position: Vector2) -> bool:
 	if not active:
 		return false
-	_input_source.capture_primary_click(screen_position)
+	confirm_at_screen_position(screen_position)
 	return true
+
+func confirm_at_cursor() -> AbilityTargetSpec:
+	if not active:
+		return null
+	return confirm_at_screen_position(get_viewport().get_mouse_position())
+
+func confirm_at_screen_position(screen_position: Vector2) -> AbilityTargetSpec:
+	if not active:
+		return null
+
+	var target: AbilityTargetSpec = _build_ground_target_spec(screen_position)
+	if target == null:
+		print("[CLIENT] Ground targeting did not hit valid ground")
+		return null
+
+	target_confirmed.emit(_ability_id, target)
+	return target
 
 func consume_target_spec(input: Dictionary) -> AbilityTargetSpec:
 	if not active:
@@ -53,16 +75,16 @@ func _build_ground_target_spec(screen_position: Vector2) -> AbilityTargetSpec:
 	return AbilityTargetSpec.ground(ground_position)
 
 func _raycast_ground_position(screen_position: Vector2):
-	var origin := _camera.project_ray_origin(screen_position)
-	var direction := _camera.project_ray_normal(screen_position)
+	var origin: Vector3 = _camera.project_ray_origin(screen_position)
+	var direction: Vector3 = _camera.project_ray_normal(screen_position)
 
-	var query := PhysicsRayQueryParameters3D.create(
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
 		origin,
 		origin + direction * 10000.0
 	)
 	query.collision_mask = 1 << 1 # only layer 2
 
-	var hit := _camera.get_world_3d().direct_space_state.intersect_ray(query)
+	var hit: Dictionary = _camera.get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		return null
 
