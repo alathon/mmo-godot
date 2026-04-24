@@ -87,14 +87,12 @@ func handle_packet(peer_id: int, input: Proto.PlayerInput) -> void:
 			state.first_input_tick = input_tick
 
 
-## Consume buffered inputs for sim_tick. Writes inputs, moving_entities, and
-## kick_peers into ctx.
+## Consume buffered inputs for sim_tick. Writes inputs and kick_peers into ctx.
 func tick(tick: int, ctx: Dictionary) -> void:
 	_last_consumed_tick = tick
 	var players: Dictionary = _zone.players
 	var frozen_peers: Dictionary = _zone._frozen_peers
 	var inputs: Dictionary = {}
-	var moving_entities: Dictionary = {}
 	var kick_peers: Array = []
 
 	var timeout_ticks := int(INPUT_TIMEOUT * Globals.TICK_RATE)
@@ -137,13 +135,6 @@ func tick(tick: int, ctx: Dictionary) -> void:
 			elif not _timing_debug:
 				print("[INPUT] REPLAY input for peer %d at sim_tick=%d idle=%s" % [peer_id, tick, is_idle_replay])
 
-		if (
-			abs(input.get("input_x", 0.0)) > 0.01
-			or abs(input.get("input_z", 0.0)) > 0.01
-			or input.get("jump_pressed", false)
-		):
-			moving_entities[peer_id] = true
-
 		inputs[peer_id] = input
 
 		# Only update last_input from real inputs so that replays preserve
@@ -160,7 +151,6 @@ func tick(tick: int, ctx: Dictionary) -> void:
 				buf.erase(tick_key)
 
 	ctx["inputs"] = inputs
-	ctx["moving_entities"] = moving_entities
 	ctx["kick_peers"] = kick_peers
 
 
