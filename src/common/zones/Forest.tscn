@@ -160,6 +160,7 @@ light_color = Color(0.96445924, 0.613305, 0.18748218, 1)
 data_directory = "res://data/terrain/forest"
 material = ExtResource("1_5el1e")
 assets = ExtResource("2_jla2q")
+layers = 2
 collision_mode = 4
 collision_layer = 2
 collision_mask = 0
