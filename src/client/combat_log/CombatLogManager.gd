@@ -244,14 +244,22 @@ func _entry_from_ability_started(data: AbilityUseStartedGameEventData, event_tic
 	var entity_names: Dictionary = _game_manager.get_entity_names(entity_ids) if _game_manager != null else {}
 	var source_is_local := _is_local_id(source_entity_id)
 	var source_name := _entity_name(entity_names, source_entity_id, source_is_local)
+	var ability_name: String = _ability_name(ability_id)
+	var message: String = "%s %s %s." % [
+		source_name,
+		_verb_for_subject(source_is_local, "use", "uses"),
+		ability_name,
+	]
+	if not _is_instant_ability(ability_id):
+		message = "%s %s casting %s." % [
+			source_name,
+			_verb_for_subject(source_is_local, "start", "starts"),
+			ability_name,
+		]
 	var entry: CombatLogEntry = _new_entry(
 			event_tick,
 			&"cast",
-			"%s %s casting %s." % [
-				source_name,
-				_verb_for_subject(source_is_local, "start", "starts"),
-				_ability_name(ability_id),
-			])
+			message)
 	entry.source_entity_id = source_entity_id
 	entry.target_entity_id = target_entity_id
 	entry.ability_id = ability_id
@@ -527,6 +535,11 @@ func _ability_name(ability_id: int) -> String:
 
 func _ability_name_for_effect(ability_id: int) -> String:
 	return _ability_name(ability_id).to_lower()
+
+
+func _is_instant_ability(ability_id: int) -> bool:
+	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
+	return ability != null and ability.cast_time <= 0.0
 
 
 func _status_name(status_id: int) -> String:

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AbilityResource" format=3]
+
+[ext_resource type="Script" path="res://src/common/ability_definitions/effects/AbilityEffect.gd" id="1_6sfer"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/AbilityResource.gd" id="2_546e4"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/effects/DamageEffect.gd" id="2_vwgc1"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/ValueFormula.gd" id="5_cdij5"]
+[ext_resource type="Texture2D" path="res://assets/abilities/hotbar_icon_shield.png" id="9_tvv5y"]
+
+[sub_resource type="Resource" id="Resource_bj8ij"]
+script = ExtResource("5_cdij5")
+base = 10.0
+
+[sub_resource type="Resource" id="Resource_x5uhx"]
+script = ExtResource("2_vwgc1")
+formula = SubResource("Resource_bj8ij")
+target_narrower = 1
+
+[resource]
+script = ExtResource("2_546e4")
+ability_id = 3
+ability_name = "Shield Bash"
+icon = ExtResource("9_tvv5y")
+hit_type = 0
+variance_profile = 1
+cast_time = 0.0
+cast_lock_time = 0.0
+range = 30.0
+uses_gcd = true
+mana_cost = 0
+effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_x5uhx")])

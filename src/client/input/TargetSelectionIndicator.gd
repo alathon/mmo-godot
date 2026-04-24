@@ -26,12 +26,21 @@ func _on_local_player_spawned(player: Player):
 	_on_target_changed(_entity_state.current_target)
 
 func _on_target_changed(target: Node):
-	var decal_parent := target.get_node_or_null("%Model") as Node3D if target != null else null
+	var decal_parent: Node3D = _get_decal_parent(target)
 	if decal_parent == null:
 		_clear_decal()
 		return
 
 	_show_decal_on(decal_parent)
+
+func _get_decal_parent(target: Node) -> Node3D:
+	if target == null:
+		return null
+	if target is Player:
+		return (target as Player).modelRoot
+	if target is RemoteEntity:
+		return (target as RemoteEntity).model
+	return target.get_node_or_null("Body/Model") as Node3D
 
 func _reparent_decal(parent: Node):
 	if _decal.get_parent() != null:

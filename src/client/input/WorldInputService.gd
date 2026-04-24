@@ -71,6 +71,8 @@ func select_target_by_id(entity_id: int) -> void:
 func select_target(target: Node) -> void:
 	if _local_player == null:
 		return
+	if target == _local_player:
+		target = null
 
 	_local_player.entity_state.set_target(target)
 	var target_id: int = _local_player.entity_state.get_target_id()
@@ -105,18 +107,15 @@ func _pick_target_at_screen_position(screen_position: Vector2) -> Node:
 
 	return _resolve_target_entity(collider as Node)
 
-# TODO: The below sucks, we don't have to crawl up through parents like this.
 func _resolve_target_entity(node: Node) -> Node:
-	return node.owner
-
-	# var current := node
-	# while current != null:
-	# 	if current == _local_player:
-	# 		return null
-	# 	if current.has_node("%EntityState"):
-	# 		return current
-	# 	current = current.get_parent()
-	# return null
+	var current: Node = node
+	while current != null:
+		if current == _local_player:
+			return null
+		if current is Player or current is RemoteEntity:
+			return current
+		current = current.get_parent()
+	return null
 
 
 func _clamp_to_viewport(screen_position: Vector2) -> Vector2:

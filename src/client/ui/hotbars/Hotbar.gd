@@ -42,6 +42,10 @@ func _setup_button_slot_ids() -> void:
 	if btn2 != null:
 		btn2.set_slot_data(HotbarButton.SlotDataType.ABILITY, 2, true)
 
+	var btn3 = _buttons.get(&"hotbar_1_slot_3") as HotbarButton
+	if btn3 != null:
+		btn3.set_slot_data(HotbarButton.SlotDataType.ABILITY, 3, true)
+
 func _setup_button_keybind(slot_id: StringName, button: HotbarButton) -> void:
 	button.clear_keybind()
 	if not InputMap.has_action(slot_id):
