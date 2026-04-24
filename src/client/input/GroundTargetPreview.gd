@@ -4,6 +4,8 @@ extends Node3D
 const DECAL_TEXTURE_PATH: String = "res://assets/effects/target_decal.png"
 const DECAL_HEIGHT: float = 2.0
 const DECAL_LIFT: float = 0.5
+const ROTATION_SPEED: float = 0.6
+const DECAL_TINT: Color = Color(1.0, 0.45, 0.08, 1.0)
 
 var _decal: Decal
 
@@ -15,6 +17,11 @@ func _init() -> void:
 	add_child(_decal)
 
 	visible = false
+
+
+func _process(delta: float) -> void:
+	if visible:
+		_decal.rotate_y(ROTATION_SPEED * delta)
 
 
 func configure(ability: AbilityResource) -> void:
@@ -54,4 +61,5 @@ func _configure_circle(radius: float) -> void:
 
 	var diameter: float = radius * 2.0
 	_decal.texture_albedo = texture
+	_decal.modulate = DECAL_TINT
 	_decal.size = Vector3(diameter, DECAL_HEIGHT, diameter)
