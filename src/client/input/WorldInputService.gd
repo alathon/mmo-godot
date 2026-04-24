@@ -30,6 +30,12 @@ func handle_primary_click(screen_position: Vector2) -> void:
 	select_target_at_screen_position(screen_position)
 
 
+func handle_secondary_click(_screen_position: Vector2) -> void:
+	if _ground_targeting_mode.is_active():
+		_ground_targeting_mode.deactivate()
+		return
+
+
 func select_target_at_screen_position(screen_position: Vector2) -> void:
 	select_target(_pick_target_at_screen_position(screen_position))
 
@@ -44,7 +50,7 @@ func select_target(target: Node) -> void:
 		return
 
 	_local_player.entity_state.set_target(target)
-	var target_id := _local_player.entity_state.get_target_id()
+	var target_id: int = _local_player.entity_state.get_target_id()
 	_api.send_target_select(maxi(target_id, 0))
 
 
@@ -56,17 +62,17 @@ func _pick_target_at_screen_position(screen_position: Vector2) -> Node:
 	if _camera == null:
 		return null
 
-	var origin := _camera.project_ray_origin(screen_position)
-	var direction := _camera.project_ray_normal(screen_position)
+	var origin: Vector3 = _camera.project_ray_origin(screen_position)
+	var direction: Vector3 = _camera.project_ray_normal(screen_position)
 
-	var query := PhysicsRayQueryParameters3D.create(
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
 			origin,
 			origin + direction * 10000.0)
 	query.collision_mask = TARGETABLE_COLLISION_MASK
 	query.collide_with_areas = true
 	query.collide_with_bodies = false
 
-	var hit := _camera.get_world_3d().direct_space_state.intersect_ray(query)
+	var hit: Dictionary = _camera.get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		return null
 
