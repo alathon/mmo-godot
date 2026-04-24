@@ -47,15 +47,15 @@ func evaluate_activation(
 		decision.reject_reason = AbilityConstants.CANCEL_INVALID
 		return decision
 
-	if ability.uses_gcd and ability_state.is_on_gcd():
-		if _in_gcd_queue_window():
+	if ability.uses_gcd and ability_state.is_on_gcd(requested_tick):
+		if _in_gcd_queue_window(requested_tick):
 			decision.outcome = AbilityDecision.Outcome.QUEUED
 			decision.earliest_activate_tick = _get_gcd_ready_tick(requested_tick)
 			return decision
 		decision.reject_reason = AbilityConstants.CANCEL_INVALID
 		return decision
 
-	if ability_state.is_animation_locked():
+	if ability_state.is_animation_locked(requested_tick):
 		decision.reject_reason = AbilityConstants.CANCEL_INVALID
 		return decision
 
@@ -129,6 +129,10 @@ func cancel_current_cast(cancel_reason: int, current_tick: int) -> Array[Ability
 		return []
 
 	var cast := ability_state.current_cast
+	var ability := AbilityDB.get_ability(cast.ability_id)
+	ability_state.rollback_started_timers(ability, current_tick)
+	if ability != null:
+		cooldowns.cancel(ability.get_ability_id(), StringName(ability.cooldown_group))
 	ability_state.clear_cast(cast.request_id)
 	return [
 		AbilityTransition.cast_canceled(
@@ -246,7 +250,8 @@ func can_movement_cancel_current_cast() -> bool:
 
 func can_activate_ability(
 		ability: AbilityResource,
-		target: AbilityTargetSpec) -> AbilityValidationResult:
+		target: AbilityTargetSpec,
+		current_tick: int) -> AbilityValidationResult:
 	if ability == null:
 		return AbilityValidationResult.rejected(&"ability_missing", AbilityConstants.CANCEL_INVALID)
 	if not _passes_common_validation(ability, target):
@@ -255,9 +260,9 @@ func can_activate_ability(
 		return AbilityValidationResult.rejected(&"queue_full", AbilityConstants.CANCEL_INVALID)
 	if ability_state.is_casting():
 		return AbilityValidationResult.rejected(&"already_casting", AbilityConstants.CANCEL_INVALID)
-	if ability.uses_gcd and ability_state.is_on_gcd():
+	if ability.uses_gcd and ability_state.is_on_gcd(current_tick):
 		return AbilityValidationResult.rejected(&"gcd_active", AbilityConstants.CANCEL_INVALID)
-	if ability_state.is_animation_locked():
+	if ability_state.is_animation_locked(current_tick):
 		return AbilityValidationResult.rejected(&"animation_locked", AbilityConstants.CANCEL_INVALID)
 	return AbilityValidationResult.accepted()
 
@@ -312,14 +317,8 @@ func _get_validation_failure_reason(ability: AbilityResource, target: AbilityTar
 	return AbilityConstants.CANCEL_INVALID
 
 
-func _remaining_gcd_ticks() -> int:
-	if ability_state.gcd_remaining <= 0.0:
-		return 0
-	return int(ceil(ability_state.gcd_remaining * float(Globals.TICK_RATE)))
-
-
 func _get_gcd_ready_tick(current_tick: int) -> int:
-	return current_tick + _remaining_gcd_ticks()
+	return maxi(current_tick, ability_state.gcd_end_tick)
 
 
 func _get_cast_queue_ready_tick(ability: AbilityResource, current_tick: int) -> int:
@@ -339,8 +338,12 @@ func _in_cast_queue_window(current_tick: int) -> bool:
 	return remaining_ticks <= int(ceil(float(total_ticks) * AbilityConstants.ABILITY_QUEUE_WINDOW))
 
 
-func _in_gcd_queue_window() -> bool:
-	return ability_state.gcd_remaining <= AbilityConstants.GCD_DURATION * AbilityConstants.ABILITY_QUEUE_WINDOW
+func _in_gcd_queue_window(current_tick: int) -> bool:
+	var queue_window_ticks := int(ceil(
+			AbilityConstants.GCD_DURATION
+			* AbilityConstants.ABILITY_QUEUE_WINDOW
+			* float(Globals.TICK_RATE)))
+	return ability_state.get_gcd_remaining_ticks(current_tick) <= queue_window_ticks
 
 
 func _get_source_entity_id() -> int:

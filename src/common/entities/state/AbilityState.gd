@@ -1,8 +1,8 @@
 class_name AbilityState
 extends Node
 
-var gcd_remaining: float = 0.0
-var anim_lock_remaining: float = 0.0
+var gcd_end_tick: int = 0
+var anim_lock_end_tick: int = 0
 var current_cast: Cast = null
 var current_queue: QueuedRequest = null
 var pending_impacts: Array = []
@@ -32,11 +32,6 @@ class QueuedRequest:
 	var earliest_activate_tick: int = 0
 
 
-func tick_time(delta: float) -> void:
-	gcd_remaining = maxf(0.0, gcd_remaining - delta)
-	anim_lock_remaining = maxf(0.0, anim_lock_remaining - delta)
-
-
 func is_casting() -> bool:
 	return current_cast != null and not current_cast.finished
 
@@ -45,12 +40,36 @@ func has_queued_request() -> bool:
 	return current_queue != null
 
 
-func is_on_gcd() -> bool:
-	return gcd_remaining > 0.0
+func is_on_gcd(current_tick: int) -> bool:
+	return get_gcd_remaining_ticks(current_tick) > 0
 
 
-func is_animation_locked() -> bool:
-	return anim_lock_remaining > 0.0
+func is_animation_locked(current_tick: int) -> bool:
+	return get_anim_lock_remaining_ticks(current_tick) > 0
+
+
+func get_gcd_remaining_ticks(current_tick: int) -> int:
+	return maxi(0, gcd_end_tick - current_tick)
+
+
+func get_anim_lock_remaining_ticks(current_tick: int) -> int:
+	return maxi(0, anim_lock_end_tick - current_tick)
+
+
+func get_gcd_remaining_seconds(current_tick: int) -> float:
+	return float(get_gcd_remaining_ticks(current_tick)) * Globals.TICK_INTERVAL
+
+
+func get_anim_lock_remaining_seconds(current_tick: int) -> float:
+	return float(get_anim_lock_remaining_ticks(current_tick)) * Globals.TICK_INTERVAL
+
+
+func get_gcd_remaining_visual(current_tick: int, tick_factor: float) -> float:
+	return _get_remaining_visual_seconds(gcd_end_tick, current_tick, tick_factor)
+
+
+func get_anim_lock_remaining_visual(current_tick: int, tick_factor: float) -> float:
+	return _get_remaining_visual_seconds(anim_lock_end_tick, current_tick, tick_factor)
 
 
 func start_cast_from_ability(
@@ -78,8 +97,8 @@ func start_cast_from_ability(
 	current_queue = null
 
 	if ability.uses_gcd:
-		gcd_remaining = AbilityConstants.GCD_DURATION
-	anim_lock_remaining = AbilityConstants.ANIMATION_LOCK_DURATION
+		gcd_end_tick = start_tick + _get_ticks(AbilityConstants.GCD_DURATION)
+	anim_lock_end_tick = start_tick + _get_ticks(AbilityConstants.ANIMATION_LOCK_DURATION)
 
 	return current_cast
 
@@ -149,6 +168,14 @@ func queue_request(
 	current_queue = queued
 
 
+func rollback_started_timers(ability: AbilityResource, current_tick: int) -> void:
+	if ability == null or ability.cast_time <= 0.0:
+		return
+	if ability.uses_gcd:
+		gcd_end_tick = mini(gcd_end_tick, current_tick)
+	anim_lock_end_tick = mini(anim_lock_end_tick, current_tick)
+
+
 func clear_cast(request_id: int = 0) -> void:
 	if request_id > 0 and current_cast != null and current_cast.request_id != request_id:
 		return
@@ -207,3 +234,9 @@ func _get_finish_tick(tick: int, ability: AbilityResource) -> int:
 
 func _get_impact_tick(tick: int, ability: AbilityResource) -> int:
 	return _get_finish_tick(tick, ability) + _get_ticks(AbilityConstants.IMPACT_DELAY_DURATION)
+
+
+func _get_remaining_visual_seconds(end_tick: int, current_tick: int, tick_factor: float) -> float:
+	var visual_tick := float(current_tick) + clampf(tick_factor, 0.0, 1.0)
+	var remaining_ticks := maxf(0.0, float(end_tick) - visual_tick)
+	return remaining_ticks * Globals.TICK_INTERVAL

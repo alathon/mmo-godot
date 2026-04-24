@@ -78,7 +78,6 @@ func spend_resources_for(ability: AbilityResource) -> void:
 	_general_stats.mana = maxi(0, _general_stats.mana - ability.mana_cost)
 
 func tick_runtime(delta: float) -> void:
-	_ability_state.tick_time(delta)
 	var cooldowns = get_parent().get_node_or_null("%Cooldowns") if get_parent() != null else null
 	if cooldowns != null and cooldowns.has_method("tick"):
 		cooldowns.tick(delta)
@@ -101,8 +100,14 @@ func on_game_event(event: GameEvent) -> void:
 			_ability_state.mark_impact_emitted(int(event.data.request_id))
 			_ability_state.clear_cast(int(event.data.request_id))
 		GameEvent.Type.ABILITY_USE_CANCELED:
-			_ability_state.clear_cast(int(event.data.request_id))
-			_ability_state.clear_queue(int(event.data.request_id))
+			var canceled = event.data as AbilityUseCanceledGameEventData
+			var canceled_ability := AbilityDB.get_ability(canceled.ability_id)
+			_ability_state.rollback_started_timers(canceled_ability, event.tick)
+			var cooldowns = get_parent().get_node_or_null("%Cooldowns") if get_parent() != null else null
+			if cooldowns != null and canceled_ability != null and cooldowns.has_method("cancel"):
+				cooldowns.cancel(canceled_ability.get_ability_id(), StringName(canceled_ability.cooldown_group))
+			_ability_state.clear_cast(int(canceled.request_id))
+			_ability_state.clear_queue(int(canceled.request_id))
 		GameEvent.Type.COMBAT_STARTED:
 			set_in_combat(true)
 		GameEvent.Type.COMBAT_ENDED:

@@ -21,7 +21,7 @@ func _ready() -> void:
 # PUBLIC
 func get_gcd_remaining() -> float:
 	if _local_player_ability_state != null:
-		return _local_player_ability_state.gcd_remaining
+		return _local_player_ability_state.get_gcd_remaining_visual(NetworkTime.tick, NetworkTime.tick_factor)
 	return 0.0
 
 # SIGNALS
