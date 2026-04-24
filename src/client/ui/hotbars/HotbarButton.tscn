@@ -67,5 +67,5 @@ text = "0.0"
 [node name="Panel" type="Panel" parent="." unique_id=938748214]
 show_behind_parent = true
 layout_mode = 0
-offset_right = 32.0
-offset_bottom = 32.0
+offset_right = 48.0
+offset_bottom = 48.0
