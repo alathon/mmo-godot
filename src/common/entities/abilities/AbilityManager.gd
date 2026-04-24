@@ -6,6 +6,7 @@ extends Node
 @onready var entity: Node = get_parent()
 
 var _target_resolver = null
+const WORLD_GEOMETRY_COLLISION_MASK: int = 1 << 1
 var ability_state: AbilityState:
 	get:
 		return entity_state.ability_state
@@ -307,6 +308,14 @@ func is_selected_target_out_of_range(
 	return not _is_in_range(ability, target, target_entity)
 
 
+func is_selected_target_unusable(
+		ability: AbilityResource,
+		target: AbilityTargetSpec) -> bool:
+	if ability == null or target == null:
+		return false
+	return not is_target_legal(ability, target)
+
+
 func is_target_legal(
 		ability: AbilityResource,
 		target: AbilityTargetSpec) -> bool:
@@ -330,7 +339,7 @@ func is_target_legal(
 	if not target_entity.entity_state.is_alive():
 		return false
 
-	return _is_in_range(ability, target, target_entity)
+	return _passes_entity_target_validation(ability, target, target_entity)
 
 
 func _passes_common_validation(ability: AbilityResource, target: AbilityTargetSpec) -> bool:
@@ -407,12 +416,99 @@ func _is_in_range(ability: AbilityResource, target: AbilityTargetSpec, target_en
 	return source_position.distance_to(_get_entity_position(target_entity)) <= ability.range
 
 
+func _passes_entity_target_validation(
+		ability: AbilityResource,
+		target: AbilityTargetSpec,
+		target_entity: Node) -> bool:
+	if not _is_in_range(ability, target, target_entity):
+		return false
+	if not _requires_facing_and_line_of_sight(ability, target):
+		return true
+	if not _is_facing_target(target_entity):
+		return false
+	return _has_line_of_sight_to_target(target_entity)
+
+
+func _requires_facing_and_line_of_sight(
+		ability: AbilityResource,
+		target: AbilityTargetSpec) -> bool:
+	if ability == null or ability.omnidirectional:
+		return false
+	if target == null or target.kind != AbilityTargetSpec.Kind.ENTITY:
+		return false
+	match ability.target_type:
+		AbilityResource.TargetType.SELF, AbilityResource.TargetType.GROUND:
+			return false
+		_:
+			return true
+
+
+func _is_facing_target(target_entity: Node) -> bool:
+	var forward: Vector3 = _get_entity_forward(entity)
+	if forward == Vector3.ZERO:
+		return true
+
+	var to_target := _get_entity_position(target_entity) - _get_entity_position(entity)
+	to_target.y = 0.0
+	if to_target == Vector3.ZERO:
+		return true
+
+	return forward.dot(to_target.normalized()) >= 0.0
+
+
+func _has_line_of_sight_to_target(target_entity: Node) -> bool:
+	var source_body: Node3D = _get_entity_body(entity)
+	var target_body: Node3D = _get_entity_body(target_entity)
+	if source_body == null or target_body == null:
+		return true
+	if source_body.get_world_3d() == null:
+		return true
+
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+			_get_line_of_sight_point(source_body),
+			_get_line_of_sight_point(target_body))
+	query.collision_mask = WORLD_GEOMETRY_COLLISION_MASK
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+
+	var hit: Dictionary = source_body.get_world_3d().direct_space_state.intersect_ray(query)
+	return hit.is_empty()
+
+
+func _get_entity_forward(target_entity: Node) -> Vector3:
+	var body: Node3D = _get_entity_body(target_entity)
+	if body == null:
+		return Vector3.ZERO
+	var angle: float = body.rotation.y
+	return Vector3(-sin(angle), 0.0, -cos(angle)).normalized()
+
+
+func _get_entity_body(target_entity: Node) -> Node3D:
+	if target_entity == null:
+		return null
+	if target_entity is Node3D:
+		return target_entity as Node3D
+	var body = target_entity.get_node_or_null("%Body")
+	if body is Node3D:
+		return body as Node3D
+	return null
+
+
+func _get_line_of_sight_point(target_entity: Node3D) -> Vector3:
+	if target_entity == null:
+		return Vector3.ZERO
+	return target_entity.global_position + Vector3.UP
+
+
 func _get_entity_position(target_entity: Node) -> Vector3:
 	if target_entity == null:
 		return Vector3.ZERO
+	var body: Node3D = _get_entity_body(target_entity)
+	if body != null:
+		return body.global_position
 	if target_entity is Node3D:
 		return (target_entity as Node3D).global_position
-	return target_entity.body.global_position
+	return Vector3.ZERO
 
 
 func _get_cast_by_request_id(request_id: int):

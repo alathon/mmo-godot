@@ -38,6 +38,7 @@ enum VarianceProfile {
 @export var cast_lock_time: float = -1.0   # seconds of casting before lock engages (cancelable window); <=0 = lock at start
 @export var resolve_lead_ticks: int = 8
 @export var range: float = 0.0
+@export var omnidirectional: bool = false
 @export var uses_gcd: bool = true
 @export var cooldown: float = 0.0          # recharge time per charge
 @export var max_charges: int = 1           # 1 = normal cooldown; >1 = charge-based cooldown

@@ -97,7 +97,7 @@ func is_hotbar_ability_unavailable(ability_id: int) -> bool:
 	if target == null:
 		return false
 
-	return _ability_manager.is_selected_target_out_of_range(ability, target)
+	return _ability_manager.is_selected_target_unusable(ability, target)
 
 func _hotbar_button_cooldown(ability: AbilityResource) -> float:
 	if ability != null and ability.cooldown > 0.0:
