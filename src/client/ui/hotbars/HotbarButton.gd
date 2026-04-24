@@ -48,6 +48,10 @@ func bind_key(input_key: InputEventKey, display_text: String) -> void:
 	shortcut = Shortcut.new()
 	shortcut.events = [input_key]
 
+func clear_keybind() -> void:
+	key.text = ""
+	shortcut = null
+
 func set_slot_data(slot_data_type: SlotDataType, slot_data: Variant, uses_gcd: bool) -> void:
 	self.slot_data_type = slot_data_type
 	self.slot_data = slot_data
@@ -101,11 +105,11 @@ func _get_icon_for_slot() -> Texture2D:
 	if slot_data_type != SlotDataType.ABILITY:
 		return null
 
-	var ability_id := int(slot_data)
+	var ability_id: int = int(slot_data)
 	if ability_id <= 0:
 		return null
 
-	var ability := AbilityDB.get_ability(ability_id)
+	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
 	if ability == null:
 		return null
 

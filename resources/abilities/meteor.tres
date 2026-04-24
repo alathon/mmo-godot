@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="AbilityResource" format=3]
+
+[ext_resource type="Script" path="res://src/common/ability_definitions/effects/AbilityEffect.gd" id="1_6sfer"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/ConditionalEffect.gd" id="1_sosh0"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/AbilityResource.gd" id="2_546e4"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/effects/DamageEffect.gd" id="2_vwgc1"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/conditions/ConditionResource.gd" id="3_bj8ij"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/ValueFormula.gd" id="5_cdij5"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/effects/ApplyStatusEffect.gd" id="7_cdij5"]
+[ext_resource type="Script" path="res://src/common/ability_definitions/StatusResource.gd" id="8_tvv5y"]
+[ext_resource type="Texture2D" path="res://assets/abilities/hotbar_icon_fire.png" id="9_tvv5y"]
+
+[sub_resource type="Resource" id="Resource_tvv5y"]
+script = ExtResource("3_bj8ij")
+
+[sub_resource type="Resource" id="Resource_8aqol"]
+script = ExtResource("1_sosh0")
+condition = SubResource("Resource_tvv5y")
+
+[sub_resource type="Resource" id="Resource_bj8ij"]
+script = ExtResource("5_cdij5")
+base = 10.0
+
+[sub_resource type="Resource" id="Resource_x5uhx"]
+script = ExtResource("2_vwgc1")
+formula = SubResource("Resource_bj8ij")
+target_narrower = 1
+
+[sub_resource type="Resource" id="Resource_qbf3x"]
+script = ExtResource("8_tvv5y")
+status_id = 1
+status_name = "TestBuff"
+
+[sub_resource type="Resource" id="Resource_pk5yj"]
+script = ExtResource("7_cdij5")
+status = SubResource("Resource_qbf3x")
+application_phase = 1
+
+[resource]
+script = ExtResource("2_546e4")
+ability_id = 2
+ability_name = "Meteor"
+icon = ExtResource("9_tvv5y")
+variance_profile = 1
+target_type = 4
+cast_time = 1.5
+cast_lock_time = 1.0
+range = 30.0
+mana_cost = 5
+effects = Array[ExtResource("1_6sfer")]([SubResource("Resource_x5uhx"), SubResource("Resource_pk5yj")])
+conditional_effects = Array[ExtResource("1_sosh0")]([SubResource("Resource_8aqol")])
+aoe_shape = 1
+aoe_radius = 6.0
