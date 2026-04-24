@@ -77,7 +77,6 @@ func _on_ability_use_canceled(event: GameEvent):
 
 	var btn = _request_to_hotbar_button.get(data.request_id)
 	if btn == null:
-		push_error("UIRoot._request_to_hotbar_button has no entry for request %s!" % data.request_id)
 		return
 
 	btn.set_cooldown_amount(0.0)
@@ -86,7 +85,6 @@ func _on_ability_use_canceled(event: GameEvent):
 func _on_ability_use_impact(event: GameEvent):
 	var btn = _request_to_hotbar_button.get(event.data.request_id)
 	if btn == null:
-		push_error("UIRoot._request_to_hotbar_button has no entry for request %s!" % event.data.request_id)
 		return
 	_request_to_hotbar_button.erase(event.data.request_id)
 
