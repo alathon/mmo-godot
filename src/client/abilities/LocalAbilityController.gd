@@ -73,6 +73,12 @@ func try_activate_ground_target(
 	result.request_id = activation_result.request_id
 	return result
 
+func can_begin_ground_targeting(ability_id: int, current_tick: int) -> AbilityValidationResult:
+	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
+	if ability == null or ability.target_type != AbilityResource.TargetType.GROUND:
+		return AbilityValidationResult.rejected(&"ability_missing", AbilityConstants.CANCEL_INVALID)
+	return _ability_manager.can_begin_targeting_ability(ability, current_tick)
+
 func _hotbar_button_cooldown(ability: AbilityResource) -> float:
 	if ability != null and ability.cooldown > 0.0:
 		return ability.cooldown

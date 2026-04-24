@@ -92,7 +92,9 @@ func _activate_hotbar_slot(button: HotbarButton) -> Dictionary:
 			return _activate_ground_targeted_ability(ability_id, target, button)
 
 		_ground_targeting_button = button
-		_ground_targeting_mode.activate(ability_id)
+		if not _ground_targeting_mode.activate(ability_id):
+			_ground_targeting_button = null
+			return { "accepted": false }
 		return {
 			"accepted": true,
 			"cooldown": 0.0,

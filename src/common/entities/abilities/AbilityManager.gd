@@ -267,6 +267,26 @@ func can_activate_ability(
 	return AbilityValidationResult.accepted()
 
 
+func can_begin_targeting_ability(
+		ability: AbilityResource,
+		current_tick: int) -> AbilityValidationResult:
+	if ability == null:
+		return AbilityValidationResult.rejected(&"ability_missing", AbilityConstants.CANCEL_INVALID)
+	if not cooldowns.is_ready(ability.get_ability_id(), StringName(ability.cooldown_group)):
+		return AbilityValidationResult.rejected(&"cooldown_active", AbilityConstants.CANCEL_INVALID)
+	if not entity_state.has_resources_for(ability):
+		return AbilityValidationResult.rejected(&"insufficient_resources", AbilityConstants.CANCEL_INSUFFICIENT_RESOURCES)
+	if ability_state.current_queue != null:
+		return AbilityValidationResult.rejected(&"queue_full", AbilityConstants.CANCEL_INVALID)
+	if ability_state.is_casting():
+		return AbilityValidationResult.rejected(&"already_casting", AbilityConstants.CANCEL_INVALID)
+	if ability.uses_gcd and ability_state.is_on_gcd(current_tick):
+		return AbilityValidationResult.rejected(&"gcd_active", AbilityConstants.CANCEL_INVALID)
+	if ability_state.is_animation_locked(current_tick):
+		return AbilityValidationResult.rejected(&"animation_locked", AbilityConstants.CANCEL_INVALID)
+	return AbilityValidationResult.accepted()
+
+
 func is_target_legal(
 		ability: AbilityResource,
 		target: AbilityTargetSpec) -> bool:

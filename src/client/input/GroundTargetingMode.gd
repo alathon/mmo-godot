@@ -6,14 +6,17 @@ signal target_confirmed(ability_id: int, target: AbilityTargetSpec)
 @onready var _camera: Camera3D = $/root/Root/CameraPivot/SpringArm3D/Camera
 @onready var _input_source: LocalInput = %LocalInput
 @onready var _world_input_service: WorldInputService = %WorldInputService
+@onready var _game_manager: GameManager = %GameManager
 
 var active: bool = false
 var _ability_id: int = 0
 var _preview: GroundTargetPreview = null
+var _local_ability_controller: LocalAbilityController = null
 
 
 func _ready() -> void:
 	_ensure_preview()
+	_game_manager.local_player_spawned.connect(_on_local_player_spawned)
 
 
 func _process(_delta: float) -> void:
@@ -22,11 +25,14 @@ func _process(_delta: float) -> void:
 
 	_update_preview(_get_targeting_screen_position())
 
-func activate(ability_id: int) -> void:
+func activate(ability_id: int) -> bool:
+	if not _can_begin_ground_targeting(ability_id):
+		return false
 	active = true
 	_ability_id = ability_id
 	_configure_preview(ability_id)
 	print("[CLIENT] Entering ground targeting mode for ability %d" % ability_id)
+	return true
 
 func deactivate() -> void:
 	if active:
@@ -48,6 +54,9 @@ func get_ability_id() -> int:
 
 func set_input_source(input_source: LocalInput) -> void:
 	_input_source = input_source
+
+func _on_local_player_spawned(player: Player) -> void:
+	_local_ability_controller = player.local_ability_controller
 
 func capture_primary_click(screen_position: Vector2) -> bool:
 	if not active:
@@ -118,6 +127,15 @@ func _configure_preview(ability_id: int) -> void:
 	var ability: AbilityResource = AbilityDB.get_ability(ability_id)
 	_preview.configure(ability)
 	_update_preview(_get_targeting_screen_position())
+
+
+func _can_begin_ground_targeting(ability_id: int) -> bool:
+	if _local_ability_controller == null:
+		return false
+	var validation: AbilityValidationResult = _local_ability_controller.can_begin_ground_targeting(
+			ability_id,
+			NetworkTime.tick)
+	return validation.ok
 
 
 func _update_preview(screen_position: Vector2) -> void:
